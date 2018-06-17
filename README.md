@@ -9,7 +9,8 @@ Framework contains a set of components for helping in building this kind of appl
 - Request manager
 - Controller,
 - Action,
-- Confing.
+- Config,
+- Components.
 
 These components are working together.
 
