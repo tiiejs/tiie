@@ -21,6 +21,11 @@
     "webpack-dev-server": "^2.7.1",
     "webpack-stream": "^4.0.0"
   },
+  "dependencies": {
+      "dot": "^1.1.2",
+      "jquery": "^3.2.1",
+      "select2": "^4.0.6-rc.1"
+  },
   "author": "bobryk.pawel@gmail.com",
   "license": "MIT"
 }
