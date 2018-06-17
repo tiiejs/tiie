@@ -1,0 +1,167 @@
+@import 'topi-variables.scss';
+
+/** margin **/
+.topi--margin-top-10 {
+    margin-top : 10px;
+}
+
+.topi--margin-bottom-10 {
+    margin-bottom : 10px;
+}
+
+.topi--margin-left-10 {
+    margin-left : 10px;
+}
+
+.topi--margin-right-10 {
+    margin-right : 10px;
+}
+
+/** padding **/
+.topi--padding-bottom-10 {
+    padding-bottom: 10px;
+}
+
+.topi--padding-top-10 {
+    padding-top: 10px;
+}
+
+.topi--padding-left-10 {
+    padding-left: 10px;
+}
+
+.topi--padding-right-10 {
+    padding-right: 10px;
+}
+
+.topi--padding-10 {
+    padding: 10px;
+}
+
+/** space **/
+.topi--space-10 {
+    margin: 10px;
+    padding: 10px;
+}
+
+.topi--space-horizontally-10 {
+    padding-left: 10px;
+    padding-right: 10px;
+
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.topi--space-vertical-10 {
+    padding-top: 10px;
+    padding-bottom: 10px;
+
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.topi--space-bottom-10 {
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.topi--space-right-10 {
+    padding-right: 10px;
+    margin-right: 10px;
+}
+
+/** border **/
+.topi--border-top-1--primary {
+    border-top: 1px $topi-color-primary solid;
+}
+
+.topi--border-top-2--primary {
+    border-top: 2px $topi-color-primary solid;
+}
+
+.topi--border-top-3--primary {
+    border-top: 3px $topi-color-primary solid;
+}
+
+.topi--border-1 {
+    border : 1px #ededed solid;
+}
+
+.topi--border-top-1 {
+    border-top : 1px #cacaca solid;
+}
+
+.topi--border-bottom-1 {
+    border-bottom : 1px #cacaca solid;
+}
+
+.topi--border-left-1 {
+    border-left : 1px #cacaca solid;
+}
+
+.topi--border-right-1 {
+    border-right : 1px #cacaca solid;
+}
+
+.topi--border-bottom-dotted-1 {
+    border-bottom : 1px #cacaca dotted;
+}
+
+/** positioning **/
+.topi--text-align-center {
+    text-align: center;
+}
+
+.topi--text-align-left {
+    text-align: left;
+}
+
+.topi--text-align-right {
+    text-align: right;
+}
+
+.topi--align-items-center {
+    align-items: center;
+}
+
+/** width **/
+.topi--width-100 {
+    width: 100%;
+}
+
+.topi--height-100 {
+    height: 100%;
+}
+
+/** background **/
+.topi--background-color-second {
+    background-color: white;
+}
+
+.topi--border-top--primary {
+    border-top: 1px;
+}
+
+/** hover **/
+%topi--hover:hover {
+    cursor: pointer;
+}
+
+.topi--hover:hover {
+    @extend %topi--hover:hover;
+}
+
+/** link **/
+.topi--link {
+
+}
+
+.topi--link:hover{
+
+}
+
+/** selected **/
+.topi--selected {
+    font-weight: bold;
+}
+

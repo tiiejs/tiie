@@ -1,0 +1,32 @@
+%topi-section {
+    border: 1px #EBEFF2 solid;
+    padding: 10px;
+    font-size: 12px;
+
+    .__head {
+        .__title {
+            font-size: 17px;
+            font-weight: bold;
+        }
+    }
+
+    .__body {
+    }
+
+    .__foot {
+    }
+}
+
+.topi-section {
+    @extend %topi-section;
+}
+
+// brand
+// .topi-section--brand {
+//     @extend %topi-section;
+//
+//     .-head {
+//         border-bottom: 1px #006be5 solid;
+//     }
+// }
+

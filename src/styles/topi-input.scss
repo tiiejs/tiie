@@ -1,0 +1,10 @@
+.topi-input {
+    padding: 5px;
+    border : 1px #D6DBDF solid;
+}
+
+.topi-input.is-error {
+    background-color: #fbeaea;
+    border: 1px red solid;
+    color: red;
+}
