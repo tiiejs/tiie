@@ -96,17 +96,17 @@ class TopiObject {
     }
 
     /**
-     * Ustawia wartość w obiekcie.
+     * Set value of attribute for object. Given value is always cloned.
+     *
+     * @param {string} name Name of attribute. Name can use docs notation. For
+     * example this.set("value", 12) or this.set("value.async", 1).
+     *
+     * @param {mixed} value
+     * @param {object} emitparams
      */
     set(name, value, emitparams = {}) {
-        let p = this.private(cn),
-            pointer = p.data,
-            length,
-            t,
-            splited
-        ;
+        let p = this.private(cn);
 
-        // Wartości są zawsze kolonowane
         value = clone(value);
 
         // Czy wartość ma być ustawiona, bez emitowania zdarzeń.
@@ -122,25 +122,9 @@ class TopiObject {
         if (typeof name == 'object') {
             // todo Ustawianie wielu wartości za pomoca jednego obiektu.
         }else if(typeof name == 'string') {
-            splited = name.split('.');
-
-            if (splited.length > 1) {
-                while(splited.length > 1){
-                    t = splited.shift();
-
-                    if (pointer[t] === undefined) {
-                        pointer[t] = {};
-                    }
-
-                    pointer = pointer[t];
-                }
-            }else{
-                t = splited[0];
-            }
-
-            return this.__setValue(pointer, t, value, emitparams);
+            return this.__setValue(p.data, name, value, emitparams);
         }else{
-            throw("Unsuported params");
+            this.error("Unsuported params");
         }
     }
 
@@ -190,13 +174,14 @@ class TopiObject {
      * @return {integer} 0 lub 1
      */
     is(name) {
-
         return 0;
     }
 
     data(params = {}) {
         let p = this.private(cn);
 
+        // todo clone to reference
+        // Zmienic nazwe parametru clone na reference
         params.clone = params.clone === undefined ? 1 : params.clone;
         params.data = params.data === undefined ? 1 : params.data;
 
@@ -230,26 +215,26 @@ class TopiObject {
         }
 
         // split name
-        splited = name.split('.');
+        // splited = name.split('.');
 
-        while(splited.length > 1){
-            t = splited.shift();
+        // while(splited.length > 1){
+        //     t = splited.shift();
 
-            if (pointer[t] === undefined) {
-                return value;
-            }
+        //     if (pointer[t] === undefined) {
+        //         return value;
+        //     }
 
-            pointer = pointer[t];
-        }
+        //     pointer = pointer[t];
+        // }
 
-        if (pointer[splited] === undefined) {
+        if (pointer[name] === undefined) {
             return value;
         }
 
         if (params.clone) {
-            return clone(pointer[splited], params);
+            return clone(pointer[name], params);
         }else{
-            return pointer[splited];
+            return pointer[name];
         }
     }
 
@@ -432,6 +417,8 @@ class TopiObject {
      * @param {string|number|function} name
      */
     off(name) {
+        let p = this.private(cn);
+
         switch (typeof name) {
             case 'undefined':
                 p.events = {};
@@ -453,7 +440,7 @@ class TopiObject {
 
                 return this;
             default :
-                throw("Unsuported type of off.");
+                this.error("Unsuported params");
         }
     }
 
