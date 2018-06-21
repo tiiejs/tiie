@@ -1,6 +1,5 @@
 import TopiObject from 'Topi/Object';
-import View from 'Topi/View';
-import ViewDialog from 'Topi/Dialog/Views/Dialog'
+import ViewDialog from 'Topi/Dialog/Views/Dialog';
 
 const cn = 'Dialog';
 class Dialog extends TopiObject {

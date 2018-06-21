@@ -1,5 +1,3 @@
-import TopiObject from 'Topi/Object';
-
 import clone from 'Topi/Utils/clone';
 
 // merge({

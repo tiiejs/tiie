@@ -17,7 +17,9 @@ let components = {
             app = components.get('@app')
         ;
 
-        router.routes(config.get('router.routes', []).map((route) => {
+        let routes = config.get("router").routes;
+
+        router.routes(routes.map((route) => {
             if (route.execute === undefined) {
                 if (route.controllerClass === undefined || route.actionClass === undefined) {
                     throw(`Route needs to be defined controllerClass and actionClass`);
@@ -47,8 +49,11 @@ class App extends TopiObject {
             target,
         });
 
+        let componentsConfig = p.config.get("components");
+
         // components
-        components = merge(components, p.config.get('components.components', {}), {data : 0});
+        components = merge(components, componentsConfig.components);
+
         components = new Components(components);
 
         components.set('@config', p.config);
