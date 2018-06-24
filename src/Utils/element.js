@@ -45,11 +45,15 @@
     let jqueryHtml = jQuery.fn.html;
 
     jQuery.fn.html = function(value) {
-        let result = jqueryHtml.call(this, value);
+        if (value == undefined) {
+            return jqueryHtml.call(this);
+        }else{
+            let result = jqueryHtml.call(this, value);
 
-        element.reindex(this[0]);
+            element.reindex(this[0]);
 
-        return result;
+            return result;
+        }
     };
 
     // todo Zastąpić metodę content metodą html
