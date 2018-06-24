@@ -1,5 +1,16 @@
 function decode(format, raw) {
-    switch (format) {
+    let contentType = null;
+    const splited = format.split(';');
+
+    if (splited.length > 1) {
+        contentType = splited[0];
+    }else{
+        contentType = splited[0];
+    }
+
+    // todo Create supports for other formats and charset
+
+    switch (contentType) {
         case "text/html" :
         case "plain/text" :
             return raw;

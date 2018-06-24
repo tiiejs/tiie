@@ -62,12 +62,17 @@ class Api extends TopiObject {
         });
     }
 
+    /**
+     * Return URL of api.
+     *
+     * @return {string}
+     */
     url() {
         return this.private(cn).url;
     }
 
     /**
-     * Zwraca obiekt Endpoint wraz z ustawionym adrese
+     * Return defined Endpoint.
      *
      * @param {string} urn
      * @return Endpoint
@@ -78,6 +83,13 @@ class Api extends TopiObject {
         return new Endpoint(this, urn);
     }
 
+    /**
+     * Bind value.
+     *
+     * @param {string} name
+     * @param {string} value
+     * @return this
+     */
     bind(name, value) {
         let p = this.private(cn);
 
@@ -157,6 +169,12 @@ class Api extends TopiObject {
         return queue;
     }
 
+    /**
+     * Create request.
+     *
+     * @param {function} creator
+     * @return Request
+     */
     request(creator) {
         let p = this.private(cn),
             request = new Request(this)
