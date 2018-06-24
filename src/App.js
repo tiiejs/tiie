@@ -3,6 +3,7 @@ import Components from "Topi/Components";
 import Config from "Topi/Config";
 import Dialog from "Topi/Dialog/Dialog";
 import Router from "Topi/Router";
+import UtilsArray from 'Topi/Utils/Array';
 
 import global from "Topi/global";
 import merge from "Topi/Utils/merge";
@@ -10,6 +11,9 @@ import merge from "Topi/Utils/merge";
 let components = {
     '@dialog' : function(components, params = {}) {
         return new Dialog();
+    },
+    '@utils.array' : function(components, params = {}) {
+        return new UtilsArray();
     },
     '@router' : function(components, params = {}) {
         let router = new Router(),
