@@ -1,17 +1,22 @@
+import View from 'View';
+
 export default function(body) {
-    // describe('retries', function() {
-    //     // Retry all tests in this suite up to 4 times
-    //     this.retries(4);
+    describe('View', function() {
+        it('Simple view', function () {
+            let view = new View(`
+                <div>
+                    <div name="name">foo</div>
+                    <div name="lastName">boo</div>
+                </div>
+            `);
 
-    //     beforeEach(function () {
-    //         browser.get('http://www.yahoo.com');
-    //     });
+            view
+                .target(body.element())
+                .render()
+            ;
 
-    //     it('should succeed on the 3rd try', function () {
-    //         // Specify this test to only retry up to 2 times
-    //         this.retries(2);
-
-    //         window.expect($('.foo').isDisplayed()).to.eventually.be.true;
-    //     });
-    // });
+            expect(view.element("name").html()).to.be.equal('foo');
+            expect(view.element("lastName").html()).to.be.equal('boo');
+        });
+    });
 };

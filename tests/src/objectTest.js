@@ -3,7 +3,6 @@ import expect from 'expect.js';
 
 export default function(body) {
     describe('Object', function() {
-
         describe('Setting and getting', function() {
             it('self reference', function () {
                 let object = new TopiObject();

@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = 4);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -68,57 +68,501 @@
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Body__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_objectTest__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Utils_same__ = __webpack_require__(16);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__ = __webpack_require__(17);
 
 
-// todo Body to Document
-const body = new __WEBPACK_IMPORTED_MODULE_0_Body__["a" /* default */]();
 
-// import viewTest from 'viewTest';
-// viewTest(body);
+let uniqueId = 0,
+    components = null
+;
 
+/**
+ * EventsQueue
+ */
+class EventsQueue {
 
-Object(__WEBPACK_IMPORTED_MODULE_1_objectTest__["a" /* default */])(body);
+    constructor() {
+        this.queue = [];
+        this.processing = false;
+    }
+
+    add(callback, event = {}, params = {}) {
+        this.queue.push({
+            callback,
+            event,
+            params,
+        });
+
+        this._process();
+    }
+
+    _process() {
+        if (this.processing) {
+            return;
+        }
+
+        this.processing = true;
+
+        let event;
+
+        while(this.queue.length) {
+            event = this.queue.shift();
+            event.callback.call(window, event.event, event.params);
+        }
+
+        this.processing = false;
+    }
+}
+
+let eventsQueue = new EventsQueue();
+
+/**
+ * TopiObject
+ */
+const cn = 'TopiObject';
+class TopiObject {
+
+    constructor(data = {}) {
+        let p = this.private(cn, {
+            // Eventy
+            events : {},
+
+            // Dane obiektu
+            data,
+        });
+    }
+
+    /**
+     * Tworzy klon obiektu.
+     */
+    clone() {
+
+    }
+
+    warn(message) {
+        console.warn(message);
+
+        return this;
+    }
+
+    error(error) {
+        let p = this.private(cn),
+            router = this.component('@router')
+        ;
+
+        router.forward('@error', {error});
+
+        return this;
+    }
+
+    log(message, type = 'log') {
+        switch (type) {
+            case 'error':
+                return this.error(message);
+            default:
+                console.warn(type, message);
+        }
+
+        return this;
+    }
+
+    /**
+     * Set value of attribute for object. Given value is always cloned.
+     *
+     * @param {string} name Name of attribute. Name can use docs notation. For
+     * example this.set("value", 12) or this.set("value.async", 1).
+     *
+     * @param {mixed} value
+     * @param {object} emitparams
+     */
+    set(name, value, emitparams = {}) {
+        let p = this.private(cn);
+
+        value = Object(__WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__["a" /* default */])(value);
+
+        // Czy wartość ma być ustawiona, bez emitowania zdarzeń.
+        emitparams.silently = emitparams.silently === undefined ? 0 : 1;
+
+        if (name[0] == '-') {
+            // Skrócona metoda ustawiania wartości, bez emitowania
+            // this.set('-name', "Pawel")
+            emitparams.silently = 1;
+            name = name.substr(1);
+        }
+
+        if (typeof name == 'object') {
+            // todo Ustawianie wielu wartości za pomoca jednego obiektu.
+        }else if(typeof name == 'string') {
+            return this.__setValue(p.data, name, value, emitparams);
+        }else{
+            this.error("Unsuported params");
+        }
+    }
+
+    /**
+     * Ustawienie wartości w obiekcie, wraz z emitowaniem eventów.
+     *
+     * @param {object} target
+     * @param {string} name
+     * @param {*} value
+     * @param {object} emitparams
+     * @return this
+     */
+    __setValue(target, name, value, emitparams = {}) {
+        let p = this.private(cn);
+
+        if (target[name] === undefined) {
+            target[name] = value;
+
+            this.emit(`${name}:init`, {}, emitparams);
+            this.emit(`${name}:change`, {
+                previous : undefined
+            }, emitparams);
+
+        }else{
+            if (emitparams.silently) {
+                target[name] = value;
+            }else{
+                if (!Object(__WEBPACK_IMPORTED_MODULE_0_Topi_Utils_same__["a" /* default */])(target[name], value)) {
+                    let previous = target[name];
+
+                    target[name] = value;
+
+                    this.emit(`${name}:change`, {
+                        previous
+                    }, emitparams);
+                }
+            }
+        }
+
+        return this;
+    }
+
+    /**
+     * Zwraca informację czy obiekt spełnia podane kryteriu
+     *
+     * @param {string} name
+     * @return {integer} 0 lub 1
+     */
+    is(name) {
+        return 0;
+    }
+
+    data(params = {}) {
+        let p = this.private(cn);
+
+        // todo clone to reference
+        // Zmienic nazwe parametru clone na reference
+        params.clone = params.clone === undefined ? 1 : params.clone;
+        params.data = params.data === undefined ? 1 : params.data;
+
+        if (params.clone) {
+            return Object(__WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__["a" /* default */])(p.data, params);
+        }else{
+            return p.data;
+        }
+    }
+
+    get(name, value = null, params = {}) {
+        let p = this.private(cn),
+            pointer = p.data,
+            i,
+            length,
+            t,
+            splited
+        ;
+
+        // default params
+        params.clone = params.clone === undefined ? 1 : params.clone;
+        params.data = params.data === undefined ? 1 : params.data;
+
+        if (name[0] == '&') {
+            params.clone = 0;
+
+            name = name.substring(1);
+        }else if(name[0] == '*') {
+            params.data = 0;
+            name = name.substring(1);
+        }
+
+        // split name
+        // splited = name.split('.');
+
+        // while(splited.length > 1){
+        //     t = splited.shift();
+
+        //     if (pointer[t] === undefined) {
+        //         return value;
+        //     }
+
+        //     pointer = pointer[t];
+        // }
+
+        if (pointer[name] === undefined) {
+            return value;
+        }
+
+        if (params.clone) {
+            return Object(__WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__["a" /* default */])(pointer[name], params);
+        }else{
+            return pointer[name];
+        }
+    }
+
+    /**
+     * Return private scope for object.
+     *
+     * this.private("App") - return private scope for App
+     * let p = this.private("App", {}) - init private scope for App, and return
+     * the
+     * this.private("App", "name") - return value of name attribute at App
+     * private scope.
+     *
+     * When private scope is inited like this
+     *     this.private("View", {
+     *         domain : "www.test.pl",
+     *         name : this.prepareName()
+     *     });
+     *
+     * Inited values can not be generated by other methods wich use private
+     * scope. At this case, this should be do like this.
+     *     let p this.private("View", {
+     *         domain : "www.test.pl",
+     *         name : this.prepareName()
+     *     });
+     *
+     *     p.name = this.prepareName();
+     *
+     *
+     * @param {string} id
+     * @param {string} attr
+     * @param {mixed} value
+     * @return {mixed}
+     */
+    private(id, attr, value){
+        if (!pscope.has(this)) {
+            // Inicjuje prywatną przestrzeń dla obiektu
+            pscope.set(this, {});
+        }
+
+        if (pscope.get(this)[id] === undefined) {
+            // Nie ma prywatnej przestrzeni dla ID
+
+            if (attr === undefined) {
+                pscope.get(this)[id] = {};
+            }else{
+                // Sytuacja w której podane są wartości do zainicjowania
+                pscope.get(this)[id] = attr;
+            }
+
+            return pscope.get(this)[id];
+        }
+
+        if (attr === undefined) {
+            // Zwraca całą prywatną przestrzeń
+            return pscope.get(this)[id];
+        }else{
+            if (typeof attr == 'string') {
+                if (value === undefined) {
+                    // Zwracam wartość podanego argumentu
+                    return pscope.get(this)[id][attr];
+                }else{
+                    // Ustawiam nową wartość
+                    pscope.get(this)[id][attr] = value;
+
+                    return this;
+                }
+            }
+
+            this.log("Wrong private call", "warn");
+        }
+
+        this.log("Wrong private call", "warn");
+    }
+
+    /**
+     * Register event listener of specific event.
+     *
+     * @param {string} name Na of event. For example button.submit:click.
+     * @param {string} callback Function to call.
+     * @param {string} group Grouo of owner. It can be any string. We recoment
+     * use this.id() of object.
+     *
+     * @return $this
+     */
+    on(name, callback, group) {
+        let p = this.private(cn),
+            i
+        ;
+
+        if (Array.isArray(name)) {
+            for (i in name) {
+                this.on(name[i], callback, group);
+            }
+
+            return this;
+        }
+
+        if (p.events[name] === undefined) {
+            p.events[name] = [];
+        }
+
+        p.events[name].push({
+            name,
+            callback,
+            group
+        });
+
+        return this;
+    }
+
+    id() {
+        let p = this.private(cn);
+
+        if (p.id === undefined) {
+            p.id = uniqueId++;
+        }
+
+        return p.id;
+    }
+
+    /**
+     * Emituje zdarzenie.
+     *
+     * @param {string} name - Name of event.
+     * @param {Object} params - Params which will be send listener.
+     * @param {Object} emitparams - Options for emit.
+     */
+    emit(name, params = {}, emitparams = {}) {
+        let p = this.private(cn),
+            call = [],
+            event = {},
+            i,
+            j
+        ;
+
+        event.this = this;
+        event.name = name;
+
+        emitparams.ommit = emitparams.ommit === undefined ? null : emitparams.ommit;
+
+        name = name.split(':');
+
+        if (name.length == 1) {
+            call.push(name[0]);
+        }else if(name.length == 2){
+            if (name[0] == '') {
+                call.push(`:${name[1]}`);
+            }else{
+                call.push(`${name[0]}:${name[1]}`);
+                call.push(`${name[0]}`);
+                call.push(`:${name[1]}`);
+            }
+        }else{
+            throw("Unsuported event format");
+        }
+
+        // eventy sa wywolywane od tylu
+        for (i = call.length -1; i >= 0; i--) {
+            if (p.events[call[i]] === undefined) {
+                continue;
+            }
+
+            for (j in p.events[call[i]]) {
+                if (emitparams.ommit != null) {
+                    if (p.events[call[i]][j].group == emitparams.ommit) {
+                        continue;
+                    }
+                }
+
+                eventsQueue.add(p.events[call[i]][j].callback, event, params);
+            }
+        }
+
+        return this;
+    }
+
+    /**
+     * Delete event listeners.
+     *
+     * @param {string|number|function} name
+     */
+    off(name) {
+        let p = this.private(cn);
+
+        switch (typeof name) {
+            case 'undefined':
+                p.events = {};
+
+                return this;
+            case 'string':
+            case 'number':
+                for (let event in p.events) {
+                    let events = [];
+
+                    for (let i in p.events[event]) {
+                        if (p.events[event][i].group != name) {
+                            events.push(p.events[event][i]);
+                        }
+                    }
+
+                    p.events[event] = events;
+                }
+
+                return this;
+            default :
+                this.error("Unsuported params");
+        }
+    }
+
+    component(name, params = {}) {
+        return components.get(name, params);
+    }
+
+    components() {
+        return components;
+    }
+
+    // this.trigger('selectRow:success', {
+
+    // });
+
+    // this.on('selectRow#app', funcRef)
+    // this.on('selectRow.app', funcRef)
+
+    // this.off();
+    // this.off(funcRef);
+
+    // this.off('.app');
+    // this.off('#app');
+    // this.off('selectRow');
+
+    // this.on('saved:success')
+    // this.on('saved:faile')
+
+    // widget.on('event', function(){}, id);
+
+    // widget.off(id);
+    // widget.off('change.name');
+    // widget.off(function(){});
+
+    // Events
+}
+
+TopiObject.components = function(p) {
+    components = p
+}
+
+if (window.pscope === undefined) {
+    window.pscope = new WeakMap();
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (TopiObject);
 
 
 /***/ }),
 /* 1 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_jquery__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_jquery___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_jquery__);
-
-
-class Body {
-    constructor() {
-        const  p = this.private = {};
-
-        p.body = __WEBPACK_IMPORTED_MODULE_0_jquery___default()("<div></div>");
-
-        __WEBPACK_IMPORTED_MODULE_0_jquery___default()("#body").prepend(p.body)
-    }
-
-    body() {
-        return this.private.body;
-    }
-
-    clean() {
-        const p = this.private;
-
-        p.body.html("");
-
-        return this;
-    }
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (Body);
-
-
-/***/ }),
-/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -10378,282 +10822,89 @@ return jQuery;
 
 
 /***/ }),
+/* 2 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(0);
+
+
+const cn = 'Responses';
+class Responses extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] {
+    constructor(responses){
+        super();
+
+        let p = this.private(cn, {
+            responses,
+        });
+    }
+
+    getByName(name) {
+        return this.get(name);
+    }
+
+    get(name) {
+        return this.private(cn, 'responses').find((response) => {
+            return response.name() == name;
+        });
+    }
+
+    error() {
+        return undefined != this.private(cn, 'responses').find((response) => {
+            return response.error();
+        });
+    }
+
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (Responses);
+
+
+/***/ }),
 /* 3 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_expect_js__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_expect_js___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_expect_js__);
-
-
-
-/* harmony default export */ __webpack_exports__["a"] = (function(body) {
-    describe('Object', function() {
-
-        describe('Setting and getting', function() {
-            it('self reference', function () {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */]();
-                let result = object.set("name", "Foo")
-
-                __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(result).to.be.equal(object);
-            });
-
-            it('check value', function () {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */]();
-                let result = object.set("name", "Foo")
-
-                __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(object.get('name')).to.be.equal("Foo");
-            });
-
-            it('multi types', function () {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */]();
-                let types = {
-                    number : 1,
-                    string : "foo",
-                    array : [1, 2, {name : 1}],
-                };
-
-                object.set("number", types.number);
-                object.set("string", types.string);
-                object.set("array", types.array);
-
-                __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(object.get('number')).to.be.eql(types.number);
-                __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(object.get('string')).to.be.eql(types.string);
-                __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(object.get('array')).to.be.eql(types.array);
-            });
-
-            it('get by reference', function () {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */]();
-                object.set("list", [1, 2, {name : 1}]);
-
-                let list = object.get("list", null, {clone : 0});
-
-                __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(object.get('list')).to.be.eql(list);
-                __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(object.get('list', null, {clone : 0})).to.be.equal(list);
-                __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(object.get('&list')).to.be.equal(list);
-            });
-
-            it('sub values', function () {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */]();
-                object.set("value", {name : "foo"});
-                object.set("value.async", 1);
-
-                __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(object.get('value')).to.be.eql({name : "foo"});
-                __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(object.get('value.async')).to.be.equal(1);
-            });
-
-            it('all data', function () {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */]();
-                object.set("value", {name : "foo"});
-                object.set("value.async", 1);
-
-                console.log('data', object.data());
-                // expect(object.get('value')).to.be.eql({name : "foo"});
-                // expect(object.get('value.async')).to.be.equal(1);
-            });
-        });
-
-        describe('Events', function() {
-            it('init', function (done) {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */]();
-
-                object.on("value:init", (event, params) => {
-
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(event.name).to.be.eql("value:init");
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(event.this).to.be.equal(object);
-
-                    done();
-                });
-
-                object.set("value", 10);
-            });
-
-            it('change', function (done) {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */]();
-                object.set("value", 10);
-
-                object.on("value:change", (event, params) => {
-
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(event.name).to.be.eql("value:change");
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(event.this).to.be.equal(object);
-
-                    // params should has previous value
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(params.previous).to.be.equal(10);
-
-                    // new value should be 20
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(object.get("value")).to.be.equal(20);
-
-                    done();
-                });
-
-                object.set("value", 20);
-            });
-
-            it('change silently mode', function (done) {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */]();
-                let doned = 0;
-
-                object.set("value", 10);
-
-                object.on("value:change", (event, params) => {
-                    doned = 1;
-                    done("silently does not work")
-                });
-
-                object.set("value", 20, {silently : 1});
-
-                setTimeout(function() {
-                    if (doned == 0) {
-                        done();
-                    }
-                }, 500);
-            });
-
-            it('change silently mode mark', function (done) {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */]();
-                let doned = 0;
-
-                object.set("value", 10);
-
-                object.on("value:change", (event, params) => {
-                    doned = 1;
-                    done("silently does not work")
-                });
-
-                object.set("-value", 20);
-
-                setTimeout(function() {
-                    if (doned == 0) {
-                        done();
-                    }
-                }, 500);
-            });
-
-            it('off group', function (done) {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */](),
-                    doned = 0
-                ;
-
-                object.set("value", 10);
-
-                object.on("value:change", (event, params) => {
-                    done("off does not work")
-
-                    doned = 1;
-                }, 'topi');
-
-                object.off("topi");
-
-                object.set("value", 20);
-
-                setTimeout(function() {
-                    if (doned == 0) {
-                        done();
-                    }
-                }, 500);
-            });
-
-            it('off all', function (done) {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */](),
-                    doned = 0
-                ;
-
-                object.set("value", 10);
-
-                object.on("value:change", (event, params) => {
-                    if (doned == 0) {
-                        done("off does not work")
-                        doned = 1;
-                    }
-                }, 'topi');
-
-                object.on("value:change", (event, params) => {
-                    if (doned == 0) {
-                        done("off does not work")
-                        doned = 1;
-                    }
-                });
-
-                object.off();
-
-                object.set("value", 20);
-
-                setTimeout(function() {
-                    if (doned == 0) {
-                        done();
-                    }
-                }, 500);
-            });
-
-            // it('event queue', function (done) {
-            //     let object = new TopiObject(),
-            //         doned = 0,
-            //         checks
-            //     ;
-
-            //     object.set("value", 10);
-
-            //     object.on("value:change", (event, params) => {
-
-            //     }, 'topi');
-
-            //     object.on("value:change", (event, params) => {
-
-            //     });
-
-            //     setTimeout(function() {
-            //         if (doned == 0) {
-            //             done();
-            //         }
-            //     }, 500);
-            // });
-
-            it('emit', function (done) {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */](),
-                    doned = 0,
-                    counter = 0
-                ;
-
-                object.on("item:click", (event, params) => {
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(event.name).to.be.eql("item:click");
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(event.this).to.be.equal(object);
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(params.name).to.be.equal('foo');
-
-                    counter++;
-                });
-
-                object.on("item", (event, params) => {
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(event.name).to.be.eql("item:click");
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(event.this).to.be.equal(object);
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(params.name).to.be.equal('foo');
-
-                    counter++;
-                });
-
-                object.on(":click", (event, params) => {
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(event.name).to.be.eql("item:click");
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(event.this).to.be.equal(object);
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(params.name).to.be.equal('foo');
-
-                    counter++;
-                });
-
-                object.emit('item:click', {name : 'foo'});
-
-                setTimeout(function() {
-                    if (counter != 3) {
-                        done("not all events call");
-                    }else{
-                        done();
-                    }
-
-                }, 1000);
-            });
-        });
-    });
-});;
-
+function urlencoded(data, base = "", init = true) {
+    let encoded = [];
+
+    for(let i in data){
+        let v = data[i];
+
+        if(typeof v == 'string' || typeof v == 'number'){
+            if(init){
+                encoded.push(`${i}=${v}`);
+            }else{
+                encoded.push(`${base}[${i}]=${v}`);
+            }
+        }else{
+            if(init){
+                encoded = encoded.concat(urlencoded(v, `${i}`, false));
+            }else{
+                encoded = encoded.concat(urlencoded(v, `${base}[${i}]`, false));
+            }
+        }
+    }
+
+    if(init){
+        if (encoded.length) {
+            return encodeURI(encoded.join('&'));
+        }else{
+            return null;
+        }
+    }else{
+        return encoded;
+    }
+};
+
+/* harmony default export */ __webpack_exports__["a"] = (function(format, data) {
+    switch (format) {
+        case 'application/x-www-form-urlencoded':
+            return urlencoded(data);
+        case 'application/json':
+            return JSON.stringify(data);
+    }
+});
 
 
 /***/ }),
@@ -10661,497 +10912,31 @@ return jQuery;
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Utils_same__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__ = __webpack_require__(6);
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Body__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Utils_element__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Utils_element___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_Utils_element__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_expect_js__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_expect_js___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_expect_js__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_Api_apiTest__ = __webpack_require__(14);
 
 
 
-let uniqueId = 0,
-    components = null
-;
 
-/**
- * EventsQueue
- */
-class EventsQueue {
+// todo Body to Document
+const body = new __WEBPACK_IMPORTED_MODULE_0_Body__["a" /* default */]();
 
-    constructor() {
-        this.queue = [];
-        this.processing = false;
-    }
+// import viewTest from 'viewTest';
+// viewTest(body);
+//
+// import objectTest from 'objectTest';
+// objectTest(body);
 
-    add(callback, event = {}, params = {}) {
-        this.queue.push({
-            callback,
-            event,
-            params,
-        });
+// import componentsTest from 'componentsTest';
+// componentsTest(body);
 
-        this._process();
-    }
 
-    _process() {
-        if (this.processing) {
-            return;
-        }
-
-        this.processing = true;
-
-        let event;
-
-        while(this.queue.length) {
-            event = this.queue.shift();
-            event.callback.call(window, event.event, event.params);
-        }
-
-        this.processing = false;
-    }
-}
-
-let eventsQueue = new EventsQueue();
-
-/**
- * TopiObject
- */
-const cn = 'TopiObject';
-class TopiObject {
-
-    constructor(data = {}) {
-        let p = this.private(cn, {
-            // Eventy
-            events : {},
-
-            // Dane obiektu
-            data,
-        });
-    }
-
-    /**
-     * Tworzy klon obiektu.
-     */
-    clone() {
-
-    }
-
-    warn(message) {
-        console.warn(message);
-
-        return this;
-    }
-
-    error(error) {
-        let p = this.private(cn),
-            router = this.component('@router')
-        ;
-
-        router.forward('@error', {error});
-
-        return this;
-    }
-
-    log(message, type = 'log') {
-        switch (type) {
-            case 'error':
-                return this.error(message);
-            default:
-                console.warn(type, message);
-        }
-
-        return this;
-    }
-
-    /**
-     * Set value of attribute for object. Given value is always cloned.
-     *
-     * @param {string} name Name of attribute. Name can use docs notation. For
-     * example this.set("value", 12) or this.set("value.async", 1).
-     *
-     * @param {mixed} value
-     * @param {object} emitparams
-     */
-    set(name, value, emitparams = {}) {
-        let p = this.private(cn);
-
-        value = Object(__WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__["a" /* default */])(value);
-
-        // Czy wartość ma być ustawiona, bez emitowania zdarzeń.
-        emitparams.silently = emitparams.silently === undefined ? 0 : 1;
-
-        if (name[0] == '-') {
-            // Skrócona metoda ustawiania wartości, bez emitowania
-            // this.set('-name', "Pawel")
-            emitparams.silently = 1;
-            name = name.substr(1);
-        }
-
-        if (typeof name == 'object') {
-            // todo Ustawianie wielu wartości za pomoca jednego obiektu.
-        }else if(typeof name == 'string') {
-            return this.__setValue(p.data, name, value, emitparams);
-        }else{
-            this.error("Unsuported params");
-        }
-    }
-
-    /**
-     * Ustawienie wartości w obiekcie, wraz z emitowaniem eventów.
-     *
-     * @param {object} target
-     * @param {string} name
-     * @param {*} value
-     * @param {object} emitparams
-     * @return this
-     */
-    __setValue(target, name, value, emitparams = {}) {
-        let p = this.private(cn);
-
-        if (target[name] === undefined) {
-            target[name] = value;
-
-            this.emit(`${name}:init`, {}, emitparams);
-            this.emit(`${name}:change`, {
-                previous : undefined
-            }, emitparams);
-
-        }else{
-            if (emitparams.silently) {
-                target[name] = value;
-            }else{
-                if (!Object(__WEBPACK_IMPORTED_MODULE_0_Topi_Utils_same__["a" /* default */])(target[name], value)) {
-                    let previous = target[name];
-
-                    target[name] = value;
-
-                    this.emit(`${name}:change`, {
-                        previous
-                    }, emitparams);
-                }
-            }
-        }
-
-        return this;
-    }
-
-    /**
-     * Zwraca informację czy obiekt spełnia podane kryteriu
-     *
-     * @param {string} name
-     * @return {integer} 0 lub 1
-     */
-    is(name) {
-        return 0;
-    }
-
-    data(params = {}) {
-        let p = this.private(cn);
-
-        // todo clone to reference
-        // Zmienic nazwe parametru clone na reference
-        params.clone = params.clone === undefined ? 1 : params.clone;
-        params.data = params.data === undefined ? 1 : params.data;
-
-        if (params.clone) {
-            return Object(__WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__["a" /* default */])(p.data, params);
-        }else{
-            return p.data;
-        }
-    }
-
-    get(name, value = null, params = {}) {
-        let p = this.private(cn),
-            pointer = p.data,
-            i,
-            length,
-            t,
-            splited
-        ;
-
-        // default params
-        params.clone = params.clone === undefined ? 1 : params.clone;
-        params.data = params.data === undefined ? 1 : params.data;
-
-        if (name[0] == '&') {
-            params.clone = 0;
-
-            name = name.substring(1);
-        }else if(name[0] == '*') {
-            params.data = 0;
-            name = name.substring(1);
-        }
-
-        // split name
-        // splited = name.split('.');
-
-        // while(splited.length > 1){
-        //     t = splited.shift();
-
-        //     if (pointer[t] === undefined) {
-        //         return value;
-        //     }
-
-        //     pointer = pointer[t];
-        // }
-
-        if (pointer[name] === undefined) {
-            return value;
-        }
-
-        if (params.clone) {
-            return Object(__WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__["a" /* default */])(pointer[name], params);
-        }else{
-            return pointer[name];
-        }
-    }
-
-    /**
-     * Return private scope for object.
-     *
-     * this.private("App") - return private scope for App
-     * let p = this.private("App", {}) - init private scope for App, and return
-     * the
-     * this.private("App", "name") - return value of name attribute at App
-     * private scope.
-     *
-     * When private scope is inited like this
-     *     this.private("View", {
-     *         domain : "www.test.pl",
-     *         name : this.prepareName()
-     *     });
-     *
-     * Inited values can not be generated by other methods wich use private
-     * scope. At this case, this should be do like this.
-     *     let p this.private("View", {
-     *         domain : "www.test.pl",
-     *         name : this.prepareName()
-     *     });
-     *
-     *     p.name = this.prepareName();
-     *
-     *
-     * @param {string} id
-     * @param {string} attr
-     * @param {mixed} value
-     * @return {mixed}
-     */
-    private(id, attr, value){
-        if (!pscope.has(this)) {
-            // Inicjuje prywatną przestrzeń dla obiektu
-            pscope.set(this, {});
-        }
-
-        if (pscope.get(this)[id] === undefined) {
-            // Nie ma prywatnej przestrzeni dla ID
-
-            if (attr === undefined) {
-                pscope.get(this)[id] = {};
-            }else{
-                // Sytuacja w której podane są wartości do zainicjowania
-                pscope.get(this)[id] = attr;
-            }
-
-            return pscope.get(this)[id];
-        }
-
-        if (attr === undefined) {
-            // Zwraca całą prywatną przestrzeń
-            return pscope.get(this)[id];
-        }else{
-            if (typeof attr == 'string') {
-                if (value === undefined) {
-                    // Zwracam wartość podanego argumentu
-                    return pscope.get(this)[id][attr];
-                }else{
-                    // Ustawiam nową wartość
-                    pscope.get(this)[id][attr] = value;
-
-                    return this;
-                }
-            }
-
-            this.log("Wrong private call", "warn");
-        }
-
-        this.log("Wrong private call", "warn");
-    }
-
-    /**
-     * Register event listener of specific event.
-     *
-     * @param {string} name Na of event. For example button.submit:click.
-     * @param {string} callback Function to call.
-     * @param {string} group Grouo of owner. It can be any string. We recoment
-     * use this.id() of object.
-     *
-     * @return $this
-     */
-    on(name, callback, group) {
-        let p = this.private(cn),
-            i
-        ;
-
-        if (Array.isArray(name)) {
-            for (i in name) {
-                this.on(name[i], callback, group);
-            }
-
-            return this;
-        }
-
-        if (p.events[name] === undefined) {
-            p.events[name] = [];
-        }
-
-        p.events[name].push({
-            name,
-            callback,
-            group
-        });
-
-        return this;
-    }
-
-    id() {
-        let p = this.private(cn);
-
-        if (p.id === undefined) {
-            p.id = uniqueId++;
-        }
-
-        return p.id;
-    }
-
-    /**
-     * Emituje zdarzenie.
-     *
-     * @param {string} name - Name of event.
-     * @param {Object} params - Params which will be send listener.
-     * @param {Object} emitparams - Options for emit.
-     */
-    emit(name, params = {}, emitparams = {}) {
-        let p = this.private(cn),
-            call = [],
-            event = {},
-            i,
-            j
-        ;
-
-        event.this = this;
-        event.name = name;
-
-        emitparams.ommit = emitparams.ommit === undefined ? null : emitparams.ommit;
-
-        name = name.split(':');
-
-        if (name.length == 1) {
-            call.push(name[0]);
-        }else if(name.length == 2){
-            if (name[0] == '') {
-                call.push(`:${name[1]}`);
-            }else{
-                call.push(`${name[0]}:${name[1]}`);
-                call.push(`${name[0]}`);
-                call.push(`:${name[1]}`);
-            }
-        }else{
-            throw("Unsuported event format");
-        }
-
-        // eventy sa wywolywane od tylu
-        for (i = call.length -1; i >= 0; i--) {
-            if (p.events[call[i]] === undefined) {
-                continue;
-            }
-
-            for (j in p.events[call[i]]) {
-                if (emitparams.ommit != null) {
-                    if (p.events[call[i]][j].group == emitparams.ommit) {
-                        continue;
-                    }
-                }
-
-                eventsQueue.add(p.events[call[i]][j].callback, event, params);
-            }
-        }
-
-        return this;
-    }
-
-    /**
-     * Delete event listeners.
-     *
-     * @param {string|number|function} name
-     */
-    off(name) {
-        let p = this.private(cn);
-
-        switch (typeof name) {
-            case 'undefined':
-                p.events = {};
-
-                return this;
-            case 'string':
-            case 'number':
-                for (let event in p.events) {
-                    let events = [];
-
-                    for (let i in p.events[event]) {
-                        if (p.events[event][i].group != name) {
-                            events.push(p.events[event][i]);
-                        }
-                    }
-
-                    p.events[event] = events;
-                }
-
-                return this;
-            default :
-                this.error("Unsuported params");
-        }
-    }
-
-    component(name, params = {}) {
-        return components.get(name, params);
-    }
-
-    components() {
-        return components;
-    }
-
-    // this.trigger('selectRow:success', {
-
-    // });
-
-    // this.on('selectRow#app', funcRef)
-    // this.on('selectRow.app', funcRef)
-
-    // this.off();
-    // this.off(funcRef);
-
-    // this.off('.app');
-    // this.off('#app');
-    // this.off('selectRow');
-
-    // this.on('saved:success')
-    // this.on('saved:faile')
-
-    // widget.on('event', function(){}, id);
-
-    // widget.off(id);
-    // widget.off('change.name');
-    // widget.off(function(){});
-
-    // Events
-}
-
-TopiObject.components = function(p) {
-    components = p
-}
-
-if (window.pscope === undefined) {
-    window.pscope = new WeakMap();
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (TopiObject);
+Object(__WEBPACK_IMPORTED_MODULE_3_Api_apiTest__["a" /* default */])(body);
 
 
 /***/ }),
@@ -11159,145 +10944,131 @@ if (window.pscope === undefined) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/**
- * Check if two object are same.
- */
-function same(p1, p2) {
-    if (p1 === null || p1 === undefined || p2 === null || p2 === undefined) {
-        if (p1 === p2) {
-            return true;
-        }else{
-            return false;
-        }
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_jquery__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_jquery___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_jquery__);
+
+
+class Body {
+    constructor() {
+        const  p = this.private = {};
+
+        p.body = __WEBPACK_IMPORTED_MODULE_0_jquery___default()("<div></div>");
+
+        __WEBPACK_IMPORTED_MODULE_0_jquery___default()("#body").prepend(p.body)
     }
 
-    if (typeof p1 != 'object' || typeof p2 != 'object') {
-        if (p1 == p2) {
-            return true;
-        }else{
-            return false;
-        }
+    element() {
+        return this.private.body;
     }
 
-    let i;
-
-    if(Array.isArray(p1) && Array.isArray(p2)) {
-        if (p1.length != p2.length) {
-            return false;
-        }
-
-        for (i in p1) {
-            if (!same(p1[i], p2[i])) {
-                return false;
-            }
-        }
-    }else{
-        if (!same(Object.keys(p1), Object.keys(p2))) {
-            return false
-        }
-
-        for (i in p1) {
-            if (!same(p1[i], p2[i])) {
-                return false;
-            }
-        }
+    find(selector) {
+        return this.private.body.find(selector);
     }
 
-    return true;
+    clean() {
+        const p = this.private;
+
+        p.body.html("");
+
+        return this;
+    }
 }
 
-/* harmony default export */ __webpack_exports__["a"] = (same);
+/* harmony default export */ __webpack_exports__["a"] = (Body);
 
 
 /***/ }),
 /* 6 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-/**
- * Create clone of object.
- */
-function clone(a, params = {}) {
-    // params.data = params.data === undefined ? 1 : params.data;
-
-    // Po analizie okazało się że robienie kopi obiektu za pomocą
-    // JSON.stringify i JSON.parse wychodzi najwolnie. Implementacja z recznym
-    // kopiowaniem wypada o wiele szybciej niż JSON.parse. W benchmarku jedynie
-    // szybszym rozwiązaniem był loadash deep clone. Ale nie wiem co on
-    // dokładie robi. Szybko wypadał też Object.assign, ale ten nie robi deep
-    // clona. Dotego psóuje tablice
-
-    let cloned,
-        i
-    ;
-
-    if (a === null) {
-        return a;
-    }else if(a === undefined){
-        return a;
-    }else if(Array.isArray(a)){
-        cloned = [];
-
-        for (i in a) {
-            cloned.push(clone(a[i], params));
-        }
-    }else{
-        switch (typeof a) {
-            case 'string':
-            case 'number':
-            case 'function':
-            case 'symbol':
-                return a;
-            case 'object':
-                cloned = {};
-
-                for (i in a) {
-                    cloned[i] = clone(a[i], params);
-                }
-
-                break;
-            default :
-                console.warn(`unknow type of object ${typeof a}`);
-                return a;
-        }
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (scope, factory) {
+    if (typeof module === "object" && module.exports) {
+        // module.exports = factory(require("jquery"));
+        module.exports = factory(__webpack_require__(1));
+    } else if (true) {
+        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1)], __WEBPACK_AMD_DEFINE_RESULT__ = function(jquery){
+            return factory(jquery);
+        }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+    } else {
+        factory(jQuery);
     }
+}(this, function (jQuery) {
+    "use strict";
 
-    return cloned;
-};
+    let element = {
+        reindex(object) {
+            let i,
+                name,
+                list,
+                length,
+                elements = {}
+            ;
 
-/* harmony default export */ __webpack_exports__["a"] = (clone);
+            list = object.querySelectorAll("[name]");
+
+            // Go throught all elements with "name" attribute
+            for(i = 0, length = list.length; i < length; i++) {
+                elements[list[i].getAttribute("name")] = jQuery(list[i]);
+            }
+
+            // todo Zastąpić atrybut "ui" atrybutem "name".
+            // Tymczasowo odczytuje atrybut "ui"
+            list = object.querySelectorAll("[ui]");
+
+            // Go throught all elements with name attribute
+            for(i = 0, length = list.length; i < length; i++) {
+                elements[list[i].getAttribute("ui")] = jQuery(list[i]);
+            }
+
+            object.elements = elements;
+        }
+    };
+
+    // Save previos html function
+    let jqueryHtml = jQuery.fn.html;
+
+    jQuery.fn.html = function(value) {
+        if (value == undefined) {
+            return jqueryHtml.call(this);
+        }else{
+            let result = jqueryHtml.call(this, value);
+
+            element.reindex(this[0]);
+
+            return result;
+        }
+    };
+
+    // todo Zastąpić metodę content metodą html
+    jQuery.fn.content = function(value) {
+        return jQuery.fn.html.call(this, value);
+    };
+
+    jQuery.fn.ui = function(name) {
+        return jQuery.fn.element.call(this, name);
+    };
+
+    jQuery.fn.element = function(name) {
+        let object = this[0];
+
+        if (object.getAttribute("name") === name) {
+            return jQuery(object);
+        }
+
+        if (object.elements === undefined) {
+            element.reindex(object);
+        }
+
+        return object.elements[name] === undefined ? null : object.elements[name];
+    };
+
+    return element;
+}));
 
 
 /***/ }),
-/* 7 */,
-/* 8 */
-/***/ (function(module, exports) {
-
-var g;
-
-// This works in non-strict mode
-g = (function() {
-	return this;
-})();
-
-try {
-	// This works if eval is allowed (see CSP)
-	g = g || Function("return this")() || (1,eval)("this");
-} catch(e) {
-	// This works if the window reference is available
-	if(typeof window === "object")
-		g = window;
-}
-
-// g can still be undefined, but nothing to do about it...
-// We return undefined, instead of nothing here, so it's
-// easier to handle this case. if(!global) { ...}
-
-module.exports = g;
-
-
-/***/ }),
-/* 9 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module, Buffer) {(function (global, module) {
@@ -12585,10 +12356,10 @@ module.exports = g;
   ,  true ? module : {exports: {}}
 );
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(10)(module), __webpack_require__(11).Buffer))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(8)(module), __webpack_require__(9).Buffer))
 
 /***/ }),
-/* 10 */
+/* 8 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -12616,7 +12387,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 11 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12630,9 +12401,9 @@ module.exports = function(module) {
 
 
 
-var base64 = __webpack_require__(12)
-var ieee754 = __webpack_require__(13)
-var isArray = __webpack_require__(14)
+var base64 = __webpack_require__(11)
+var ieee754 = __webpack_require__(12)
+var isArray = __webpack_require__(13)
 
 exports.Buffer = Buffer
 exports.SlowBuffer = SlowBuffer
@@ -14410,10 +14181,37 @@ function isnan (val) {
   return val !== val // eslint-disable-line no-self-compare
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(8)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(10)))
 
 /***/ }),
-/* 12 */
+/* 10 */
+/***/ (function(module, exports) {
+
+var g;
+
+// This works in non-strict mode
+g = (function() {
+	return this;
+})();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || Function("return this")() || (1,eval)("this");
+} catch(e) {
+	// This works if the window reference is available
+	if(typeof window === "object")
+		g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
+
+
+/***/ }),
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14534,7 +14332,7 @@ function fromByteArray (uint8) {
 
 
 /***/ }),
-/* 13 */
+/* 12 */
 /***/ (function(module, exports) {
 
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
@@ -14624,7 +14422,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 
 
 /***/ }),
-/* 14 */
+/* 13 */
 /***/ (function(module, exports) {
 
 var toString = {}.toString;
@@ -14632,6 +14430,1003 @@ var toString = {}.toString;
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
+
+
+/***/ }),
+/* 14 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Api_Api__ = __webpack_require__(15);
+
+
+const api = new __WEBPACK_IMPORTED_MODULE_0_Api_Api__["a" /* default */]('http://127.0.0.1:3000');
+
+/* harmony default export */ __webpack_exports__["a"] = (function(body) {
+    describe('Api', function() {
+        it('Get user Maxwell Chavez', function (done) {
+            api.request((request) => {
+                request.urn("/users/5b2d007edb7bb43108c66ca2");
+
+            }).promise().then((response) => {
+                let data = response.data();
+
+                expect(data._id).to.be.eql("5b2d007edb7bb43108c66ca2");
+                expect(data.index).to.be.eql(0);
+                expect(data.guid).to.be.eql("860ae488-19b5-4256-bc96-f66b5d087a94");
+                expect(data.isActive).to.be.eql(false);
+                expect(data.balance).to.be.eql("$1,582.99");
+                expect(data.picture).to.be.eql("http://placehold.it/32x32");
+                expect(data.age).to.be.eql(27);
+                expect(data.eyeColor).to.be.eql("blue");
+                expect(data.name).to.be.eql("Maxwell Chavez");
+                expect(data.gender).to.be.eql("male");
+                expect(data.company).to.be.eql("GEEKFARM");
+                expect(data.email).to.be.eql("maxwellchavez@geekfarm.com");
+                expect(data.phone).to.be.eql("+1 (833) 445-3228");
+                expect(data.address).to.be.eql("425 Murdock Court, Brethren, Mississippi, 8584");
+                expect(data.about).to.be.eql("Sunt consequat consequat dolor cupidatat. Aliqua consectetur magna consequat aliquip tempor officia velit ea. Laborum duis dolore proident amet. Cillum non dolore est deserunt id tempor non fugiat sunt.\r\n");
+                expect(data.registered).to.be.eql("2015-03-01T08:08:02 -01:00");
+                expect(data.latitude).to.be.eql(-23.483986);
+                expect(data.longitude).to.be.eql(-23.103694);
+                expect(data.tags).to.be.eql([ "ut", "ullamco", "excepteur", "nulla", "do", "magna", "in" ]);
+                expect(data.friends).to.be.eql([ { "id": 0, "name": "Yang Shields" }, { "id": 1, "name": "Santos Lawrence" }, { "id": 2, "name": "Chavez Nicholson" } ]);
+                expect(data.greeting).to.be.eql("Hello, Maxwell Chavez! You have 6 unread messages.");
+                expect(data.favoriteFruit).to.be.eql("strawberry");
+
+                done();
+            }).catch((error) => {
+                done(error);
+            });
+        });
+    });
+});;
+
+
+/***/ }),
+/* 15 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_Api_Request__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Topi_Api_Queue__ = __webpack_require__(22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_Topi_Api_Endpoint__ = __webpack_require__(23);
+
+
+
+
+
+const cn = 'Api';
+
+/**
+ * Create requests and manages the
+ *
+ * api.request((request) => {
+ *     request.urn('/offers');
+ *     request.param('categoryId', 26);
+ * }).exec((response) => {
+ *
+ * });
+ *
+ * api.queue((queue) => {
+ *     queue.request((request) => {
+ *         request.id('offers-1');
+ *         request.urn('/offers');
+ *         request.param('categoryId', 26);
+ *     });
+ *
+ *     queue.request((request) => {
+ *         request.id('offers-2');
+ *         request.urn('/offers');
+ *         request.param('categoryId', 26);
+ *     });
+ * }).exec((responses) => {
+ * });
+ *
+ * api.request(function() {
+ *     this.id('offers')
+ *     this.urn('/offers');
+ *     this.param('categoryId', 27);
+ *
+ *     this.request(function() {
+ *         this.id('offers2')
+ *         this.urn('/offers');
+ *         this.param('categoryId', 26);
+ *     });
+ *
+ *     // this.prepare(function(request, responses, done){
+ *
+ *     //     done();
+ *     // });
+ *
+ * }).exec(function(response){
+ * });
+ */
+class Api extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] {
+    constructor(url = "") {
+        super();
+
+        let p = this.private(cn, {
+            binds : {},
+            url,
+            headers : {
+                'Content-Type' : 'application/json'
+            },
+        });
+    }
+
+    /**
+     * Return URL of api.
+     *
+     * @return {string}
+     */
+    url() {
+        return this.private(cn).url;
+    }
+
+    /**
+     * Return defined Endpoint.
+     *
+     * @param {string} urn
+     * @return Endpoint
+     */
+    endpoint(urn) {
+        let p = this.private(cn);
+
+        return new __WEBPACK_IMPORTED_MODULE_3_Topi_Api_Endpoint__["a" /* default */](this, urn);
+    }
+
+    /**
+     * Bind value.
+     *
+     * @param {string} name
+     * @param {string} value
+     * @return this
+     */
+    bind(name, value) {
+        let p = this.private(cn);
+
+        p.binds[name] = value;
+
+        return this;
+    }
+
+    binds(binds) {
+        let p = this.private(cn);
+
+        p.binds = binds;
+
+        return this;
+    }
+
+    header(name, value) {
+        let p = this.private(cn);
+
+        if (arguments.length === 1) {
+            return p.headers[name];
+        }else{
+            p.headers[name] = value;
+
+            return this;
+        }
+    }
+
+    headers(headers) {
+        let p = this.private(cn);
+
+        if (arguments.length == 1) {
+            return p.headers = headers;
+        }else{
+            return p.headers;
+        }
+    }
+
+    bind(name, value) {
+        let p = this.private(cn);
+
+        switch (arguments.length) {
+            case 1:
+                return p.binds[name];
+            case 2:
+                p.binds[name] = value;
+
+                return this;
+        }
+
+        throw('Unsuported params');
+    }
+
+    binds(binds) {
+        let p = this.private(cn);
+
+        switch (arguments.length) {
+            case 0:
+                return p.binds;
+            case 1:
+                p.binds = binds;
+
+                return this;
+        }
+
+        throw('Unsuported params');
+    }
+
+    /**
+     * Create request
+     */
+    queue(creator) {
+        let queue = new __WEBPACK_IMPORTED_MODULE_2_Topi_Api_Queue__["a" /* default */](this);
+
+        creator.call(queue, queue);
+
+        return queue;
+    }
+
+    /**
+     * Create request.
+     *
+     * @param {function} creator
+     * @return Request
+     */
+    request(creator) {
+        let p = this.private(cn),
+            request = new __WEBPACK_IMPORTED_MODULE_1_Topi_Api_Request__["a" /* default */](this)
+        ;
+
+        request.headers(this.headers());
+        request.binds(this.binds());
+
+        if (creator) creator.call(request, request);
+
+        return request;
+    }
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (Api);
+
+
+/***/ }),
+/* 16 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/**
+ * Check if two object are same.
+ */
+function same(p1, p2) {
+    if (p1 === null || p1 === undefined || p2 === null || p2 === undefined) {
+        if (p1 === p2) {
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    if (typeof p1 != 'object' || typeof p2 != 'object') {
+        if (p1 == p2) {
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    let i;
+
+    if(Array.isArray(p1) && Array.isArray(p2)) {
+        if (p1.length != p2.length) {
+            return false;
+        }
+
+        for (i in p1) {
+            if (!same(p1[i], p2[i])) {
+                return false;
+            }
+        }
+    }else{
+        if (!same(Object.keys(p1), Object.keys(p2))) {
+            return false
+        }
+
+        for (i in p1) {
+            if (!same(p1[i], p2[i])) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (same);
+
+
+/***/ }),
+/* 17 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/**
+ * Create clone of object.
+ */
+function clone(a, params = {}) {
+    // params.data = params.data === undefined ? 1 : params.data;
+
+    // Po analizie okazało się że robienie kopi obiektu za pomocą
+    // JSON.stringify i JSON.parse wychodzi najwolnie. Implementacja z recznym
+    // kopiowaniem wypada o wiele szybciej niż JSON.parse. W benchmarku jedynie
+    // szybszym rozwiązaniem był loadash deep clone. Ale nie wiem co on
+    // dokładie robi. Szybko wypadał też Object.assign, ale ten nie robi deep
+    // clona. Dotego psóuje tablice
+
+    let cloned,
+        i
+    ;
+
+    if (a === null) {
+        return a;
+    }else if(a === undefined){
+        return a;
+    }else if(Array.isArray(a)){
+        cloned = [];
+
+        for (i in a) {
+            cloned.push(clone(a[i], params));
+        }
+    }else{
+        switch (typeof a) {
+            case 'string':
+            case 'number':
+            case 'function':
+            case 'symbol':
+                return a;
+            case 'object':
+                cloned = {};
+
+                for (i in a) {
+                    cloned[i] = clone(a[i], params);
+                }
+
+                break;
+            default :
+                console.warn(`unknow type of object ${typeof a}`);
+                return a;
+        }
+    }
+
+    return cloned;
+};
+
+/* harmony default export */ __webpack_exports__["a"] = (clone);
+
+
+/***/ }),
+/* 18 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_Api_Response__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Topi_Api_Responses__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_Topi_Api_Common_encode__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_Topi_Api_Common_decode__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_Topi_Api_Common_urn__ = __webpack_require__(21);
+
+
+
+
+
+
+
+
+const cn = 'Request';
+class Request extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] {
+    constructor(api){
+        super();
+
+        let p = this.private(cn, {
+            api,
+            name : null,
+            title : null,
+            description : null,
+            resourceId : null,
+            urn : null,
+            method : 'get',
+            binds : {},
+            data : {},
+            params : {},
+            contentType : {},
+            requests : [],
+            headers : {},
+
+            // queue,
+            timeout : null,
+
+            // events : new Events(this),
+            next : null,
+
+            control : function(request, response, next){
+                next(response);
+            },
+
+            prepare : function(request, responses, next){
+                next();
+            },
+        });
+    }
+
+    title(title) {
+        return this.private(cn, 'title', title);
+    }
+
+    name(name) {
+        return this.private(cn, 'name', name);
+    }
+
+    resourceId(resourceId) {
+        return this.private(cn, 'resourceId', resourceId);
+    }
+
+    description(description) {
+        return this.private(cn, 'description', description);
+    }
+
+    timeout(timeout) {
+        return this.private(cn, 'timeout', timeout);
+    }
+
+    urn(urn) {
+        let p = this.private(cn);
+
+        if (urn === undefined) {
+            return p.urn === undefined ? null : p.urn;
+        }else{
+            p.urn = urn;
+
+            return this;
+        }
+
+        this.log("Unsuported params.", "warn");
+    }
+
+    method(method) {
+        return this.private(cn, 'method', method);
+    }
+
+    control(control) {
+        return this.private(cn, 'control', control);
+    }
+
+    prepare(prepare) {
+        return this.private(cn, 'prepare', prepare);
+    }
+
+    header(name, value) {
+        let p = this.private(cn);
+
+        if (arguments.length === 1) {
+            return p.headers[name];
+        }else{
+            p.headers[name] = value;
+
+            return this;
+        }
+    }
+
+    headers(headers) {
+        let p = this.private(cn);
+
+        if (arguments.length == 1) {
+            return p.headers = headers;
+        }else{
+            return p.headers;
+        }
+    }
+
+    data(name, value) {
+        let p = this.private(cn);
+
+        switch (arguments.length) {
+            case 0:
+                return p.data;
+            case 1:
+                if (typeof name == 'string') {
+                    return p.data[name];
+                }else if(typeof name == 'object') {
+                    p.data = name;
+
+                    return this
+                }
+
+            case 2:
+                p.data[name] = value;
+
+                return this;
+        }
+
+        throw('Unsuported params');
+    }
+
+    param(name, value) {
+        let p = this.private(cn);
+
+        switch (arguments.length) {
+            case 1:
+                return p.params[name];
+            case 2:
+                p.params[name] = value;
+
+                return this;
+        }
+
+        throw('Unsuported params');
+    }
+
+    params(params) {
+        let p = this.private(cn);
+
+        switch (arguments.length) {
+            case 0:
+                return p.params;
+            case 1:
+                p.params = params;
+
+                return this;
+        }
+
+        throw('Unsuported params');
+    }
+
+    bind(name, value) {
+        let p = this.private(cn);
+
+        switch (arguments.length) {
+            case 1:
+                return p.binds[name];
+            case 2:
+                p.binds[name] = value;
+
+                return this;
+        }
+
+        throw('Unsuported params');
+    }
+
+    binds(binds) {
+        let p = this.private(cn);
+
+        switch (arguments.length) {
+            case 0:
+                return p.binds;
+            case 1:
+                p.binds = binds;
+
+                return this;
+        }
+
+        throw('Unsuported params');
+    }
+
+    request(creator) {
+        let p = this.private(cn),
+            request = p.api.request(creator)
+        ;
+
+        p.requests.push(request);
+
+        return request;
+    }
+
+    /**
+     * Exec request and return Promise object.
+     */
+    promise() {
+        return new Promise((resolve, reject) => {
+            this.exec((response) => {
+                if (response.error()) {
+                    reject(response);
+                }else{
+                    resolve(response);
+                }
+            });
+        });
+    }
+
+    exec(complete) {
+        let p = this.private(cn),
+            count = p.requests.length,
+            responses = [],
+            i
+        ;
+
+        let check = () => {
+            if (count > 0) {
+                return;
+            }
+
+            p.prepare.call(this, this, new __WEBPACK_IMPORTED_MODULE_2_Topi_Api_Responses__["a" /* default */](responses), () => {
+                this._xhr((response) => {
+                    p.control.call(this, this, response, (response) => {
+                        // user response
+                        if (typeof complete == 'function') {
+                            complete(response);
+                        }
+                    });
+                });
+            });
+        }
+
+        if (count > 0) {
+            // request has dependences, i go throught dependences and call
+            for (i in p.requests) {
+                p.requests[i].exec((response) => {
+                    responses.push(response);
+                    count--;
+                    check();
+                });
+            }
+        }else{
+            check();
+        }
+    }
+
+    _xhr(complete) {
+        let p = this.private(cn),
+            type = this.header('Content-Type'),
+            ended = false,
+            timeout = this.timeout(),
+            urn = Object(__WEBPACK_IMPORTED_MODULE_5_Topi_Api_Common_urn__["a" /* default */])(this.urn(), this.params(), this.binds()),
+            url = p.api.url(),
+            uri = `${url}${urn}`
+        ;
+
+        let resourceId = this.resourceId();
+
+        if (resourceId != null) {
+            uri = `${uri}/${resourceId}`;
+        }
+
+        if (type === undefined) {
+            throw("Please define header Content-Type for request.");
+        }
+
+        let data = Object(__WEBPACK_IMPORTED_MODULE_3_Topi_Api_Common_encode__["a" /* default */])(type, this.data()),
+            xhr = new XMLHttpRequest()
+        ;
+
+        // xhr.onloadstart = function(){
+
+        // }
+
+        let end = (iserror, error) => {
+            if (ended) {
+                return;
+            }
+
+            ended = true;
+
+            let params = {};
+
+            if (iserror) {
+                params.status = error;
+            }else{
+                params.status = xhr.status;
+
+                let data = Object(__WEBPACK_IMPORTED_MODULE_4_Topi_Api_Common_decode__["a" /* default */])(xhr.getResponseHeader('Content-Type'), xhr.responseText);
+
+                if (data === false) {
+                    params.status = "unread";
+                }else{
+                    params.data = data;
+                }
+            }
+
+            complete(new __WEBPACK_IMPORTED_MODULE_1_Topi_Api_Response__["a" /* default */](xhr, this, params));
+        }
+
+        xhr.onload = function () {
+            end(false);
+        };
+
+        xhr.onloadend = function() {
+            end(false);
+        }
+
+        xhr.ontimeout = function() {
+            end(true, "timeout");
+        }
+
+        xhr.onabort = function() {
+            end(true, "abort");
+        }
+
+        xhr.onerror = function() {
+            end(true, "error");
+        }
+
+        xhr.open(this.method(), uri, true);
+
+        for (let header in p.headers) {
+            xhr.setRequestHeader(header, p.headers[header]);
+        }
+
+        if (timeout != null) {
+            setTimeout(function() {
+                end(true, "timeout");
+            }, timeout);
+        }
+
+        xhr.send(data);
+    }
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (Request);
+
+
+/***/ }),
+/* 19 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(0);
+
+
+const cn = 'Response';
+class Response extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] {
+    constructor(xhr, request, params = {}) {
+        super();
+
+        let p = this.private(cn, {
+            successHttpCodes : params.successHttpCodes === undefined ? [200, 201] : params.successHttpCodes,
+            status : params.status === undefined ? null : params.status,
+            data : params.data === undefined ? {} : params.data,
+            xhr,
+            request,
+        });
+    }
+
+    error() {
+        let p = this.private(cn);
+
+        if (p.successHttpCodes.indexOf(this.status()) === -1) {
+            return true;
+        }
+
+        return false;
+    }
+
+    status(status) {
+        return this.private(cn, 'status', status);
+    }
+
+    data(name) {
+        let p = this.private(cn);
+
+        switch (arguments.length) {
+            case 0:
+                return p.data;
+            case 1:
+                return p.data[name];
+        }
+
+        throw('Unsuported params');
+    }
+
+    name() {
+        return this.private(cn, 'request').name();
+    }
+
+    xhr() {
+        return this.private(cn, 'xhr');
+    }
+
+    header(name) {
+        return this.private(cn, 'xhr').getResponseHeader(name);
+    }
+
+    name() {
+        return this.private(cn, 'request').name();
+    }
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (Response);
+
+
+/***/ }),
+/* 20 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+function decode(format, raw) {
+    let contentType = null;
+    const splited = format.split(';');
+
+    if (splited.length > 1) {
+        contentType = splited[0];
+    }else{
+        contentType = splited[0];
+    }
+
+    // todo Create supports for other formats and charset
+
+    switch (contentType) {
+        case "text/html" :
+        case "plain/text" :
+            return raw;
+        case 'application/json':
+            if (raw === "") {
+                return {};
+            }
+
+            raw = ''+raw+'';
+
+            raw = raw
+                .replace(/\n/g, "\\n")
+                // .replace(/\\'/g, "\\'")
+                // .replace(/\\"/g, '\\"')
+                // .replace(/\\&/g, "\\&")
+                // .replace(/\\r/g, "\\r")
+                // .replace(/\\t/g, "\\t")
+                // .replace(/\\b/g, "\\b")
+                // .replace(/\\f/g, "\\f")
+            ;
+
+            try{
+                raw = JSON.parse(raw);
+            }catch(e){
+                return false;
+            }
+
+            return raw;
+    }
+
+    throw('Unsuported params');
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (decode);
+
+
+/***/ }),
+/* 21 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Api_Common_encode__ = __webpack_require__(3);
+
+
+function urn(url, params = {}, binds = {}, format = 'application/x-www-form-urlencoded'){
+    // change binds
+    for(let i in binds){
+        url = url.replace(`{${i}}`, binds[i]);
+    }
+
+    let query = Object(__WEBPACK_IMPORTED_MODULE_0_Topi_Api_Common_encode__["a" /* default */])(format, params);
+
+    if (query != null) {
+        url += '?' + query;
+    }
+
+    return url;
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (urn);
+
+
+/***/ }),
+/* 22 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_Api_Responses__ = __webpack_require__(2);
+
+
+
+const cn = 'Queue';
+class Queue extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] {
+    constructor(api) {
+        super();
+
+        let p = this.private(cn, {
+            api,
+            requets : []
+        });
+    }
+
+    request(creator) {
+        let p = this.private(cn);
+
+        p.requets.push(p.api.request(creator));
+
+        return this;
+    }
+
+    promise() {
+        return new Promise((resolve, reject) => {
+            this.exec(function(responses){
+                if (responses.error()) {
+                    reject(responses);
+                }else{
+                    resolve(responses);
+                }
+            });
+        });
+    }
+
+    exec(complete) {
+        let p = this.private(cn),
+            count = p.requets.length,
+            responses = [],
+            i
+        ;
+
+        let check = () => {
+            if (count > 0) {
+                return;
+            }
+
+            if (typeof complete == 'function') {
+                complete(new __WEBPACK_IMPORTED_MODULE_1_Topi_Api_Responses__["a" /* default */](responses));
+            }
+        }
+
+        if (count > 0) {
+            for (i in p.requets) {
+                p.requets[i].exec(function(response){
+                    responses.push(response);
+                    count--;
+                    check();
+                });
+            }
+
+        }else{
+            check();
+        }
+    }
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (Queue);
+
+
+/***/ }),
+/* 23 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(0);
+
+
+const cn = 'Endpoint';
+class Endpoint extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] {
+    constructor(api, urn) {
+        super();
+
+        let p = this.private(cn, {
+            api,
+            urn,
+        });
+    }
+
+    uri() {
+        let p = this.private(cn);
+
+        return `${p.api.url()}/${p.urn}`;
+    }
+
+    request(creator) {
+        let p = this.private(cn);
+
+        let request = p.api.request();
+
+        request.urn(p.urn);
+
+        if (creator) creator.call(request, request);
+
+        return request;
+    }
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (Endpoint);
 
 
 /***/ })

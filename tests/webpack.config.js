@@ -61,8 +61,7 @@ module.exports = {
             './',
             './src',
             '../src',
-            '../../ofiko.web/node_modules',
-            '../../ofiko.web/packages'
+            '../../../node_modules',
         ],
         // aliasy
         alias : {

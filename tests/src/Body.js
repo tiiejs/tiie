@@ -9,8 +9,12 @@ class Body {
         $("#body").prepend(p.body)
     }
 
-    body() {
+    element() {
         return this.private.body;
+    }
+
+    find(selector) {
+        return this.private.body.find(selector);
     }
 
     clean() {
