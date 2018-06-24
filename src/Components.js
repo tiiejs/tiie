@@ -17,7 +17,7 @@ class Components extends TopiObject {
         if (name[0] == '@') {
             if (p.inited[name] === undefined) {
                 if (p.components[name] === undefined) {
-                    throw(`Component ${name} is not defined.`);
+                    this.error(`Component ${name} is not defined.`);
                 }
 
                 p.inited[name] = p.components[name](this, params);
@@ -26,7 +26,7 @@ class Components extends TopiObject {
             return p.inited[name];
         }else{
             if (p.components[name] === undefined) {
-                throw(`Component ${name} is not defined.`);
+                this.error(`Component ${name} is not defined.`);
             }
 
             return p.components[name](this, params);
