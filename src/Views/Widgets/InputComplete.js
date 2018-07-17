@@ -16,7 +16,7 @@ class InputComplete extends Widget {
         if (p.source == null) {
             p.source = (term, suggest) => {
                 p.api.request((request) => {
-                    request.urn(`${p.urn}/:${term}`);
+                    request.urn(`${p.urn}/${term}`);
                 }).promise().then((response) => {
                     suggest(response.data('hints'));
                 });
