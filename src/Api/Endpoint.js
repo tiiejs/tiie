@@ -14,7 +14,7 @@ class Endpoint extends TopiObject {
     uri() {
         let p = this.private(cn);
 
-        return `${p.api.url()}/${p.urn}`;
+        return `${p.api.url()}${p.urn}`;
     }
 
     request(creator) {
