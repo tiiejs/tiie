@@ -1,0 +1,15 @@
+.topi-portlet-light {
+    background: #fff;
+    // background-color: #fafafa;
+    border: 1px silver dotted;
+
+    .__body {
+        padding: 10px;
+        background-color: white;
+        // border-bottom: 1px solid #ebedf2;
+    }
+
+    .__body.--center {
+        text-align: center;
+    }
+}
