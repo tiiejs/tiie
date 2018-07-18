@@ -1,27 +1,51 @@
-%topi-portlet {
-    background: #fff;
-    // box-shadow: 0 1px 15px 1px rgba(69,65,78,.08);
-    // color: #575962;
+.topi-portlet {
+    border: 1px silver dotted;
+    background-color: white;
 
-    .-head {
+    .__head {
         border-bottom: 1px solid #ebedf2;
         padding: 10px;
+        background-color: white;
 
-        .-title {
-            font-size: 20px;
+        .__icon {
+            display: inline-block;
+        }
+
+        .__icon:first-child {
+            margin-right: 10px;
+        }
+
+        .__title {
+            font-size: 16px;
+            display: inline-block;
+            // font-weight: bold;
         }
     }
 
-    .-body {
-        padding: 10px;
-        // border-bottom: 1px solid #ebedf2;
+    .__head.--center {
+        text-align: center;
     }
 
-    .-foot {
+    .__head.--bold {
+        font-weight: bold;
+    }
+
+    .__body {
         padding: 10px;
+    }
+
+    .__body.--no-padding {
+        padding: 0px;
+    }
+
+    .__foot {
+        padding: 10px;
+        border-top: 1px silver dotted;
     }
 }
 
-.topi-portlet {
-    @extend %topi-portlet;
+.topi-portlet.--form {
+    .__body {
+        background-color: #fafafa;
+    }
 }

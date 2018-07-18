@@ -4,7 +4,7 @@
     }
 
     .__fields {
-        .__label.is-error {
+        .__label.--error {
             color: red;
         }
 
@@ -17,7 +17,7 @@
             font-weight: bold;
         }
 
-        .__cell.is-error {
+        .__cell.--error {
             background-color: #ffebeb;
             padding-top: 10px;
             padding-bottom: 10px;
@@ -27,7 +27,7 @@
 
         }
 
-        .__notice.is-error {
+        .__notice.--error {
             color: red;
         }
     }
