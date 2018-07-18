@@ -29,12 +29,17 @@ class Form extends Widget {
             state : null,
             // Lista widget
             widgets : {},
+            footer : params.footer === undefined ? null : params.footer,
         });
 
         this.set("-structure", params.structure === undefined ? [] : params.structure);
         this.set("-value", params.value === undefined ? {} : params.value);
         this.set("-state", params.state === undefined ? {} : params.state);
         this.set("-buttons", params.buttons === undefined ? [] : params.buttons);
+
+        if (p.footer != null) {
+            p.footer.append(this.element('footer'));
+        }
 
         this.element("footer").on("click", "button", (event) => {
             let target = this.$(event.currentTarget),
@@ -349,22 +354,20 @@ class Form extends Widget {
 
         // clean state
         this.element("fields").find(".__notice").remove();
-        this.element("fields").find(".__label").removeClass("is-error");
+        this.element("fields").find(".__label").removeClass("--error");
 
         // this.element("fields").find(".topi-form__cell--error").removeClass("topi-form__cell--error");
 
         // Clean all states
         for(let widgetName in p.widgets) {
-            let widget = p.widgets[widgetName];
-
-            widget.set("state", {
+            p.widgets[widgetName].set("state", {
                 type : "default"
             });
         }
 
-        // Set new satates
         switch (state.type) {
             case "error":
+                // Error
                 for(i in state.errors){
                     let feedback = state.errors[i].map((error) => {
                         return `${error.error}</br>`;
@@ -376,16 +379,16 @@ class Form extends Widget {
 
                         if (target != null) {
                             // Element was found
-                            target.append(`<div class="__notice is-error">${feedback}</div>`);
+                            target.append(`<div class="__notice --error">${feedback}</div>`);
                         }
 
                         // check if there is label
                         let label = this.element("fields").element(`${i}Label`);
 
                         if (label != null) {
-                            label.addClass("is-error");
+                            label.addClass("--error");
 
-                            let cell = this.element("fields").element(`${i}LabelCell`);
+                            // let cell = this.element("fields").element(`${i}LabelCell`);
                         }
                     }
 

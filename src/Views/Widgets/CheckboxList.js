@@ -227,11 +227,11 @@ class CheckboxList extends Widget {
         }
 
         if (this.get("border")) {
-            this.element().removeClass("topi-checkboxList");
-            this.element().addClass("topi-checkboxList--border");
+            // this.element().removeClass("topi-checkboxList");
+            this.element().addClass("--border");
         }else{
-            this.element().removeClass("topi-checkboxList--border");
-            this.element().addClass("topi-checkboxList");
+            this.element().removeClass("--border");
+            // this.element().addClass("topi-checkboxList");
         }
 
         this._reloadValue();
@@ -313,7 +313,16 @@ class CheckboxList extends Widget {
     }
 
     _reloadState() {
-        return;
+        let p = this.private(cn),
+            state = this.get("&state")
+        ;
+
+        this.element().removeClass("--error");
+
+        switch (state.type) {
+            case "error":
+                this.element().addClass("--error");
+        }
     }
 }
 

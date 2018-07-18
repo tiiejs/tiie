@@ -30,7 +30,7 @@ class Input extends Widget {
             let state = this.get("&state");
 
             if (state.type == "error") {
-                this.element().removeClass("is-error");
+                this.element().removeClass("--error");
             }
 
             this.element().val(this.get("value"));
@@ -43,7 +43,7 @@ class Input extends Widget {
             let state = this.get("&state");
 
             if (state.type == "error") {
-                this.element().addClass("is-error");
+                this.element().addClass("--error");
             }
 
             if (input.inputmask) {
@@ -166,11 +166,11 @@ class Input extends Widget {
             state = this.get("&state")
         ;
 
-        this.element().removeClass("is-error");
+        this.element().removeClass("--error");
 
         switch (state.type) {
             case "error":
-                this.element().addClass("is-error");
+                this.element().addClass("--error");
         }
     }
 }
