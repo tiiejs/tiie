@@ -17,6 +17,11 @@
     margin-right : 10px;
 }
 
+.topi--margin-vertical-10 {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
 /** padding **/
 .topi--padding-none {
     padding: 0px;
@@ -72,6 +77,11 @@
 .topi--space-right-10 {
     padding-right: 10px;
     margin-right: 10px;
+}
+
+/** display **/
+.topi--display-inline-block {
+    display: inline-block;
 }
 
 /** border **/
@@ -169,3 +179,20 @@
     font-weight: bold;
 }
 
+/** modyficators **/
+.--hover {
+    cursor: pointer;
+    color: #007bff;
+}
+
+.--no-padding {
+    padding: 0px;
+}
+
+.--top-padding {
+    padding-top: 10px;
+}
+
+.--bottom-padding {
+    padding-bottom: 10px;
+}

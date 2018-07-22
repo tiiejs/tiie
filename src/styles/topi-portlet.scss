@@ -38,6 +38,14 @@
         padding: 0px;
     }
 
+    .__body.--top-padding {
+        padding-top: 10px;
+    }
+
+    .__body.--bottom-padding {
+        padding-bottom: 10px;
+    }
+
     .__foot {
         padding: 10px;
         border-top: 1px silver dotted;
