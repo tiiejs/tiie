@@ -119,10 +119,8 @@ class Pagination extends Widget {
                 return super.__setValue(target, name, valueInt, emitparams);
             }
         } else if (name == "value") {
-
             if (this._checkValue(value)) {
                 const valueInt = parseInt(value);
-
 
                 return super.__setValue(target, name, valueInt, emitparams);
             }
@@ -145,7 +143,7 @@ class Pagination extends Widget {
             this.element("previous").show();
         }
 
-        this.element("page").val(value + 1);
+        this.element("page").html(value + 1);
         this.element("from").html(pages);
 
         if (value == pages - 1) {
