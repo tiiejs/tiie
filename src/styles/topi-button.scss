@@ -27,102 +27,102 @@
     @extend %topi-button;
 }
 
-.topi-button--blue {
+.topi-button.--blue {
     @extend %topi-button;
     background-color: $topi-color-blue;
 }
 
-.topi-button--indigo {
+.topi-button.--indigo {
     @extend %topi-button;
     background-color: $topi-color-indigo;
 }
 
-.topi-button--purple {
+.topi-button.--purple {
     @extend %topi-button;
     background-color: $topi-color-purple;
 }
 
-.topi-button--pink {
+.topi-button.--pink {
     @extend %topi-button;
     background-color: $topi-color-pink;
 }
 
-.topi-button--red {
+.topi-button.--red {
     @extend %topi-button;
     background-color: $topi-color-red;
 }
 
-.topi-button--orange {
+.topi-button.--orange {
     @extend %topi-button;
     background-color: $topi-color-orange;
 }
 
-.topi-button--yellow {
+.topi-button.--yellow {
     @extend %topi-button;
     background-color: $topi-color-yellow;
 }
 
-.topi-button--green {
+.topi-button.--green {
     @extend %topi-button;
     background-color: $topi-color-green;
 }
 
-.topi-button--teal {
+.topi-button.--teal {
     @extend %topi-button;
     background-color: $topi-color-teal;
 }
 
-.topi-button--cyan {
+.topi-button.--cyan {
     @extend %topi-button;
     background-color: $topi-color-cyan;
 }
 
-.topi-button--white {
+.topi-button.--white {
     @extend %topi-button;
     background-color: $topi-color-white;
 }
 
-.topi-button--gray {
+.topi-button.--gray {
     @extend %topi-button;
     background-color: $topi-color-gray;
 }
 
-.topi-button--primary {
+.topi-button.--primary {
     @extend %topi-button;
     background-color: $topi-color-primary;
 }
 
-.topi-button--secondary {
+.topi-button.--secondary {
     @extend %topi-button;
     background-color: $topi-color-secondary;
 }
 
-.topi-button--success {
+.topi-button.--success {
     @extend %topi-button;
     background-color: $topi-color-success;
 }
 
-.topi-button--info {
+.topi-button.--info {
     @extend %topi-button;
     background-color: $topi-color-info;
 }
 
-.topi-button--warning {
+.topi-button.--warning {
     @extend %topi-button;
     background-color: $topi-color-warning;
 }
 
-.topi-button--danger {
+.topi-button.--danger {
     @extend %topi-button;
     background-color: $topi-color-danger;
 }
 
-.topi-button--light {
+.topi-button.--light {
     @extend %topi-button;
     background-color: $topi-color-light;
 }
 
-.topi-button--dark {
+.topi-button.--dark {
     @extend %topi-button;
     background-color: $topi-color-dark;
 }
