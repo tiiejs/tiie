@@ -1,9 +1,19 @@
 import TopiObject from 'Topi/Object';
 import View from "Topi/View";
+
 import templateDialog from "Topi/Dialog/Views/Dialog.dialog.html";
 import templateLayout from "Topi/Dialog/Views/Dialog.layout.html";
 
 const cn = 'Dialog';
+
+/**
+ * Base view to display simple dialog.
+ *
+ * @param {Object} params
+ *     - title
+ *     - content
+ *     - buttons
+ */
 class Dialog extends View {
 
     constructor(params = {}) {
