@@ -395,7 +395,8 @@ class Router extends TopiObject {
     }
 
     _deserializeParams(serializedParams) {
-        return JSON.parse(decodeURIComponent(escape(atob(serializedParams))));
+        // return JSON.parse(decodeURIComponent(escape(atob(serializedParams))));
+        return JSON.parse(decodeURIComponent(atob(serializedParams)));
 
         let p = this.private(cn);
         serializedParams = serializedParams.trim();
