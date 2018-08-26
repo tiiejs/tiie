@@ -19,6 +19,31 @@ class View extends TopiObject {
         });
 
         p.elements = this._createElements(template);
+        p.elements.forEach(element => this._attachEventsListener(element));
+
+        // attach to standard events
+        // this.element().
+        // Set default attribute
+        // this.set(".view.ready", 0, {silently : 1});
+        // this.set(".view.loading", 0, {silently : 1});
+    }
+
+    _attachEventsListener(element) {
+        let p = this.private(cn);
+
+        this.element().on('click', '[event-click]', (event) => {
+            let target = this.$(event.currentTarget);
+            let data = target.data();
+
+            if (data.event == undefined) {
+                data.event = event;
+            }
+
+            this.emit(`${target.attr('event-click')}:click`, data);
+
+            event.stopPropagation();
+            event.preventDefault();
+        });
     }
 
     _createElements(html) {
