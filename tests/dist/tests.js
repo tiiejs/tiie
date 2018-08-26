@@ -60,513 +60,469 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 4);
+/******/ 	return __webpack_require__(__webpack_require__.s = 7);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Utils_same__ = __webpack_require__(16);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__ = __webpack_require__(17);
+/*
+	MIT License http://www.opensource.org/licenses/mit-license.php
+	Author Tobias Koppers @sokra
+*/
+// css base code, injected by the css-loader
+module.exports = function(useSourceMap) {
+	var list = [];
 
+	// return the list of modules as css string
+	list.toString = function toString() {
+		return this.map(function (item) {
+			var content = cssWithMappingToString(item, useSourceMap);
+			if(item[2]) {
+				return "@media " + item[2] + "{" + content + "}";
+			} else {
+				return content;
+			}
+		}).join("");
+	};
 
+	// import a list of modules into the list
+	list.i = function(modules, mediaQuery) {
+		if(typeof modules === "string")
+			modules = [[null, modules, ""]];
+		var alreadyImportedModules = {};
+		for(var i = 0; i < this.length; i++) {
+			var id = this[i][0];
+			if(typeof id === "number")
+				alreadyImportedModules[id] = true;
+		}
+		for(i = 0; i < modules.length; i++) {
+			var item = modules[i];
+			// skip already imported module
+			// this implementation is not 100% perfect for weird media query combinations
+			//  when a module is imported multiple times with different media queries.
+			//  I hope this will never occur (Hey this way we have smaller bundles)
+			if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
+				if(mediaQuery && !item[2]) {
+					item[2] = mediaQuery;
+				} else if(mediaQuery) {
+					item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
+				}
+				list.push(item);
+			}
+		}
+	};
+	return list;
+};
 
-let uniqueId = 0,
-    components = null
-;
+function cssWithMappingToString(item, useSourceMap) {
+	var content = item[1] || '';
+	var cssMapping = item[3];
+	if (!cssMapping) {
+		return content;
+	}
 
-/**
- * EventsQueue
- */
-class EventsQueue {
+	if (useSourceMap && typeof btoa === 'function') {
+		var sourceMapping = toComment(cssMapping);
+		var sourceURLs = cssMapping.sources.map(function (source) {
+			return '/*# sourceURL=' + cssMapping.sourceRoot + source + ' */'
+		});
 
-    constructor() {
-        this.queue = [];
-        this.processing = false;
-    }
+		return [content].concat(sourceURLs).concat([sourceMapping]).join('\n');
+	}
 
-    add(callback, event = {}, params = {}) {
-        this.queue.push({
-            callback,
-            event,
-            params,
-        });
-
-        this._process();
-    }
-
-    _process() {
-        if (this.processing) {
-            return;
-        }
-
-        this.processing = true;
-
-        let event;
-
-        while(this.queue.length) {
-            event = this.queue.shift();
-            event.callback.call(window, event.event, event.params);
-        }
-
-        this.processing = false;
-    }
+	return [content].join('\n');
 }
 
-let eventsQueue = new EventsQueue();
-
-/**
- * TopiObject
- */
-const cn = 'TopiObject';
-class TopiObject {
-
-    constructor(data = {}) {
-        let p = this.private(cn, {
-            // Eventy
-            events : {},
-
-            // Dane obiektu
-            data,
-        });
-    }
-
-    /**
-     * Tworzy klon obiektu.
-     */
-    clone() {
-
-    }
-
-    warn(message) {
-        console.warn(message);
-
-        return this;
-    }
-
-    error(error) {
-        let p = this.private(cn),
-            router = this.component('@router')
-        ;
-
-        router.forward('@error', {error});
-
-        return this;
-    }
-
-    log(message, type = 'log') {
-        switch (type) {
-            case 'error':
-                return this.error(message);
-            default:
-                console.warn(type, message);
-        }
-
-        return this;
-    }
-
-    /**
-     * Set value of attribute for object. Given value is always cloned.
-     *
-     * @param {string} name Name of attribute. Name can use docs notation. For
-     * example this.set("value", 12) or this.set("value.async", 1).
-     *
-     * @param {mixed} value
-     * @param {object} emitparams
-     */
-    set(name, value, emitparams = {}) {
-        let p = this.private(cn);
-
-        value = Object(__WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__["a" /* default */])(value);
-
-        // Czy wartość ma być ustawiona, bez emitowania zdarzeń.
-        emitparams.silently = emitparams.silently === undefined ? 0 : 1;
-
-        if (name[0] == '-') {
-            // Skrócona metoda ustawiania wartości, bez emitowania
-            // this.set('-name', "Pawel")
-            emitparams.silently = 1;
-            name = name.substr(1);
-        }
-
-        if (typeof name == 'object') {
-            // todo Ustawianie wielu wartości za pomoca jednego obiektu.
-        }else if(typeof name == 'string') {
-            return this.__setValue(p.data, name, value, emitparams);
-        }else{
-            this.error("Unsuported params");
-        }
-    }
-
-    /**
-     * Ustawienie wartości w obiekcie, wraz z emitowaniem eventów.
-     *
-     * @param {object} target
-     * @param {string} name
-     * @param {*} value
-     * @param {object} emitparams
-     * @return this
-     */
-    __setValue(target, name, value, emitparams = {}) {
-        let p = this.private(cn);
-
-        if (target[name] === undefined) {
-            target[name] = value;
-
-            this.emit(`${name}:init`, {}, emitparams);
-            this.emit(`${name}:change`, {
-                previous : undefined
-            }, emitparams);
-
-        }else{
-            if (emitparams.silently) {
-                target[name] = value;
-            }else{
-                if (!Object(__WEBPACK_IMPORTED_MODULE_0_Topi_Utils_same__["a" /* default */])(target[name], value)) {
-                    let previous = target[name];
-
-                    target[name] = value;
-
-                    this.emit(`${name}:change`, {
-                        previous
-                    }, emitparams);
-                }
-            }
-        }
-
-        return this;
-    }
-
-    /**
-     * Zwraca informację czy obiekt spełnia podane kryteriu
-     *
-     * @param {string} name
-     * @return {integer} 0 lub 1
-     */
-    is(name) {
-        return 0;
-    }
-
-    data(params = {}) {
-        let p = this.private(cn);
-
-        // todo clone to reference
-        // Zmienic nazwe parametru clone na reference
-        params.clone = params.clone === undefined ? 1 : params.clone;
-        params.data = params.data === undefined ? 1 : params.data;
-
-        if (params.clone) {
-            return Object(__WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__["a" /* default */])(p.data, params);
-        }else{
-            return p.data;
-        }
-    }
-
-    get(name, value = null, params = {}) {
-        let p = this.private(cn),
-            pointer = p.data,
-            i,
-            length,
-            t,
-            splited
-        ;
-
-        // default params
-        params.clone = params.clone === undefined ? 1 : params.clone;
-        params.data = params.data === undefined ? 1 : params.data;
-
-        if (name[0] == '&') {
-            params.clone = 0;
-
-            name = name.substring(1);
-        }else if(name[0] == '*') {
-            params.data = 0;
-            name = name.substring(1);
-        }
-
-        // split name
-        // splited = name.split('.');
-
-        // while(splited.length > 1){
-        //     t = splited.shift();
-
-        //     if (pointer[t] === undefined) {
-        //         return value;
-        //     }
-
-        //     pointer = pointer[t];
-        // }
-
-        if (pointer[name] === undefined) {
-            return value;
-        }
-
-        if (params.clone) {
-            return Object(__WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__["a" /* default */])(pointer[name], params);
-        }else{
-            return pointer[name];
-        }
-    }
-
-    /**
-     * Return private scope for object.
-     *
-     * this.private("App") - return private scope for App
-     * let p = this.private("App", {}) - init private scope for App, and return
-     * the
-     * this.private("App", "name") - return value of name attribute at App
-     * private scope.
-     *
-     * When private scope is inited like this
-     *     this.private("View", {
-     *         domain : "www.test.pl",
-     *         name : this.prepareName()
-     *     });
-     *
-     * Inited values can not be generated by other methods wich use private
-     * scope. At this case, this should be do like this.
-     *     let p this.private("View", {
-     *         domain : "www.test.pl",
-     *         name : this.prepareName()
-     *     });
-     *
-     *     p.name = this.prepareName();
-     *
-     *
-     * @param {string} id
-     * @param {string} attr
-     * @param {mixed} value
-     * @return {mixed}
-     */
-    private(id, attr, value){
-        if (!pscope.has(this)) {
-            // Inicjuje prywatną przestrzeń dla obiektu
-            pscope.set(this, {});
-        }
-
-        if (pscope.get(this)[id] === undefined) {
-            // Nie ma prywatnej przestrzeni dla ID
-
-            if (attr === undefined) {
-                pscope.get(this)[id] = {};
-            }else{
-                // Sytuacja w której podane są wartości do zainicjowania
-                pscope.get(this)[id] = attr;
-            }
-
-            return pscope.get(this)[id];
-        }
-
-        if (attr === undefined) {
-            // Zwraca całą prywatną przestrzeń
-            return pscope.get(this)[id];
-        }else{
-            if (typeof attr == 'string') {
-                if (value === undefined) {
-                    // Zwracam wartość podanego argumentu
-                    return pscope.get(this)[id][attr];
-                }else{
-                    // Ustawiam nową wartość
-                    pscope.get(this)[id][attr] = value;
-
-                    return this;
-                }
-            }
-
-            this.log("Wrong private call", "warn");
-        }
-
-        this.log("Wrong private call", "warn");
-    }
-
-    /**
-     * Register event listener of specific event.
-     *
-     * @param {string} name Na of event. For example button.submit:click.
-     * @param {string} callback Function to call.
-     * @param {string} group Grouo of owner. It can be any string. We recoment
-     * use this.id() of object.
-     *
-     * @return $this
-     */
-    on(name, callback, group) {
-        let p = this.private(cn),
-            i
-        ;
-
-        if (Array.isArray(name)) {
-            for (i in name) {
-                this.on(name[i], callback, group);
-            }
-
-            return this;
-        }
-
-        if (p.events[name] === undefined) {
-            p.events[name] = [];
-        }
-
-        p.events[name].push({
-            name,
-            callback,
-            group
-        });
-
-        return this;
-    }
-
-    id() {
-        let p = this.private(cn);
-
-        if (p.id === undefined) {
-            p.id = uniqueId++;
-        }
-
-        return p.id;
-    }
-
-    /**
-     * Emituje zdarzenie.
-     *
-     * @param {string} name - Name of event.
-     * @param {Object} params - Params which will be send listener.
-     * @param {Object} emitparams - Options for emit.
-     */
-    emit(name, params = {}, emitparams = {}) {
-        let p = this.private(cn),
-            call = [],
-            event = {},
-            i,
-            j
-        ;
-
-        event.this = this;
-        event.name = name;
-
-        emitparams.ommit = emitparams.ommit === undefined ? null : emitparams.ommit;
-
-        name = name.split(':');
-
-        if (name.length == 1) {
-            call.push(name[0]);
-        }else if(name.length == 2){
-            if (name[0] == '') {
-                call.push(`:${name[1]}`);
-            }else{
-                call.push(`${name[0]}:${name[1]}`);
-                call.push(`${name[0]}`);
-                call.push(`:${name[1]}`);
-            }
-        }else{
-            throw("Unsuported event format");
-        }
-
-        // eventy sa wywolywane od tylu
-        for (i = call.length -1; i >= 0; i--) {
-            if (p.events[call[i]] === undefined) {
-                continue;
-            }
-
-            for (j in p.events[call[i]]) {
-                if (emitparams.ommit != null) {
-                    if (p.events[call[i]][j].group == emitparams.ommit) {
-                        continue;
-                    }
-                }
-
-                eventsQueue.add(p.events[call[i]][j].callback, event, params);
-            }
-        }
-
-        return this;
-    }
-
-    /**
-     * Delete event listeners.
-     *
-     * @param {string|number|function} name
-     */
-    off(name) {
-        let p = this.private(cn);
-
-        switch (typeof name) {
-            case 'undefined':
-                p.events = {};
-
-                return this;
-            case 'string':
-            case 'number':
-                for (let event in p.events) {
-                    let events = [];
-
-                    for (let i in p.events[event]) {
-                        if (p.events[event][i].group != name) {
-                            events.push(p.events[event][i]);
-                        }
-                    }
-
-                    p.events[event] = events;
-                }
-
-                return this;
-            default :
-                this.error("Unsuported params");
-        }
-    }
-
-    component(name, params = {}) {
-        return components.get(name, params);
-    }
-
-    components() {
-        return components;
-    }
-
-    // this.trigger('selectRow:success', {
-
-    // });
-
-    // this.on('selectRow#app', funcRef)
-    // this.on('selectRow.app', funcRef)
-
-    // this.off();
-    // this.off(funcRef);
-
-    // this.off('.app');
-    // this.off('#app');
-    // this.off('selectRow');
-
-    // this.on('saved:success')
-    // this.on('saved:faile')
-
-    // widget.on('event', function(){}, id);
-
-    // widget.off(id);
-    // widget.off('change.name');
-    // widget.off(function(){});
-
-    // Events
+// Adapted from convert-source-map (MIT)
+function toComment(sourceMap) {
+	// eslint-disable-next-line no-undef
+	var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap))));
+	var data = 'sourceMappingURL=data:application/json;charset=utf-8;base64,' + base64;
+
+	return '/*# ' + data + ' */';
 }
-
-TopiObject.components = function(p) {
-    components = p
-}
-
-if (window.pscope === undefined) {
-    window.pscope = new WeakMap();
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (TopiObject);
 
 
 /***/ }),
 /* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
+/*
+	MIT License http://www.opensource.org/licenses/mit-license.php
+	Author Tobias Koppers @sokra
+*/
+
+var stylesInDom = {};
+
+var	memoize = function (fn) {
+	var memo;
+
+	return function () {
+		if (typeof memo === "undefined") memo = fn.apply(this, arguments);
+		return memo;
+	};
+};
+
+var isOldIE = memoize(function () {
+	// Test for IE <= 9 as proposed by Browserhacks
+	// @see http://browserhacks.com/#hack-e71d8692f65334173fee715c222cb805
+	// Tests for existence of standard globals is to allow style-loader
+	// to operate correctly into non-standard environments
+	// @see https://github.com/webpack-contrib/style-loader/issues/177
+	return window && document && document.all && !window.atob;
+});
+
+var getElement = (function (fn) {
+	var memo = {};
+
+	return function(selector) {
+		if (typeof memo[selector] === "undefined") {
+			var styleTarget = fn.call(this, selector);
+			// Special case to return head of iframe instead of iframe itself
+			if (styleTarget instanceof window.HTMLIFrameElement) {
+				try {
+					// This will throw an exception if access to iframe is blocked
+					// due to cross-origin restrictions
+					styleTarget = styleTarget.contentDocument.head;
+				} catch(e) {
+					styleTarget = null;
+				}
+			}
+			memo[selector] = styleTarget;
+		}
+		return memo[selector]
+	};
+})(function (target) {
+	return document.querySelector(target)
+});
+
+var singleton = null;
+var	singletonCounter = 0;
+var	stylesInsertedAtTop = [];
+
+var	fixUrls = __webpack_require__(19);
+
+module.exports = function(list, options) {
+	if (typeof DEBUG !== "undefined" && DEBUG) {
+		if (typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
+	}
+
+	options = options || {};
+
+	options.attrs = typeof options.attrs === "object" ? options.attrs : {};
+
+	// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
+	// tags it will allow on a page
+	if (!options.singleton && typeof options.singleton !== "boolean") options.singleton = isOldIE();
+
+	// By default, add <style> tags to the <head> element
+	if (!options.insertInto) options.insertInto = "head";
+
+	// By default, add <style> tags to the bottom of the target
+	if (!options.insertAt) options.insertAt = "bottom";
+
+	var styles = listToStyles(list, options);
+
+	addStylesToDom(styles, options);
+
+	return function update (newList) {
+		var mayRemove = [];
+
+		for (var i = 0; i < styles.length; i++) {
+			var item = styles[i];
+			var domStyle = stylesInDom[item.id];
+
+			domStyle.refs--;
+			mayRemove.push(domStyle);
+		}
+
+		if(newList) {
+			var newStyles = listToStyles(newList, options);
+			addStylesToDom(newStyles, options);
+		}
+
+		for (var i = 0; i < mayRemove.length; i++) {
+			var domStyle = mayRemove[i];
+
+			if(domStyle.refs === 0) {
+				for (var j = 0; j < domStyle.parts.length; j++) domStyle.parts[j]();
+
+				delete stylesInDom[domStyle.id];
+			}
+		}
+	};
+};
+
+function addStylesToDom (styles, options) {
+	for (var i = 0; i < styles.length; i++) {
+		var item = styles[i];
+		var domStyle = stylesInDom[item.id];
+
+		if(domStyle) {
+			domStyle.refs++;
+
+			for(var j = 0; j < domStyle.parts.length; j++) {
+				domStyle.parts[j](item.parts[j]);
+			}
+
+			for(; j < item.parts.length; j++) {
+				domStyle.parts.push(addStyle(item.parts[j], options));
+			}
+		} else {
+			var parts = [];
+
+			for(var j = 0; j < item.parts.length; j++) {
+				parts.push(addStyle(item.parts[j], options));
+			}
+
+			stylesInDom[item.id] = {id: item.id, refs: 1, parts: parts};
+		}
+	}
+}
+
+function listToStyles (list, options) {
+	var styles = [];
+	var newStyles = {};
+
+	for (var i = 0; i < list.length; i++) {
+		var item = list[i];
+		var id = options.base ? item[0] + options.base : item[0];
+		var css = item[1];
+		var media = item[2];
+		var sourceMap = item[3];
+		var part = {css: css, media: media, sourceMap: sourceMap};
+
+		if(!newStyles[id]) styles.push(newStyles[id] = {id: id, parts: [part]});
+		else newStyles[id].parts.push(part);
+	}
+
+	return styles;
+}
+
+function insertStyleElement (options, style) {
+	var target = getElement(options.insertInto)
+
+	if (!target) {
+		throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");
+	}
+
+	var lastStyleElementInsertedAtTop = stylesInsertedAtTop[stylesInsertedAtTop.length - 1];
+
+	if (options.insertAt === "top") {
+		if (!lastStyleElementInsertedAtTop) {
+			target.insertBefore(style, target.firstChild);
+		} else if (lastStyleElementInsertedAtTop.nextSibling) {
+			target.insertBefore(style, lastStyleElementInsertedAtTop.nextSibling);
+		} else {
+			target.appendChild(style);
+		}
+		stylesInsertedAtTop.push(style);
+	} else if (options.insertAt === "bottom") {
+		target.appendChild(style);
+	} else if (typeof options.insertAt === "object" && options.insertAt.before) {
+		var nextSibling = getElement(options.insertInto + " " + options.insertAt.before);
+		target.insertBefore(style, nextSibling);
+	} else {
+		throw new Error("[Style Loader]\n\n Invalid value for parameter 'insertAt' ('options.insertAt') found.\n Must be 'top', 'bottom', or Object.\n (https://github.com/webpack-contrib/style-loader#insertat)\n");
+	}
+}
+
+function removeStyleElement (style) {
+	if (style.parentNode === null) return false;
+	style.parentNode.removeChild(style);
+
+	var idx = stylesInsertedAtTop.indexOf(style);
+	if(idx >= 0) {
+		stylesInsertedAtTop.splice(idx, 1);
+	}
+}
+
+function createStyleElement (options) {
+	var style = document.createElement("style");
+
+	options.attrs.type = "text/css";
+
+	addAttrs(style, options.attrs);
+	insertStyleElement(options, style);
+
+	return style;
+}
+
+function createLinkElement (options) {
+	var link = document.createElement("link");
+
+	options.attrs.type = "text/css";
+	options.attrs.rel = "stylesheet";
+
+	addAttrs(link, options.attrs);
+	insertStyleElement(options, link);
+
+	return link;
+}
+
+function addAttrs (el, attrs) {
+	Object.keys(attrs).forEach(function (key) {
+		el.setAttribute(key, attrs[key]);
+	});
+}
+
+function addStyle (obj, options) {
+	var style, update, remove, result;
+
+	// If a transform function was defined, run it on the css
+	if (options.transform && obj.css) {
+	    result = options.transform(obj.css);
+
+	    if (result) {
+	    	// If transform returns a value, use that instead of the original css.
+	    	// This allows running runtime transformations on the css.
+	    	obj.css = result;
+	    } else {
+	    	// If the transform function returns a falsy value, don't add this css.
+	    	// This allows conditional loading of css
+	    	return function() {
+	    		// noop
+	    	};
+	    }
+	}
+
+	if (options.singleton) {
+		var styleIndex = singletonCounter++;
+
+		style = singleton || (singleton = createStyleElement(options));
+
+		update = applyToSingletonTag.bind(null, style, styleIndex, false);
+		remove = applyToSingletonTag.bind(null, style, styleIndex, true);
+
+	} else if (
+		obj.sourceMap &&
+		typeof URL === "function" &&
+		typeof URL.createObjectURL === "function" &&
+		typeof URL.revokeObjectURL === "function" &&
+		typeof Blob === "function" &&
+		typeof btoa === "function"
+	) {
+		style = createLinkElement(options);
+		update = updateLink.bind(null, style, options);
+		remove = function () {
+			removeStyleElement(style);
+
+			if(style.href) URL.revokeObjectURL(style.href);
+		};
+	} else {
+		style = createStyleElement(options);
+		update = applyToTag.bind(null, style);
+		remove = function () {
+			removeStyleElement(style);
+		};
+	}
+
+	update(obj);
+
+	return function updateStyle (newObj) {
+		if (newObj) {
+			if (
+				newObj.css === obj.css &&
+				newObj.media === obj.media &&
+				newObj.sourceMap === obj.sourceMap
+			) {
+				return;
+			}
+
+			update(obj = newObj);
+		} else {
+			remove();
+		}
+	};
+}
+
+var replaceText = (function () {
+	var textStore = [];
+
+	return function (index, replacement) {
+		textStore[index] = replacement;
+
+		return textStore.filter(Boolean).join('\n');
+	};
+})();
+
+function applyToSingletonTag (style, index, remove, obj) {
+	var css = remove ? "" : obj.css;
+
+	if (style.styleSheet) {
+		style.styleSheet.cssText = replaceText(index, css);
+	} else {
+		var cssNode = document.createTextNode(css);
+		var childNodes = style.childNodes;
+
+		if (childNodes[index]) style.removeChild(childNodes[index]);
+
+		if (childNodes.length) {
+			style.insertBefore(cssNode, childNodes[index]);
+		} else {
+			style.appendChild(cssNode);
+		}
+	}
+}
+
+function applyToTag (style, obj) {
+	var css = obj.css;
+	var media = obj.media;
+
+	if(media) {
+		style.setAttribute("media", media)
+	}
+
+	if(style.styleSheet) {
+		style.styleSheet.cssText = css;
+	} else {
+		while(style.firstChild) {
+			style.removeChild(style.firstChild);
+		}
+
+		style.appendChild(document.createTextNode(css));
+	}
+}
+
+function updateLink (link, options, obj) {
+	var css = obj.css;
+	var sourceMap = obj.sourceMap;
+
+	/*
+		If convertToAbsoluteUrls isn't defined, but sourcemaps are enabled
+		and there is no publicPath defined then lets turn convertToAbsoluteUrls
+		on by default.  Otherwise default to the convertToAbsoluteUrls option
+		directly
+	*/
+	var autoFixUrls = options.convertToAbsoluteUrls === undefined && sourceMap;
+
+	if (options.convertToAbsoluteUrls || autoFixUrls) {
+		css = fixUrls(css);
+	}
+
+	if (sourceMap) {
+		// http://stackoverflow.com/a/26603875
+		css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */";
+	}
+
+	var blob = new Blob([css], { type: "text/css" });
+
+	var oldSrc = link.href;
+
+	link.href = URL.createObjectURL(blob);
+
+	if(oldSrc) URL.revokeObjectURL(oldSrc);
+}
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
- * jQuery JavaScript Library v3.2.1
+ * jQuery JavaScript Library v3.3.1
  * https://jquery.com/
  *
  * Includes Sizzle.js
@@ -576,7 +532,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
  * Released under the MIT license
  * https://jquery.org/license
  *
- * Date: 2017-03-20T18:59Z
+ * Date: 2018-01-20T17:24Z
  */
 ( function( global, factory ) {
 
@@ -638,16 +594,57 @@ var ObjectFunctionString = fnToString.call( Object );
 
 var support = {};
 
+var isFunction = function isFunction( obj ) {
+
+      // Support: Chrome <=57, Firefox <=52
+      // In some browsers, typeof returns "function" for HTML <object> elements
+      // (i.e., `typeof document.createElement( "object" ) === "function"`).
+      // We don't want to classify *any* DOM node as a function.
+      return typeof obj === "function" && typeof obj.nodeType !== "number";
+  };
 
 
-	function DOMEval( code, doc ) {
+var isWindow = function isWindow( obj ) {
+		return obj != null && obj === obj.window;
+	};
+
+
+
+
+	var preservedScriptAttributes = {
+		type: true,
+		src: true,
+		noModule: true
+	};
+
+	function DOMEval( code, doc, node ) {
 		doc = doc || document;
 
-		var script = doc.createElement( "script" );
+		var i,
+			script = doc.createElement( "script" );
 
 		script.text = code;
+		if ( node ) {
+			for ( i in preservedScriptAttributes ) {
+				if ( node[ i ] ) {
+					script[ i ] = node[ i ];
+				}
+			}
+		}
 		doc.head.appendChild( script ).parentNode.removeChild( script );
 	}
+
+
+function toType( obj ) {
+	if ( obj == null ) {
+		return obj + "";
+	}
+
+	// Support: Android <=2.3 only (functionish RegExp)
+	return typeof obj === "object" || typeof obj === "function" ?
+		class2type[ toString.call( obj ) ] || "object" :
+		typeof obj;
+}
 /* global Symbol */
 // Defining this global in .eslintrc.json would create a danger of using the global
 // unguarded in another place, it seems safer to define global only for this module
@@ -655,7 +652,7 @@ var support = {};
 
 
 var
-	version = "3.2.1",
+	version = "3.3.1",
 
 	// Define a local copy of jQuery
 	jQuery = function( selector, context ) {
@@ -667,16 +664,7 @@ var
 
 	// Support: Android <=4.0 only
 	// Make sure we trim BOM and NBSP
-	rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,
-
-	// Matches dashed string for camelizing
-	rmsPrefix = /^-ms-/,
-	rdashAlpha = /-([a-z])/g,
-
-	// Used by jQuery.camelCase as callback to replace()
-	fcamelCase = function( all, letter ) {
-		return letter.toUpperCase();
-	};
+	rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g;
 
 jQuery.fn = jQuery.prototype = {
 
@@ -776,7 +764,7 @@ jQuery.extend = jQuery.fn.extend = function() {
 	}
 
 	// Handle case when target is a string or something (possible in deep copy)
-	if ( typeof target !== "object" && !jQuery.isFunction( target ) ) {
+	if ( typeof target !== "object" && !isFunction( target ) ) {
 		target = {};
 	}
 
@@ -842,28 +830,6 @@ jQuery.extend( {
 
 	noop: function() {},
 
-	isFunction: function( obj ) {
-		return jQuery.type( obj ) === "function";
-	},
-
-	isWindow: function( obj ) {
-		return obj != null && obj === obj.window;
-	},
-
-	isNumeric: function( obj ) {
-
-		// As of jQuery 3.0, isNumeric is limited to
-		// strings and numbers (primitives or objects)
-		// that can be coerced to finite numbers (gh-2662)
-		var type = jQuery.type( obj );
-		return ( type === "number" || type === "string" ) &&
-
-			// parseFloat NaNs numeric-cast false positives ("")
-			// ...but misinterprets leading-number strings, particularly hex literals ("0x...")
-			// subtraction forces infinities to NaN
-			!isNaN( obj - parseFloat( obj ) );
-	},
-
 	isPlainObject: function( obj ) {
 		var proto, Ctor;
 
@@ -897,27 +863,9 @@ jQuery.extend( {
 		return true;
 	},
 
-	type: function( obj ) {
-		if ( obj == null ) {
-			return obj + "";
-		}
-
-		// Support: Android <=2.3 only (functionish RegExp)
-		return typeof obj === "object" || typeof obj === "function" ?
-			class2type[ toString.call( obj ) ] || "object" :
-			typeof obj;
-	},
-
 	// Evaluates a script in a global context
 	globalEval: function( code ) {
 		DOMEval( code );
-	},
-
-	// Convert dashed to camelCase; used by the css and data modules
-	// Support: IE <=9 - 11, Edge 12 - 13
-	// Microsoft forgot to hump their vendor prefix (#9572)
-	camelCase: function( string ) {
-		return string.replace( rmsPrefix, "ms-" ).replace( rdashAlpha, fcamelCase );
 	},
 
 	each: function( obj, callback ) {
@@ -1040,37 +988,6 @@ jQuery.extend( {
 	// A global GUID counter for objects
 	guid: 1,
 
-	// Bind a function to a context, optionally partially applying any
-	// arguments.
-	proxy: function( fn, context ) {
-		var tmp, args, proxy;
-
-		if ( typeof context === "string" ) {
-			tmp = fn[ context ];
-			context = fn;
-			fn = tmp;
-		}
-
-		// Quick check to determine if target is callable, in the spec
-		// this throws a TypeError, but we will just return undefined.
-		if ( !jQuery.isFunction( fn ) ) {
-			return undefined;
-		}
-
-		// Simulated bind
-		args = slice.call( arguments, 2 );
-		proxy = function() {
-			return fn.apply( context || this, args.concat( slice.call( arguments ) ) );
-		};
-
-		// Set the guid of unique handler to the same of original handler, so it can be removed
-		proxy.guid = fn.guid = fn.guid || jQuery.guid++;
-
-		return proxy;
-	},
-
-	now: Date.now,
-
 	// jQuery.support is not used in Core but other projects attach their
 	// properties to it so it needs to exist.
 	support: support
@@ -1093,9 +1010,9 @@ function isArrayLike( obj ) {
 	// hasOwn isn't used here due to false negatives
 	// regarding Nodelist length in IE
 	var length = !!obj && "length" in obj && obj.length,
-		type = jQuery.type( obj );
+		type = toType( obj );
 
-	if ( type === "function" || jQuery.isWindow( obj ) ) {
+	if ( isFunction( obj ) || isWindow( obj ) ) {
 		return false;
 	}
 
@@ -3415,11 +3332,9 @@ var rsingleTag = ( /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|
 
 
 
-var risSimple = /^.[^:#\[\.,]*$/;
-
 // Implement the identical functionality for filter and not
 function winnow( elements, qualifier, not ) {
-	if ( jQuery.isFunction( qualifier ) ) {
+	if ( isFunction( qualifier ) ) {
 		return jQuery.grep( elements, function( elem, i ) {
 			return !!qualifier.call( elem, i, elem ) !== not;
 		} );
@@ -3439,16 +3354,8 @@ function winnow( elements, qualifier, not ) {
 		} );
 	}
 
-	// Simple selector that can be filtered directly, removing non-Elements
-	if ( risSimple.test( qualifier ) ) {
-		return jQuery.filter( qualifier, elements, not );
-	}
-
-	// Complex selector, compare the two sets, removing non-Elements
-	qualifier = jQuery.filter( qualifier, elements );
-	return jQuery.grep( elements, function( elem ) {
-		return ( indexOf.call( qualifier, elem ) > -1 ) !== not && elem.nodeType === 1;
-	} );
+	// Filtered directly for both simple and complex selectors
+	return jQuery.filter( qualifier, elements, not );
 }
 
 jQuery.filter = function( expr, elems, not ) {
@@ -3569,7 +3476,7 @@ var rootjQuery,
 						for ( match in context ) {
 
 							// Properties of context are called as methods if possible
-							if ( jQuery.isFunction( this[ match ] ) ) {
+							if ( isFunction( this[ match ] ) ) {
 								this[ match ]( context[ match ] );
 
 							// ...and otherwise set as attributes
@@ -3612,7 +3519,7 @@ var rootjQuery,
 
 		// HANDLE: $(function)
 		// Shortcut for document ready
-		} else if ( jQuery.isFunction( selector ) ) {
+		} else if ( isFunction( selector ) ) {
 			return root.ready !== undefined ?
 				root.ready( selector ) :
 
@@ -3927,11 +3834,11 @@ jQuery.Callbacks = function( options ) {
 
 					( function add( args ) {
 						jQuery.each( args, function( _, arg ) {
-							if ( jQuery.isFunction( arg ) ) {
+							if ( isFunction( arg ) ) {
 								if ( !options.unique || !self.has( arg ) ) {
 									list.push( arg );
 								}
-							} else if ( arg && arg.length && jQuery.type( arg ) !== "string" ) {
+							} else if ( arg && arg.length && toType( arg ) !== "string" ) {
 
 								// Inspect recursively
 								add( arg );
@@ -4046,11 +3953,11 @@ function adoptValue( value, resolve, reject, noValue ) {
 	try {
 
 		// Check for promise aspect first to privilege synchronous behavior
-		if ( value && jQuery.isFunction( ( method = value.promise ) ) ) {
+		if ( value && isFunction( ( method = value.promise ) ) ) {
 			method.call( value ).done( resolve ).fail( reject );
 
 		// Other thenables
-		} else if ( value && jQuery.isFunction( ( method = value.then ) ) ) {
+		} else if ( value && isFunction( ( method = value.then ) ) ) {
 			method.call( value, resolve, reject );
 
 		// Other non-thenables
@@ -4108,14 +4015,14 @@ jQuery.extend( {
 						jQuery.each( tuples, function( i, tuple ) {
 
 							// Map tuples (progress, done, fail) to arguments (done, fail, progress)
-							var fn = jQuery.isFunction( fns[ tuple[ 4 ] ] ) && fns[ tuple[ 4 ] ];
+							var fn = isFunction( fns[ tuple[ 4 ] ] ) && fns[ tuple[ 4 ] ];
 
 							// deferred.progress(function() { bind to newDefer or newDefer.notify })
 							// deferred.done(function() { bind to newDefer or newDefer.resolve })
 							// deferred.fail(function() { bind to newDefer or newDefer.reject })
 							deferred[ tuple[ 1 ] ]( function() {
 								var returned = fn && fn.apply( this, arguments );
-								if ( returned && jQuery.isFunction( returned.promise ) ) {
+								if ( returned && isFunction( returned.promise ) ) {
 									returned.promise()
 										.progress( newDefer.notify )
 										.done( newDefer.resolve )
@@ -4169,7 +4076,7 @@ jQuery.extend( {
 										returned.then;
 
 									// Handle a returned thenable
-									if ( jQuery.isFunction( then ) ) {
+									if ( isFunction( then ) ) {
 
 										// Special processors (notify) just wait for resolution
 										if ( special ) {
@@ -4265,7 +4172,7 @@ jQuery.extend( {
 							resolve(
 								0,
 								newDefer,
-								jQuery.isFunction( onProgress ) ?
+								isFunction( onProgress ) ?
 									onProgress :
 									Identity,
 								newDefer.notifyWith
@@ -4277,7 +4184,7 @@ jQuery.extend( {
 							resolve(
 								0,
 								newDefer,
-								jQuery.isFunction( onFulfilled ) ?
+								isFunction( onFulfilled ) ?
 									onFulfilled :
 									Identity
 							)
@@ -4288,7 +4195,7 @@ jQuery.extend( {
 							resolve(
 								0,
 								newDefer,
-								jQuery.isFunction( onRejected ) ?
+								isFunction( onRejected ) ?
 									onRejected :
 									Thrower
 							)
@@ -4328,8 +4235,15 @@ jQuery.extend( {
 					// fulfilled_callbacks.disable
 					tuples[ 3 - i ][ 2 ].disable,
 
+					// rejected_handlers.disable
+					// fulfilled_handlers.disable
+					tuples[ 3 - i ][ 3 ].disable,
+
 					// progress_callbacks.lock
-					tuples[ 0 ][ 2 ].lock
+					tuples[ 0 ][ 2 ].lock,
+
+					// progress_handlers.lock
+					tuples[ 0 ][ 3 ].lock
 				);
 			}
 
@@ -4399,7 +4313,7 @@ jQuery.extend( {
 
 			// Use .then() to unwrap secondary thenables (cf. gh-3000)
 			if ( master.state() === "pending" ||
-				jQuery.isFunction( resolveValues[ i ] && resolveValues[ i ].then ) ) {
+				isFunction( resolveValues[ i ] && resolveValues[ i ].then ) ) {
 
 				return master.then();
 			}
@@ -4527,7 +4441,7 @@ var access = function( elems, fn, key, value, chainable, emptyGet, raw ) {
 		bulk = key == null;
 
 	// Sets many values
-	if ( jQuery.type( key ) === "object" ) {
+	if ( toType( key ) === "object" ) {
 		chainable = true;
 		for ( i in key ) {
 			access( elems, fn, i, key[ i ], true, emptyGet, raw );
@@ -4537,7 +4451,7 @@ var access = function( elems, fn, key, value, chainable, emptyGet, raw ) {
 	} else if ( value !== undefined ) {
 		chainable = true;
 
-		if ( !jQuery.isFunction( value ) ) {
+		if ( !isFunction( value ) ) {
 			raw = true;
 		}
 
@@ -4579,6 +4493,23 @@ var access = function( elems, fn, key, value, chainable, emptyGet, raw ) {
 
 	return len ? fn( elems[ 0 ], key ) : emptyGet;
 };
+
+
+// Matches dashed string for camelizing
+var rmsPrefix = /^-ms-/,
+	rdashAlpha = /-([a-z])/g;
+
+// Used by camelCase as callback to replace()
+function fcamelCase( all, letter ) {
+	return letter.toUpperCase();
+}
+
+// Convert dashed to camelCase; used by the css and data modules
+// Support: IE <=9 - 11, Edge 12 - 15
+// Microsoft forgot to hump their vendor prefix (#9572)
+function camelCase( string ) {
+	return string.replace( rmsPrefix, "ms-" ).replace( rdashAlpha, fcamelCase );
+}
 var acceptData = function( owner ) {
 
 	// Accepts only:
@@ -4641,14 +4572,14 @@ Data.prototype = {
 		// Handle: [ owner, key, value ] args
 		// Always use camelCase key (gh-2257)
 		if ( typeof data === "string" ) {
-			cache[ jQuery.camelCase( data ) ] = value;
+			cache[ camelCase( data ) ] = value;
 
 		// Handle: [ owner, { properties } ] args
 		} else {
 
 			// Copy the properties one-by-one to the cache object
 			for ( prop in data ) {
-				cache[ jQuery.camelCase( prop ) ] = data[ prop ];
+				cache[ camelCase( prop ) ] = data[ prop ];
 			}
 		}
 		return cache;
@@ -4658,7 +4589,7 @@ Data.prototype = {
 			this.cache( owner ) :
 
 			// Always use camelCase key (gh-2257)
-			owner[ this.expando ] && owner[ this.expando ][ jQuery.camelCase( key ) ];
+			owner[ this.expando ] && owner[ this.expando ][ camelCase( key ) ];
 	},
 	access: function( owner, key, value ) {
 
@@ -4706,9 +4637,9 @@ Data.prototype = {
 
 				// If key is an array of keys...
 				// We always set camelCase keys, so remove that.
-				key = key.map( jQuery.camelCase );
+				key = key.map( camelCase );
 			} else {
-				key = jQuery.camelCase( key );
+				key = camelCase( key );
 
 				// If a key with the spaces exists, use it.
 				// Otherwise, create an array by matching non-whitespace
@@ -4854,7 +4785,7 @@ jQuery.fn.extend( {
 						if ( attrs[ i ] ) {
 							name = attrs[ i ].name;
 							if ( name.indexOf( "data-" ) === 0 ) {
-								name = jQuery.camelCase( name.slice( 5 ) );
+								name = camelCase( name.slice( 5 ) );
 								dataAttr( elem, name, data[ name ] );
 							}
 						}
@@ -5101,8 +5032,7 @@ var swap = function( elem, options, callback, args ) {
 
 
 function adjustCSS( elem, prop, valueParts, tween ) {
-	var adjusted,
-		scale = 1,
+	var adjusted, scale,
 		maxIterations = 20,
 		currentValue = tween ?
 			function() {
@@ -5120,30 +5050,33 @@ function adjustCSS( elem, prop, valueParts, tween ) {
 
 	if ( initialInUnit && initialInUnit[ 3 ] !== unit ) {
 
+		// Support: Firefox <=54
+		// Halve the iteration target value to prevent interference from CSS upper bounds (gh-2144)
+		initial = initial / 2;
+
 		// Trust units reported by jQuery.css
 		unit = unit || initialInUnit[ 3 ];
-
-		// Make sure we update the tween properties later on
-		valueParts = valueParts || [];
 
 		// Iteratively approximate from a nonzero starting point
 		initialInUnit = +initial || 1;
 
-		do {
+		while ( maxIterations-- ) {
 
-			// If previous iteration zeroed out, double until we get *something*.
-			// Use string for doubling so we don't accidentally see scale as unchanged below
-			scale = scale || ".5";
-
-			// Adjust and apply
-			initialInUnit = initialInUnit / scale;
+			// Evaluate and update our best guess (doubling guesses that zero out).
+			// Finish if the scale equals or crosses 1 (making the old*new product non-positive).
 			jQuery.style( elem, prop, initialInUnit + unit );
+			if ( ( 1 - scale ) * ( 1 - ( scale = currentValue() / initial || 0.5 ) ) <= 0 ) {
+				maxIterations = 0;
+			}
+			initialInUnit = initialInUnit / scale;
 
-		// Update scale, tolerating zero or NaN from tween.cur()
-		// Break the loop if scale is unchanged or perfect, or if we've just had enough.
-		} while (
-			scale !== ( scale = currentValue() / initial ) && scale !== 1 && --maxIterations
-		);
+		}
+
+		initialInUnit = initialInUnit * 2;
+		jQuery.style( elem, prop, initialInUnit + unit );
+
+		// Make sure we update the tween properties later on
+		valueParts = valueParts || [];
 	}
 
 	if ( valueParts ) {
@@ -5261,7 +5194,7 @@ var rcheckableType = ( /^(?:checkbox|radio)$/i );
 
 var rtagName = ( /<([a-z][^\/\0>\x20\t\r\n\f]+)/i );
 
-var rscriptType = ( /^$|\/(?:java|ecma)script/i );
+var rscriptType = ( /^$|^module$|\/(?:java|ecma)script/i );
 
 
 
@@ -5343,7 +5276,7 @@ function buildFragment( elems, context, scripts, selection, ignored ) {
 		if ( elem || elem === 0 ) {
 
 			// Add nodes directly
-			if ( jQuery.type( elem ) === "object" ) {
+			if ( toType( elem ) === "object" ) {
 
 				// Support: Android <=4.0 only, PhantomJS 1 only
 				// push.apply(_, arraylike) throws on ancient WebKit
@@ -5853,7 +5786,7 @@ jQuery.event = {
 			enumerable: true,
 			configurable: true,
 
-			get: jQuery.isFunction( hook ) ?
+			get: isFunction( hook ) ?
 				function() {
 					if ( this.originalEvent ) {
 							return hook( this.originalEvent );
@@ -5988,7 +5921,7 @@ jQuery.Event = function( src, props ) {
 	}
 
 	// Create a timestamp if incoming event doesn't have one
-	this.timeStamp = src && src.timeStamp || jQuery.now();
+	this.timeStamp = src && src.timeStamp || Date.now();
 
 	// Mark it as fixed
 	this[ jQuery.expando ] = true;
@@ -6187,14 +6120,13 @@ var
 
 	/* eslint-enable */
 
-	// Support: IE <=10 - 11, Edge 12 - 13
+	// Support: IE <=10 - 11, Edge 12 - 13 only
 	// In IE/Edge using regex groups here causes severe slowdowns.
 	// See https://connect.microsoft.com/IE/feedback/details/1736512/
 	rnoInnerhtml = /<script|<style|<link/i,
 
 	// checked="checked" or checked
 	rchecked = /checked\s*(?:[^=]|=\s*.checked.)/i,
-	rscriptTypeMasked = /^true\/(.*)/,
 	rcleanScript = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
 
 // Prefer a tbody over its parent table for containing new rows
@@ -6202,7 +6134,7 @@ function manipulationTarget( elem, content ) {
 	if ( nodeName( elem, "table" ) &&
 		nodeName( content.nodeType !== 11 ? content : content.firstChild, "tr" ) ) {
 
-		return jQuery( ">tbody", elem )[ 0 ] || elem;
+		return jQuery( elem ).children( "tbody" )[ 0 ] || elem;
 	}
 
 	return elem;
@@ -6214,10 +6146,8 @@ function disableScript( elem ) {
 	return elem;
 }
 function restoreScript( elem ) {
-	var match = rscriptTypeMasked.exec( elem.type );
-
-	if ( match ) {
-		elem.type = match[ 1 ];
+	if ( ( elem.type || "" ).slice( 0, 5 ) === "true/" ) {
+		elem.type = elem.type.slice( 5 );
 	} else {
 		elem.removeAttribute( "type" );
 	}
@@ -6283,15 +6213,15 @@ function domManip( collection, args, callback, ignored ) {
 		l = collection.length,
 		iNoClone = l - 1,
 		value = args[ 0 ],
-		isFunction = jQuery.isFunction( value );
+		valueIsFunction = isFunction( value );
 
 	// We can't cloneNode fragments that contain checked, in WebKit
-	if ( isFunction ||
+	if ( valueIsFunction ||
 			( l > 1 && typeof value === "string" &&
 				!support.checkClone && rchecked.test( value ) ) ) {
 		return collection.each( function( index ) {
 			var self = collection.eq( index );
-			if ( isFunction ) {
+			if ( valueIsFunction ) {
 				args[ 0 ] = value.call( this, index, self.html() );
 			}
 			domManip( self, args, callback, ignored );
@@ -6345,14 +6275,14 @@ function domManip( collection, args, callback, ignored ) {
 						!dataPriv.access( node, "globalEval" ) &&
 						jQuery.contains( doc, node ) ) {
 
-						if ( node.src ) {
+						if ( node.src && ( node.type || "" ).toLowerCase()  !== "module" ) {
 
 							// Optional AJAX dependency, but won't run scripts if not present
 							if ( jQuery._evalUrl ) {
 								jQuery._evalUrl( node.src );
 							}
 						} else {
-							DOMEval( node.textContent.replace( rcleanScript, "" ), doc );
+							DOMEval( node.textContent.replace( rcleanScript, "" ), doc, node );
 						}
 					}
 				}
@@ -6632,8 +6562,6 @@ jQuery.each( {
 		return this.pushStack( ret );
 	};
 } );
-var rmargin = ( /^margin/ );
-
 var rnumnonpx = new RegExp( "^(" + pnum + ")(?!px)[a-z%]+$", "i" );
 
 var getStyles = function( elem ) {
@@ -6650,6 +6578,8 @@ var getStyles = function( elem ) {
 		return view.getComputedStyle( elem );
 	};
 
+var rboxStyle = new RegExp( cssExpand.join( "|" ), "i" );
+
 
 
 ( function() {
@@ -6663,25 +6593,33 @@ var getStyles = function( elem ) {
 			return;
 		}
 
+		container.style.cssText = "position:absolute;left:-11111px;width:60px;" +
+			"margin-top:1px;padding:0;border:0";
 		div.style.cssText =
-			"box-sizing:border-box;" +
-			"position:relative;display:block;" +
+			"position:relative;display:block;box-sizing:border-box;overflow:scroll;" +
 			"margin:auto;border:1px;padding:1px;" +
-			"top:1%;width:50%";
-		div.innerHTML = "";
-		documentElement.appendChild( container );
+			"width:60%;top:1%";
+		documentElement.appendChild( container ).appendChild( div );
 
 		var divStyle = window.getComputedStyle( div );
 		pixelPositionVal = divStyle.top !== "1%";
 
 		// Support: Android 4.0 - 4.3 only, Firefox <=3 - 44
-		reliableMarginLeftVal = divStyle.marginLeft === "2px";
-		boxSizingReliableVal = divStyle.width === "4px";
+		reliableMarginLeftVal = roundPixelMeasures( divStyle.marginLeft ) === 12;
 
-		// Support: Android 4.0 - 4.3 only
+		// Support: Android 4.0 - 4.3 only, Safari <=9.1 - 10.1, iOS <=7.0 - 9.3
 		// Some styles come back with percentage values, even though they shouldn't
-		div.style.marginRight = "50%";
-		pixelMarginRightVal = divStyle.marginRight === "4px";
+		div.style.right = "60%";
+		pixelBoxStylesVal = roundPixelMeasures( divStyle.right ) === 36;
+
+		// Support: IE 9 - 11 only
+		// Detect misreporting of content dimensions for box-sizing:border-box elements
+		boxSizingReliableVal = roundPixelMeasures( divStyle.width ) === 36;
+
+		// Support: IE 9 only
+		// Detect overflow:scroll screwiness (gh-3699)
+		div.style.position = "absolute";
+		scrollboxSizeVal = div.offsetWidth === 36 || "absolute";
 
 		documentElement.removeChild( container );
 
@@ -6690,7 +6628,12 @@ var getStyles = function( elem ) {
 		div = null;
 	}
 
-	var pixelPositionVal, boxSizingReliableVal, pixelMarginRightVal, reliableMarginLeftVal,
+	function roundPixelMeasures( measure ) {
+		return Math.round( parseFloat( measure ) );
+	}
+
+	var pixelPositionVal, boxSizingReliableVal, scrollboxSizeVal, pixelBoxStylesVal,
+		reliableMarginLeftVal,
 		container = document.createElement( "div" ),
 		div = document.createElement( "div" );
 
@@ -6705,26 +6648,26 @@ var getStyles = function( elem ) {
 	div.cloneNode( true ).style.backgroundClip = "";
 	support.clearCloneStyle = div.style.backgroundClip === "content-box";
 
-	container.style.cssText = "border:0;width:8px;height:0;top:0;left:-9999px;" +
-		"padding:0;margin-top:1px;position:absolute";
-	container.appendChild( div );
-
 	jQuery.extend( support, {
-		pixelPosition: function() {
-			computeStyleTests();
-			return pixelPositionVal;
-		},
 		boxSizingReliable: function() {
 			computeStyleTests();
 			return boxSizingReliableVal;
 		},
-		pixelMarginRight: function() {
+		pixelBoxStyles: function() {
 			computeStyleTests();
-			return pixelMarginRightVal;
+			return pixelBoxStylesVal;
+		},
+		pixelPosition: function() {
+			computeStyleTests();
+			return pixelPositionVal;
 		},
 		reliableMarginLeft: function() {
 			computeStyleTests();
 			return reliableMarginLeftVal;
+		},
+		scrollboxSize: function() {
+			computeStyleTests();
+			return scrollboxSizeVal;
 		}
 	} );
 } )();
@@ -6756,7 +6699,7 @@ function curCSS( elem, name, computed ) {
 		// but width seems to be reliably pixels.
 		// This is against the CSSOM draft spec:
 		// https://drafts.csswg.org/cssom/#resolved-values
-		if ( !support.pixelMarginRight() && rnumnonpx.test( ret ) && rmargin.test( name ) ) {
+		if ( !support.pixelBoxStyles() && rnumnonpx.test( ret ) && rboxStyle.test( name ) ) {
 
 			// Remember the original values
 			width = style.width;
@@ -6861,87 +6804,120 @@ function setPositiveNumber( elem, value, subtract ) {
 		value;
 }
 
-function augmentWidthOrHeight( elem, name, extra, isBorderBox, styles ) {
-	var i,
-		val = 0;
+function boxModelAdjustment( elem, dimension, box, isBorderBox, styles, computedVal ) {
+	var i = dimension === "width" ? 1 : 0,
+		extra = 0,
+		delta = 0;
 
-	// If we already have the right measurement, avoid augmentation
-	if ( extra === ( isBorderBox ? "border" : "content" ) ) {
-		i = 4;
-
-	// Otherwise initialize for horizontal or vertical properties
-	} else {
-		i = name === "width" ? 1 : 0;
+	// Adjustment may not be necessary
+	if ( box === ( isBorderBox ? "border" : "content" ) ) {
+		return 0;
 	}
 
 	for ( ; i < 4; i += 2 ) {
 
-		// Both box models exclude margin, so add it if we want it
-		if ( extra === "margin" ) {
-			val += jQuery.css( elem, extra + cssExpand[ i ], true, styles );
+		// Both box models exclude margin
+		if ( box === "margin" ) {
+			delta += jQuery.css( elem, box + cssExpand[ i ], true, styles );
 		}
 
-		if ( isBorderBox ) {
+		// If we get here with a content-box, we're seeking "padding" or "border" or "margin"
+		if ( !isBorderBox ) {
 
-			// border-box includes padding, so remove it if we want content
-			if ( extra === "content" ) {
-				val -= jQuery.css( elem, "padding" + cssExpand[ i ], true, styles );
+			// Add padding
+			delta += jQuery.css( elem, "padding" + cssExpand[ i ], true, styles );
+
+			// For "border" or "margin", add border
+			if ( box !== "padding" ) {
+				delta += jQuery.css( elem, "border" + cssExpand[ i ] + "Width", true, styles );
+
+			// But still keep track of it otherwise
+			} else {
+				extra += jQuery.css( elem, "border" + cssExpand[ i ] + "Width", true, styles );
 			}
 
-			// At this point, extra isn't border nor margin, so remove border
-			if ( extra !== "margin" ) {
-				val -= jQuery.css( elem, "border" + cssExpand[ i ] + "Width", true, styles );
-			}
+		// If we get here with a border-box (content + padding + border), we're seeking "content" or
+		// "padding" or "margin"
 		} else {
 
-			// At this point, extra isn't content, so add padding
-			val += jQuery.css( elem, "padding" + cssExpand[ i ], true, styles );
+			// For "content", subtract padding
+			if ( box === "content" ) {
+				delta -= jQuery.css( elem, "padding" + cssExpand[ i ], true, styles );
+			}
 
-			// At this point, extra isn't content nor padding, so add border
-			if ( extra !== "padding" ) {
-				val += jQuery.css( elem, "border" + cssExpand[ i ] + "Width", true, styles );
+			// For "content" or "padding", subtract border
+			if ( box !== "margin" ) {
+				delta -= jQuery.css( elem, "border" + cssExpand[ i ] + "Width", true, styles );
 			}
 		}
 	}
 
-	return val;
+	// Account for positive content-box scroll gutter when requested by providing computedVal
+	if ( !isBorderBox && computedVal >= 0 ) {
+
+		// offsetWidth/offsetHeight is a rounded sum of content, padding, scroll gutter, and border
+		// Assuming integer scroll gutter, subtract the rest and round down
+		delta += Math.max( 0, Math.ceil(
+			elem[ "offset" + dimension[ 0 ].toUpperCase() + dimension.slice( 1 ) ] -
+			computedVal -
+			delta -
+			extra -
+			0.5
+		) );
+	}
+
+	return delta;
 }
 
-function getWidthOrHeight( elem, name, extra ) {
+function getWidthOrHeight( elem, dimension, extra ) {
 
 	// Start with computed style
-	var valueIsBorderBox,
-		styles = getStyles( elem ),
-		val = curCSS( elem, name, styles ),
-		isBorderBox = jQuery.css( elem, "boxSizing", false, styles ) === "border-box";
+	var styles = getStyles( elem ),
+		val = curCSS( elem, dimension, styles ),
+		isBorderBox = jQuery.css( elem, "boxSizing", false, styles ) === "border-box",
+		valueIsBorderBox = isBorderBox;
 
-	// Computed unit is not pixels. Stop here and return.
+	// Support: Firefox <=54
+	// Return a confounding non-pixel value or feign ignorance, as appropriate.
 	if ( rnumnonpx.test( val ) ) {
-		return val;
+		if ( !extra ) {
+			return val;
+		}
+		val = "auto";
 	}
 
 	// Check for style in case a browser which returns unreliable values
 	// for getComputedStyle silently falls back to the reliable elem.style
-	valueIsBorderBox = isBorderBox &&
-		( support.boxSizingReliable() || val === elem.style[ name ] );
+	valueIsBorderBox = valueIsBorderBox &&
+		( support.boxSizingReliable() || val === elem.style[ dimension ] );
 
-	// Fall back to offsetWidth/Height when value is "auto"
+	// Fall back to offsetWidth/offsetHeight when value is "auto"
 	// This happens for inline elements with no explicit setting (gh-3571)
-	if ( val === "auto" ) {
-		val = elem[ "offset" + name[ 0 ].toUpperCase() + name.slice( 1 ) ];
+	// Support: Android <=4.1 - 4.3 only
+	// Also use offsetWidth/offsetHeight for misreported inline dimensions (gh-3602)
+	if ( val === "auto" ||
+		!parseFloat( val ) && jQuery.css( elem, "display", false, styles ) === "inline" ) {
+
+		val = elem[ "offset" + dimension[ 0 ].toUpperCase() + dimension.slice( 1 ) ];
+
+		// offsetWidth/offsetHeight provide border-box values
+		valueIsBorderBox = true;
 	}
 
-	// Normalize "", auto, and prepare for extra
+	// Normalize "" and auto
 	val = parseFloat( val ) || 0;
 
-	// Use the active box-sizing model to add/subtract irrelevant styles
+	// Adjust for the element's box model
 	return ( val +
-		augmentWidthOrHeight(
+		boxModelAdjustment(
 			elem,
-			name,
+			dimension,
 			extra || ( isBorderBox ? "border" : "content" ),
 			valueIsBorderBox,
-			styles
+			styles,
+
+			// Provide the current computed size to request scroll gutter calculation (gh-3589)
+			val
 		)
 	) + "px";
 }
@@ -6982,9 +6958,7 @@ jQuery.extend( {
 
 	// Add in properties whose names you wish to fix before
 	// setting or getting the value
-	cssProps: {
-		"float": "cssFloat"
-	},
+	cssProps: {},
 
 	// Get and set the style property on a DOM Node
 	style: function( elem, name, value, extra ) {
@@ -6996,7 +6970,7 @@ jQuery.extend( {
 
 		// Make sure that we're working with the right name
 		var ret, type, hooks,
-			origName = jQuery.camelCase( name ),
+			origName = camelCase( name ),
 			isCustomProp = rcustomProp.test( name ),
 			style = elem.style;
 
@@ -7064,7 +7038,7 @@ jQuery.extend( {
 
 	css: function( elem, name, extra, styles ) {
 		var val, num, hooks,
-			origName = jQuery.camelCase( name ),
+			origName = camelCase( name ),
 			isCustomProp = rcustomProp.test( name );
 
 		// Make sure that we're working with the right name. We don't
@@ -7102,8 +7076,8 @@ jQuery.extend( {
 	}
 } );
 
-jQuery.each( [ "height", "width" ], function( i, name ) {
-	jQuery.cssHooks[ name ] = {
+jQuery.each( [ "height", "width" ], function( i, dimension ) {
+	jQuery.cssHooks[ dimension ] = {
 		get: function( elem, computed, extra ) {
 			if ( computed ) {
 
@@ -7119,29 +7093,41 @@ jQuery.each( [ "height", "width" ], function( i, name ) {
 					// in IE throws an error.
 					( !elem.getClientRects().length || !elem.getBoundingClientRect().width ) ?
 						swap( elem, cssShow, function() {
-							return getWidthOrHeight( elem, name, extra );
+							return getWidthOrHeight( elem, dimension, extra );
 						} ) :
-						getWidthOrHeight( elem, name, extra );
+						getWidthOrHeight( elem, dimension, extra );
 			}
 		},
 
 		set: function( elem, value, extra ) {
 			var matches,
-				styles = extra && getStyles( elem ),
-				subtract = extra && augmentWidthOrHeight(
+				styles = getStyles( elem ),
+				isBorderBox = jQuery.css( elem, "boxSizing", false, styles ) === "border-box",
+				subtract = extra && boxModelAdjustment(
 					elem,
-					name,
+					dimension,
 					extra,
-					jQuery.css( elem, "boxSizing", false, styles ) === "border-box",
+					isBorderBox,
 					styles
 				);
+
+			// Account for unreliable border-box dimensions by comparing offset* to computed and
+			// faking a content-box to get border and padding (gh-3699)
+			if ( isBorderBox && support.scrollboxSize() === styles.position ) {
+				subtract -= Math.ceil(
+					elem[ "offset" + dimension[ 0 ].toUpperCase() + dimension.slice( 1 ) ] -
+					parseFloat( styles[ dimension ] ) -
+					boxModelAdjustment( elem, dimension, "border", false, styles ) -
+					0.5
+				);
+			}
 
 			// Convert to pixels if value adjustment is needed
 			if ( subtract && ( matches = rcssNum.exec( value ) ) &&
 				( matches[ 3 ] || "px" ) !== "px" ) {
 
-				elem.style[ name ] = value;
-				value = jQuery.css( elem, name );
+				elem.style[ dimension ] = value;
+				value = jQuery.css( elem, dimension );
 			}
 
 			return setPositiveNumber( elem, value, subtract );
@@ -7185,7 +7171,7 @@ jQuery.each( {
 		}
 	};
 
-	if ( !rmargin.test( prefix ) ) {
+	if ( prefix !== "margin" ) {
 		jQuery.cssHooks[ prefix + suffix ].set = setPositiveNumber;
 	}
 } );
@@ -7356,7 +7342,7 @@ function createFxNow() {
 	window.setTimeout( function() {
 		fxNow = undefined;
 	} );
-	return ( fxNow = jQuery.now() );
+	return ( fxNow = Date.now() );
 }
 
 // Generate parameters to create a standard animation
@@ -7460,9 +7446,10 @@ function defaultPrefilter( elem, props, opts ) {
 	// Restrict "overflow" and "display" styles during box animations
 	if ( isBox && elem.nodeType === 1 ) {
 
-		// Support: IE <=9 - 11, Edge 12 - 13
+		// Support: IE <=9 - 11, Edge 12 - 15
 		// Record all 3 overflow attributes because IE does not infer the shorthand
-		// from identically-valued overflowX and overflowY
+		// from identically-valued overflowX and overflowY and Edge just mirrors
+		// the overflowX value there.
 		opts.overflow = [ style.overflow, style.overflowX, style.overflowY ];
 
 		// Identify a display type, preferring old show/hide data over the CSS cascade
@@ -7570,7 +7557,7 @@ function propFilter( props, specialEasing ) {
 
 	// camelCase, specialEasing and expand cssHook pass
 	for ( index in props ) {
-		name = jQuery.camelCase( index );
+		name = camelCase( index );
 		easing = specialEasing[ name ];
 		value = props[ index ];
 		if ( Array.isArray( value ) ) {
@@ -7695,9 +7682,9 @@ function Animation( elem, properties, options ) {
 	for ( ; index < length; index++ ) {
 		result = Animation.prefilters[ index ].call( animation, elem, props, animation.opts );
 		if ( result ) {
-			if ( jQuery.isFunction( result.stop ) ) {
+			if ( isFunction( result.stop ) ) {
 				jQuery._queueHooks( animation.elem, animation.opts.queue ).stop =
-					jQuery.proxy( result.stop, result );
+					result.stop.bind( result );
 			}
 			return result;
 		}
@@ -7705,7 +7692,7 @@ function Animation( elem, properties, options ) {
 
 	jQuery.map( props, createTween, animation );
 
-	if ( jQuery.isFunction( animation.opts.start ) ) {
+	if ( isFunction( animation.opts.start ) ) {
 		animation.opts.start.call( elem, animation );
 	}
 
@@ -7738,7 +7725,7 @@ jQuery.Animation = jQuery.extend( Animation, {
 	},
 
 	tweener: function( props, callback ) {
-		if ( jQuery.isFunction( props ) ) {
+		if ( isFunction( props ) ) {
 			callback = props;
 			props = [ "*" ];
 		} else {
@@ -7770,9 +7757,9 @@ jQuery.Animation = jQuery.extend( Animation, {
 jQuery.speed = function( speed, easing, fn ) {
 	var opt = speed && typeof speed === "object" ? jQuery.extend( {}, speed ) : {
 		complete: fn || !fn && easing ||
-			jQuery.isFunction( speed ) && speed,
+			isFunction( speed ) && speed,
 		duration: speed,
-		easing: fn && easing || easing && !jQuery.isFunction( easing ) && easing
+		easing: fn && easing || easing && !isFunction( easing ) && easing
 	};
 
 	// Go to the end state if fx are off
@@ -7799,7 +7786,7 @@ jQuery.speed = function( speed, easing, fn ) {
 	opt.old = opt.complete;
 
 	opt.complete = function() {
-		if ( jQuery.isFunction( opt.old ) ) {
+		if ( isFunction( opt.old ) ) {
 			opt.old.call( this );
 		}
 
@@ -7963,7 +7950,7 @@ jQuery.fx.tick = function() {
 		i = 0,
 		timers = jQuery.timers;
 
-	fxNow = jQuery.now();
+	fxNow = Date.now();
 
 	for ( ; i < timers.length; i++ ) {
 		timer = timers[ i ];
@@ -8316,7 +8303,7 @@ jQuery.each( [
 
 
 	// Strip and collapse whitespace according to HTML spec
-	// https://html.spec.whatwg.org/multipage/infrastructure.html#strip-and-collapse-whitespace
+	// https://infra.spec.whatwg.org/#strip-and-collapse-ascii-whitespace
 	function stripAndCollapse( value ) {
 		var tokens = value.match( rnothtmlwhite ) || [];
 		return tokens.join( " " );
@@ -8327,20 +8314,30 @@ function getClass( elem ) {
 	return elem.getAttribute && elem.getAttribute( "class" ) || "";
 }
 
+function classesToArray( value ) {
+	if ( Array.isArray( value ) ) {
+		return value;
+	}
+	if ( typeof value === "string" ) {
+		return value.match( rnothtmlwhite ) || [];
+	}
+	return [];
+}
+
 jQuery.fn.extend( {
 	addClass: function( value ) {
 		var classes, elem, cur, curValue, clazz, j, finalValue,
 			i = 0;
 
-		if ( jQuery.isFunction( value ) ) {
+		if ( isFunction( value ) ) {
 			return this.each( function( j ) {
 				jQuery( this ).addClass( value.call( this, j, getClass( this ) ) );
 			} );
 		}
 
-		if ( typeof value === "string" && value ) {
-			classes = value.match( rnothtmlwhite ) || [];
+		classes = classesToArray( value );
 
+		if ( classes.length ) {
 			while ( ( elem = this[ i++ ] ) ) {
 				curValue = getClass( elem );
 				cur = elem.nodeType === 1 && ( " " + stripAndCollapse( curValue ) + " " );
@@ -8369,7 +8366,7 @@ jQuery.fn.extend( {
 		var classes, elem, cur, curValue, clazz, j, finalValue,
 			i = 0;
 
-		if ( jQuery.isFunction( value ) ) {
+		if ( isFunction( value ) ) {
 			return this.each( function( j ) {
 				jQuery( this ).removeClass( value.call( this, j, getClass( this ) ) );
 			} );
@@ -8379,9 +8376,9 @@ jQuery.fn.extend( {
 			return this.attr( "class", "" );
 		}
 
-		if ( typeof value === "string" && value ) {
-			classes = value.match( rnothtmlwhite ) || [];
+		classes = classesToArray( value );
 
+		if ( classes.length ) {
 			while ( ( elem = this[ i++ ] ) ) {
 				curValue = getClass( elem );
 
@@ -8411,13 +8408,14 @@ jQuery.fn.extend( {
 	},
 
 	toggleClass: function( value, stateVal ) {
-		var type = typeof value;
+		var type = typeof value,
+			isValidValue = type === "string" || Array.isArray( value );
 
-		if ( typeof stateVal === "boolean" && type === "string" ) {
+		if ( typeof stateVal === "boolean" && isValidValue ) {
 			return stateVal ? this.addClass( value ) : this.removeClass( value );
 		}
 
-		if ( jQuery.isFunction( value ) ) {
+		if ( isFunction( value ) ) {
 			return this.each( function( i ) {
 				jQuery( this ).toggleClass(
 					value.call( this, i, getClass( this ), stateVal ),
@@ -8429,12 +8427,12 @@ jQuery.fn.extend( {
 		return this.each( function() {
 			var className, i, self, classNames;
 
-			if ( type === "string" ) {
+			if ( isValidValue ) {
 
 				// Toggle individual class names
 				i = 0;
 				self = jQuery( this );
-				classNames = value.match( rnothtmlwhite ) || [];
+				classNames = classesToArray( value );
 
 				while ( ( className = classNames[ i++ ] ) ) {
 
@@ -8493,7 +8491,7 @@ var rreturn = /\r/g;
 
 jQuery.fn.extend( {
 	val: function( value ) {
-		var hooks, ret, isFunction,
+		var hooks, ret, valueIsFunction,
 			elem = this[ 0 ];
 
 		if ( !arguments.length ) {
@@ -8522,7 +8520,7 @@ jQuery.fn.extend( {
 			return;
 		}
 
-		isFunction = jQuery.isFunction( value );
+		valueIsFunction = isFunction( value );
 
 		return this.each( function( i ) {
 			var val;
@@ -8531,7 +8529,7 @@ jQuery.fn.extend( {
 				return;
 			}
 
-			if ( isFunction ) {
+			if ( valueIsFunction ) {
 				val = value.call( this, i, jQuery( this ).val() );
 			} else {
 				val = value;
@@ -8673,18 +8671,24 @@ jQuery.each( [ "radio", "checkbox" ], function() {
 // Return jQuery for attributes-only inclusion
 
 
-var rfocusMorph = /^(?:focusinfocus|focusoutblur)$/;
+support.focusin = "onfocusin" in window;
+
+
+var rfocusMorph = /^(?:focusinfocus|focusoutblur)$/,
+	stopPropagationCallback = function( e ) {
+		e.stopPropagation();
+	};
 
 jQuery.extend( jQuery.event, {
 
 	trigger: function( event, data, elem, onlyHandlers ) {
 
-		var i, cur, tmp, bubbleType, ontype, handle, special,
+		var i, cur, tmp, bubbleType, ontype, handle, special, lastElement,
 			eventPath = [ elem || document ],
 			type = hasOwn.call( event, "type" ) ? event.type : event,
 			namespaces = hasOwn.call( event, "namespace" ) ? event.namespace.split( "." ) : [];
 
-		cur = tmp = elem = elem || document;
+		cur = lastElement = tmp = elem = elem || document;
 
 		// Don't do events on text and comment nodes
 		if ( elem.nodeType === 3 || elem.nodeType === 8 ) {
@@ -8736,7 +8740,7 @@ jQuery.extend( jQuery.event, {
 
 		// Determine event propagation path in advance, per W3C events spec (#9951)
 		// Bubble up to document, then to window; watch for a global ownerDocument var (#9724)
-		if ( !onlyHandlers && !special.noBubble && !jQuery.isWindow( elem ) ) {
+		if ( !onlyHandlers && !special.noBubble && !isWindow( elem ) ) {
 
 			bubbleType = special.delegateType || type;
 			if ( !rfocusMorph.test( bubbleType + type ) ) {
@@ -8756,7 +8760,7 @@ jQuery.extend( jQuery.event, {
 		// Fire handlers on the event path
 		i = 0;
 		while ( ( cur = eventPath[ i++ ] ) && !event.isPropagationStopped() ) {
-
+			lastElement = cur;
 			event.type = i > 1 ?
 				bubbleType :
 				special.bindType || type;
@@ -8788,7 +8792,7 @@ jQuery.extend( jQuery.event, {
 
 				// Call a native DOM method on the target with the same name as the event.
 				// Don't do default actions on window, that's where global variables be (#6170)
-				if ( ontype && jQuery.isFunction( elem[ type ] ) && !jQuery.isWindow( elem ) ) {
+				if ( ontype && isFunction( elem[ type ] ) && !isWindow( elem ) ) {
 
 					// Don't re-trigger an onFOO event when we call its FOO() method
 					tmp = elem[ ontype ];
@@ -8799,7 +8803,17 @@ jQuery.extend( jQuery.event, {
 
 					// Prevent re-triggering of the same event, since we already bubbled it above
 					jQuery.event.triggered = type;
+
+					if ( event.isPropagationStopped() ) {
+						lastElement.addEventListener( type, stopPropagationCallback );
+					}
+
 					elem[ type ]();
+
+					if ( event.isPropagationStopped() ) {
+						lastElement.removeEventListener( type, stopPropagationCallback );
+					}
+
 					jQuery.event.triggered = undefined;
 
 					if ( tmp ) {
@@ -8845,31 +8859,6 @@ jQuery.fn.extend( {
 } );
 
 
-jQuery.each( ( "blur focus focusin focusout resize scroll click dblclick " +
-	"mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave " +
-	"change select submit keydown keypress keyup contextmenu" ).split( " " ),
-	function( i, name ) {
-
-	// Handle event binding
-	jQuery.fn[ name ] = function( data, fn ) {
-		return arguments.length > 0 ?
-			this.on( name, null, data, fn ) :
-			this.trigger( name );
-	};
-} );
-
-jQuery.fn.extend( {
-	hover: function( fnOver, fnOut ) {
-		return this.mouseenter( fnOver ).mouseleave( fnOut || fnOver );
-	}
-} );
-
-
-
-
-support.focusin = "onfocusin" in window;
-
-
 // Support: Firefox <=44
 // Firefox doesn't have focus(in | out) events
 // Related ticket - https://bugzilla.mozilla.org/show_bug.cgi?id=687787
@@ -8913,7 +8902,7 @@ if ( !support.focusin ) {
 }
 var location = window.location;
 
-var nonce = jQuery.now();
+var nonce = Date.now();
 
 var rquery = ( /\?/ );
 
@@ -8971,7 +8960,7 @@ function buildParams( prefix, obj, traditional, add ) {
 			}
 		} );
 
-	} else if ( !traditional && jQuery.type( obj ) === "object" ) {
+	} else if ( !traditional && toType( obj ) === "object" ) {
 
 		// Serialize object item.
 		for ( name in obj ) {
@@ -8993,7 +8982,7 @@ jQuery.param = function( a, traditional ) {
 		add = function( key, valueOrFunction ) {
 
 			// If value is a function, invoke it and use its return value
-			var value = jQuery.isFunction( valueOrFunction ) ?
+			var value = isFunction( valueOrFunction ) ?
 				valueOrFunction() :
 				valueOrFunction;
 
@@ -9111,7 +9100,7 @@ function addToPrefiltersOrTransports( structure ) {
 			i = 0,
 			dataTypes = dataTypeExpression.toLowerCase().match( rnothtmlwhite ) || [];
 
-		if ( jQuery.isFunction( func ) ) {
+		if ( isFunction( func ) ) {
 
 			// For each dataType in the dataTypeExpression
 			while ( ( dataType = dataTypes[ i++ ] ) ) {
@@ -9583,7 +9572,7 @@ jQuery.extend( {
 		if ( s.crossDomain == null ) {
 			urlAnchor = document.createElement( "a" );
 
-			// Support: IE <=8 - 11, Edge 12 - 13
+			// Support: IE <=8 - 11, Edge 12 - 15
 			// IE throws exception on accessing the href property if url is malformed,
 			// e.g. http://example.com:80x/
 			try {
@@ -9641,8 +9630,8 @@ jQuery.extend( {
 			// Remember the hash so we can put it back
 			uncached = s.url.slice( cacheURL.length );
 
-			// If data is available, append data to url
-			if ( s.data ) {
+			// If data is available and should be processed, append data to url
+			if ( s.data && ( s.processData || typeof s.data === "string" ) ) {
 				cacheURL += ( rquery.test( cacheURL ) ? "&" : "?" ) + s.data;
 
 				// #9682: remove data so that it's not used in an eventual retry
@@ -9879,7 +9868,7 @@ jQuery.each( [ "get", "post" ], function( i, method ) {
 	jQuery[ method ] = function( url, data, callback, type ) {
 
 		// Shift arguments if data argument was omitted
-		if ( jQuery.isFunction( data ) ) {
+		if ( isFunction( data ) ) {
 			type = type || callback;
 			callback = data;
 			data = undefined;
@@ -9917,7 +9906,7 @@ jQuery.fn.extend( {
 		var wrap;
 
 		if ( this[ 0 ] ) {
-			if ( jQuery.isFunction( html ) ) {
+			if ( isFunction( html ) ) {
 				html = html.call( this[ 0 ] );
 			}
 
@@ -9943,7 +9932,7 @@ jQuery.fn.extend( {
 	},
 
 	wrapInner: function( html ) {
-		if ( jQuery.isFunction( html ) ) {
+		if ( isFunction( html ) ) {
 			return this.each( function( i ) {
 				jQuery( this ).wrapInner( html.call( this, i ) );
 			} );
@@ -9963,10 +9952,10 @@ jQuery.fn.extend( {
 	},
 
 	wrap: function( html ) {
-		var isFunction = jQuery.isFunction( html );
+		var htmlIsFunction = isFunction( html );
 
 		return this.each( function( i ) {
-			jQuery( this ).wrapAll( isFunction ? html.call( this, i ) : html );
+			jQuery( this ).wrapAll( htmlIsFunction ? html.call( this, i ) : html );
 		} );
 	},
 
@@ -10058,7 +10047,8 @@ jQuery.ajaxTransport( function( options ) {
 					return function() {
 						if ( callback ) {
 							callback = errorCallback = xhr.onload =
-								xhr.onerror = xhr.onabort = xhr.onreadystatechange = null;
+								xhr.onerror = xhr.onabort = xhr.ontimeout =
+									xhr.onreadystatechange = null;
 
 							if ( type === "abort" ) {
 								xhr.abort();
@@ -10098,7 +10088,7 @@ jQuery.ajaxTransport( function( options ) {
 
 				// Listen to events
 				xhr.onload = callback();
-				errorCallback = xhr.onerror = callback( "error" );
+				errorCallback = xhr.onerror = xhr.ontimeout = callback( "error" );
 
 				// Support: IE 9 only
 				// Use onreadystatechange to replace onabort
@@ -10252,7 +10242,7 @@ jQuery.ajaxPrefilter( "json jsonp", function( s, originalSettings, jqXHR ) {
 	if ( jsonProp || s.dataTypes[ 0 ] === "jsonp" ) {
 
 		// Get callback name, remembering preexisting value associated with it
-		callbackName = s.jsonpCallback = jQuery.isFunction( s.jsonpCallback ) ?
+		callbackName = s.jsonpCallback = isFunction( s.jsonpCallback ) ?
 			s.jsonpCallback() :
 			s.jsonpCallback;
 
@@ -10303,7 +10293,7 @@ jQuery.ajaxPrefilter( "json jsonp", function( s, originalSettings, jqXHR ) {
 			}
 
 			// Call if it was a function and we have a response
-			if ( responseContainer && jQuery.isFunction( overwritten ) ) {
+			if ( responseContainer && isFunction( overwritten ) ) {
 				overwritten( responseContainer[ 0 ] );
 			}
 
@@ -10395,7 +10385,7 @@ jQuery.fn.load = function( url, params, callback ) {
 	}
 
 	// If it's a function
-	if ( jQuery.isFunction( params ) ) {
+	if ( isFunction( params ) ) {
 
 		// We assume that it's the callback
 		callback = params;
@@ -10503,7 +10493,7 @@ jQuery.offset = {
 			curLeft = parseFloat( curCSSLeft ) || 0;
 		}
 
-		if ( jQuery.isFunction( options ) ) {
+		if ( isFunction( options ) ) {
 
 			// Use jQuery.extend here to allow modification of coordinates argument (gh-1848)
 			options = options.call( elem, i, jQuery.extend( {}, curOffset ) );
@@ -10526,6 +10516,8 @@ jQuery.offset = {
 };
 
 jQuery.fn.extend( {
+
+	// offset() relates an element's border box to the document origin
 	offset: function( options ) {
 
 		// Preserve chaining for setter
@@ -10537,7 +10529,7 @@ jQuery.fn.extend( {
 				} );
 		}
 
-		var doc, docElem, rect, win,
+		var rect, win,
 			elem = this[ 0 ];
 
 		if ( !elem ) {
@@ -10552,50 +10544,52 @@ jQuery.fn.extend( {
 			return { top: 0, left: 0 };
 		}
 
+		// Get document-relative position by adding viewport scroll to viewport-relative gBCR
 		rect = elem.getBoundingClientRect();
-
-		doc = elem.ownerDocument;
-		docElem = doc.documentElement;
-		win = doc.defaultView;
-
+		win = elem.ownerDocument.defaultView;
 		return {
-			top: rect.top + win.pageYOffset - docElem.clientTop,
-			left: rect.left + win.pageXOffset - docElem.clientLeft
+			top: rect.top + win.pageYOffset,
+			left: rect.left + win.pageXOffset
 		};
 	},
 
+	// position() relates an element's margin box to its offset parent's padding box
+	// This corresponds to the behavior of CSS absolute positioning
 	position: function() {
 		if ( !this[ 0 ] ) {
 			return;
 		}
 
-		var offsetParent, offset,
+		var offsetParent, offset, doc,
 			elem = this[ 0 ],
 			parentOffset = { top: 0, left: 0 };
 
-		// Fixed elements are offset from window (parentOffset = {top:0, left: 0},
-		// because it is its only offset parent
+		// position:fixed elements are offset from the viewport, which itself always has zero offset
 		if ( jQuery.css( elem, "position" ) === "fixed" ) {
 
-			// Assume getBoundingClientRect is there when computed position is fixed
+			// Assume position:fixed implies availability of getBoundingClientRect
 			offset = elem.getBoundingClientRect();
 
 		} else {
-
-			// Get *real* offsetParent
-			offsetParent = this.offsetParent();
-
-			// Get correct offsets
 			offset = this.offset();
-			if ( !nodeName( offsetParent[ 0 ], "html" ) ) {
-				parentOffset = offsetParent.offset();
-			}
 
-			// Add offsetParent borders
-			parentOffset = {
-				top: parentOffset.top + jQuery.css( offsetParent[ 0 ], "borderTopWidth", true ),
-				left: parentOffset.left + jQuery.css( offsetParent[ 0 ], "borderLeftWidth", true )
-			};
+			// Account for the *real* offset parent, which can be the document or its root element
+			// when a statically positioned element is identified
+			doc = elem.ownerDocument;
+			offsetParent = elem.offsetParent || doc.documentElement;
+			while ( offsetParent &&
+				( offsetParent === doc.body || offsetParent === doc.documentElement ) &&
+				jQuery.css( offsetParent, "position" ) === "static" ) {
+
+				offsetParent = offsetParent.parentNode;
+			}
+			if ( offsetParent && offsetParent !== elem && offsetParent.nodeType === 1 ) {
+
+				// Incorporate borders into its offset, since they are outside its content origin
+				parentOffset = jQuery( offsetParent ).offset();
+				parentOffset.top += jQuery.css( offsetParent, "borderTopWidth", true );
+				parentOffset.left += jQuery.css( offsetParent, "borderLeftWidth", true );
+			}
 		}
 
 		// Subtract parent offsets and element margins
@@ -10637,7 +10631,7 @@ jQuery.each( { scrollLeft: "pageXOffset", scrollTop: "pageYOffset" }, function( 
 
 			// Coalesce documents and windows
 			var win;
-			if ( jQuery.isWindow( elem ) ) {
+			if ( isWindow( elem ) ) {
 				win = elem;
 			} else if ( elem.nodeType === 9 ) {
 				win = elem.defaultView;
@@ -10695,7 +10689,7 @@ jQuery.each( { Height: "height", Width: "width" }, function( name, type ) {
 			return access( this, function( elem, type, value ) {
 				var doc;
 
-				if ( jQuery.isWindow( elem ) ) {
+				if ( isWindow( elem ) ) {
 
 					// $( window ).outerWidth/Height return w/h including scrollbars (gh-1729)
 					return funcName.indexOf( "outer" ) === 0 ?
@@ -10729,6 +10723,28 @@ jQuery.each( { Height: "height", Width: "width" }, function( name, type ) {
 } );
 
 
+jQuery.each( ( "blur focus focusin focusout resize scroll click dblclick " +
+	"mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave " +
+	"change select submit keydown keypress keyup contextmenu" ).split( " " ),
+	function( i, name ) {
+
+	// Handle event binding
+	jQuery.fn[ name ] = function( data, fn ) {
+		return arguments.length > 0 ?
+			this.on( name, null, data, fn ) :
+			this.trigger( name );
+	};
+} );
+
+jQuery.fn.extend( {
+	hover: function( fnOver, fnOut ) {
+		return this.mouseenter( fnOver ).mouseleave( fnOut || fnOver );
+	}
+} );
+
+
+
+
 jQuery.fn.extend( {
 
 	bind: function( types, data, fn ) {
@@ -10750,6 +10766,37 @@ jQuery.fn.extend( {
 	}
 } );
 
+// Bind a function to a context, optionally partially applying any
+// arguments.
+// jQuery.proxy is deprecated to promote standards (specifically Function#bind)
+// However, it is not slated for removal any time soon
+jQuery.proxy = function( fn, context ) {
+	var tmp, args, proxy;
+
+	if ( typeof context === "string" ) {
+		tmp = fn[ context ];
+		context = fn;
+		fn = tmp;
+	}
+
+	// Quick check to determine if target is callable, in the spec
+	// this throws a TypeError, but we will just return undefined.
+	if ( !isFunction( fn ) ) {
+		return undefined;
+	}
+
+	// Simulated bind
+	args = slice.call( arguments, 2 );
+	proxy = function() {
+		return fn.apply( context || this, args.concat( slice.call( arguments ) ) );
+	};
+
+	// Set the guid of unique handler to the same of original handler, so it can be removed
+	proxy.guid = fn.guid = fn.guid || jQuery.guid++;
+
+	return proxy;
+};
+
 jQuery.holdReady = function( hold ) {
 	if ( hold ) {
 		jQuery.readyWait++;
@@ -10760,6 +10807,26 @@ jQuery.holdReady = function( hold ) {
 jQuery.isArray = Array.isArray;
 jQuery.parseJSON = JSON.parse;
 jQuery.nodeName = nodeName;
+jQuery.isFunction = isFunction;
+jQuery.isWindow = isWindow;
+jQuery.camelCase = camelCase;
+jQuery.type = toType;
+
+jQuery.now = Date.now;
+
+jQuery.isNumeric = function( obj ) {
+
+	// As of jQuery 3.0, isNumeric is limited to
+	// strings and numbers (primitives or objects)
+	// that can be coerced to finite numbers (gh-2662)
+	var type = jQuery.type( obj );
+	return ( type === "number" || type === "string" ) &&
+
+		// parseFloat NaNs numeric-cast false positives ("")
+		// ...but misinterprets leading-number strings, particularly hex literals ("0x...")
+		// subtraction forces infinities to NaN
+		!isNaN( obj - parseFloat( obj ) );
+};
 
 
 
@@ -10778,9 +10845,9 @@ jQuery.nodeName = nodeName;
 // https://github.com/jrburke/requirejs/wiki/Updating-existing-libraries#wiki-anon
 
 if ( true ) {
-	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function() {
+	!(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (function() {
 		return jQuery;
-	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+	}).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 }
 
@@ -10822,89 +10889,501 @@ return jQuery;
 
 
 /***/ }),
-/* 2 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(0);
-
-
-const cn = 'Responses';
-class Responses extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] {
-    constructor(responses){
-        super();
-
-        let p = this.private(cn, {
-            responses,
-        });
-    }
-
-    getByName(name) {
-        return this.get(name);
-    }
-
-    get(name) {
-        return this.private(cn, 'responses').find((response) => {
-            return response.name() == name;
-        });
-    }
-
-    error() {
-        return undefined != this.private(cn, 'responses').find((response) => {
-            return response.error();
-        });
-    }
-
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (Responses);
-
-
-/***/ }),
 /* 3 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-function urlencoded(data, base = "", init = true) {
-    let encoded = [];
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Utils_same__ = __webpack_require__(50);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__ = __webpack_require__(51);
 
-    for(let i in data){
-        let v = data[i];
 
-        if(typeof v == 'string' || typeof v == 'number'){
-            if(init){
-                encoded.push(`${i}=${v}`);
-            }else{
-                encoded.push(`${base}[${i}]=${v}`);
-            }
+
+let uniqueId = 0,
+    components = null
+;
+
+/**
+ * EventsQueue
+ */
+class EventsQueue {
+
+    constructor() {
+        this.queue = [];
+        this.processing = false;
+    }
+
+    add(callback, event = {}, params = {}) {
+        this.queue.push({
+            callback,
+            event,
+            params,
+        });
+
+        this._process();
+    }
+
+    _process() {
+        if (this.processing) {
+            return;
+        }
+
+        this.processing = true;
+
+        let event;
+
+        while(this.queue.length) {
+            event = this.queue.shift();
+            event.callback.call(window, event.event, event.params);
+        }
+
+        this.processing = false;
+    }
+}
+
+let eventsQueue = new EventsQueue();
+
+/**
+ * TopiObject
+ */
+const cn = 'TopiObject';
+class TopiObject {
+
+    constructor(data = {}) {
+        let p = this.private(cn, {
+            // Eventy
+            events : {},
+
+            // Dane obiektu
+            data,
+        });
+    }
+
+    /**
+     * Tworzy klon obiektu.
+     */
+    clone() {
+
+    }
+
+    warn(message) {
+        console.warn(message);
+
+        return this;
+    }
+
+    error(error) {
+        let p = this.private(cn),
+            router = this.component('@router')
+        ;
+
+        router.forward('@error', {error});
+
+        return this;
+    }
+
+    log(message, type = 'log') {
+        switch (type) {
+            case 'error':
+                return this.error(message);
+            default:
+                console.warn(type, message);
+        }
+
+        return this;
+    }
+
+    /**
+     * Set value of attribute for object. Given value is always cloned.
+     *
+     * @param {string} name Name of attribute. Name can use docs notation. For
+     * example this.set("value", 12) or this.set("value.async", 1).
+     *
+     * @param {mixed} value
+     * @param {object} emitparams
+     */
+    set(name, value, emitparams = {}) {
+        let p = this.private(cn);
+
+        value = Object(__WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__["a" /* default */])(value);
+
+        // Czy wartość ma być ustawiona, bez emitowania zdarzeń.
+        emitparams.silently = emitparams.silently === undefined ? 0 : 1;
+
+        if (name[0] == '-') {
+            // Skrócona metoda ustawiania wartości, bez emitowania
+            // this.set('-name', "Pawel")
+            emitparams.silently = 1;
+            name = name.substr(1);
+        }
+
+        if (typeof name == 'object') {
+            // todo Ustawianie wielu wartości za pomoca jednego obiektu.
+        }else if(typeof name == 'string') {
+            return this.__setValue(p.data, name, value, emitparams);
         }else{
-            if(init){
-                encoded = encoded.concat(urlencoded(v, `${i}`, false));
-            }else{
-                encoded = encoded.concat(urlencoded(v, `${base}[${i}]`, false));
-            }
+            this.error("Unsuported params");
         }
     }
 
-    if(init){
-        if (encoded.length) {
-            return encodeURI(encoded.join('&'));
-        }else{
-            return null;
-        }
-    }else{
-        return encoded;
-    }
-};
+    /**
+     * Ustawienie wartości w obiekcie, wraz z emitowaniem eventów.
+     *
+     * @param {object} target
+     * @param {string} name
+     * @param {*} value
+     * @param {object} emitparams
+     * @return this
+     */
+    __setValue(target, name, value, emitparams = {}) {
+        let p = this.private(cn);
 
-/* harmony default export */ __webpack_exports__["a"] = (function(format, data) {
-    switch (format) {
-        case 'application/x-www-form-urlencoded':
-            return urlencoded(data);
-        case 'application/json':
-            return JSON.stringify(data);
+        if (target[name] === undefined) {
+            target[name] = value;
+
+            this.emit(`${name}:init`, {}, emitparams);
+            this.emit(`${name}:change`, {
+                previous : undefined
+            }, emitparams);
+
+        }else{
+            if (emitparams.silently) {
+                target[name] = value;
+            }else{
+                if (!Object(__WEBPACK_IMPORTED_MODULE_0_Topi_Utils_same__["a" /* default */])(target[name], value)) {
+                    let previous = target[name];
+
+                    target[name] = value;
+
+                    this.emit(`${name}:change`, {
+                        previous
+                    }, emitparams);
+                }
+            }
+        }
+
+        return this;
     }
-});
+
+    /**
+     * Zwraca informację czy obiekt spełnia podane kryteriu
+     *
+     * @param {string} name
+     * @return {integer} 0 lub 1
+     */
+    is(name) {
+        return 0;
+    }
+
+    data(params = {}) {
+        let p = this.private(cn);
+
+        // todo clone to reference
+        // Zmienic nazwe parametru clone na reference
+        params.clone = params.clone === undefined ? 1 : params.clone;
+        params.data = params.data === undefined ? 1 : params.data;
+
+        if (params.clone) {
+            return Object(__WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__["a" /* default */])(p.data, params);
+        }else{
+            return p.data;
+        }
+    }
+
+    get(name, value = null, params = {}) {
+        let p = this.private(cn),
+            pointer = p.data,
+            i,
+            length,
+            t,
+            splited
+        ;
+
+        // default params
+        params.clone = params.clone === undefined ? 1 : params.clone;
+        params.data = params.data === undefined ? 1 : params.data;
+
+        if (name[0] == '&') {
+            params.clone = 0;
+
+            name = name.substring(1);
+        }else if(name[0] == '*') {
+            params.data = 0;
+            name = name.substring(1);
+        }
+
+        // split name
+        // splited = name.split('.');
+
+        // while(splited.length > 1){
+        //     t = splited.shift();
+
+        //     if (pointer[t] === undefined) {
+        //         return value;
+        //     }
+
+        //     pointer = pointer[t];
+        // }
+
+        if (pointer[name] === undefined) {
+            return value;
+        }
+
+        if (params.clone) {
+            return Object(__WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__["a" /* default */])(pointer[name], params);
+        }else{
+            return pointer[name];
+        }
+    }
+
+    /**
+     * Return private scope for object.
+     *
+     * this.private("App") - return private scope for App
+     * let p = this.private("App", {}) - init private scope for App, and return
+     * the
+     * this.private("App", "name") - return value of name attribute at App
+     * private scope.
+     *
+     * When private scope is inited like this
+     *     this.private("View", {
+     *         domain : "www.test.pl",
+     *         name : this.prepareName()
+     *     });
+     *
+     * Inited values can not be generated by other methods wich use private
+     * scope. At this case, this should be do like this.
+     *     let p this.private("View", {
+     *         domain : "www.test.pl",
+     *         name : this.prepareName()
+     *     });
+     *
+     *     p.name = this.prepareName();
+     *
+     *
+     * @param {string} id
+     * @param {string} attr
+     * @param {mixed} value
+     * @return {mixed}
+     */
+    private(id, attr, value){
+        if (!pscope.has(this)) {
+            // Inicjuje prywatną przestrzeń dla obiektu
+            pscope.set(this, {});
+        }
+
+        if (pscope.get(this)[id] === undefined) {
+            // Nie ma prywatnej przestrzeni dla ID
+
+            if (attr === undefined) {
+                pscope.get(this)[id] = {};
+            }else{
+                // Sytuacja w której podane są wartości do zainicjowania
+                pscope.get(this)[id] = attr;
+            }
+
+            return pscope.get(this)[id];
+        }
+
+        if (attr === undefined) {
+            // Zwraca całą prywatną przestrzeń
+            return pscope.get(this)[id];
+        }else{
+            if (typeof attr == 'string') {
+                if (value === undefined) {
+                    // Zwracam wartość podanego argumentu
+                    return pscope.get(this)[id][attr];
+                }else{
+                    // Ustawiam nową wartość
+                    pscope.get(this)[id][attr] = value;
+
+                    return this;
+                }
+            }
+
+            this.log("Wrong private call", "warn");
+        }
+
+        this.log("Wrong private call", "warn");
+    }
+
+    /**
+     * Register event listener of specific event.
+     *
+     * @param {string} name Na of event. For example button.submit:click.
+     * @param {string} callback Function to call.
+     * @param {string} group Grouo of owner. It can be any string. We recoment
+     * use this.id() of object.
+     *
+     * @return $this
+     */
+    on(name, callback, group) {
+        let p = this.private(cn),
+            i
+        ;
+
+        if (Array.isArray(name)) {
+            for (i in name) {
+                this.on(name[i], callback, group);
+            }
+
+            return this;
+        }
+
+        if (p.events[name] === undefined) {
+            p.events[name] = [];
+        }
+
+        p.events[name].push({
+            name,
+            callback,
+            group
+        });
+
+        return this;
+    }
+
+    id() {
+        let p = this.private(cn);
+
+        if (p.id === undefined) {
+            p.id = uniqueId++;
+        }
+
+        return p.id;
+    }
+
+    /**
+     * Emituje zdarzenie.
+     *
+     * @param {string} name - Name of event.
+     * @param {Object} params - Params which will be send listener.
+     * @param {Object} emitparams - Options for emit.
+     */
+    emit(name, params = {}, emitparams = {}) {
+        let p = this.private(cn),
+            call = [],
+            event = {},
+            i,
+            j
+        ;
+
+        event.this = this;
+        event.name = name;
+
+        emitparams.ommit = emitparams.ommit === undefined ? null : emitparams.ommit;
+
+        name = name.split(':');
+
+        if (name.length == 1) {
+            call.push(name[0]);
+        }else if(name.length == 2){
+            if (name[0] == '') {
+                call.push(`:${name[1]}`);
+            }else{
+                call.push(`${name[0]}:${name[1]}`);
+                call.push(`${name[0]}`);
+                call.push(`:${name[1]}`);
+            }
+        }else{
+            throw("Unsuported event format");
+        }
+
+        // eventy sa wywolywane od tylu
+        for (i = call.length -1; i >= 0; i--) {
+            if (p.events[call[i]] === undefined) {
+                continue;
+            }
+
+            for (j in p.events[call[i]]) {
+                if (emitparams.ommit != null) {
+                    if (p.events[call[i]][j].group == emitparams.ommit) {
+                        continue;
+                    }
+                }
+
+                eventsQueue.add(p.events[call[i]][j].callback, event, params);
+            }
+        }
+
+        return this;
+    }
+
+    /**
+     * Delete event listeners.
+     *
+     * @param {string|number|function} name
+     */
+    off(name) {
+        let p = this.private(cn);
+
+        switch (typeof name) {
+            case 'undefined':
+                p.events = {};
+
+                return this;
+            case 'string':
+            case 'number':
+                for (let event in p.events) {
+                    let events = [];
+
+                    for (let i in p.events[event]) {
+                        if (p.events[event][i].group != name) {
+                            events.push(p.events[event][i]);
+                        }
+                    }
+
+                    p.events[event] = events;
+                }
+
+                return this;
+            default :
+                this.error("Unsuported params");
+        }
+    }
+
+    component(name, params = {}) {
+        return components.get(name, params);
+    }
+
+    components() {
+        return components;
+    }
+
+    // this.trigger('selectRow:success', {
+
+    // });
+
+    // this.on('selectRow#app', funcRef)
+    // this.on('selectRow.app', funcRef)
+
+    // this.off();
+    // this.off(funcRef);
+
+    // this.off('.app');
+    // this.off('#app');
+    // this.off('selectRow');
+
+    // this.on('saved:success')
+    // this.on('saved:faile')
+
+    // widget.on('event', function(){}, id);
+
+    // widget.off(id);
+    // widget.off('change.name');
+    // widget.off(function(){});
+
+    // Events
+}
+
+TopiObject.components = function(p) {
+    components = p
+}
+
+if (window.pscope === undefined) {
+    window.pscope = new WeakMap();
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (TopiObject);
 
 
 /***/ }),
@@ -10912,13 +11391,280 @@ function urlencoded(data, base = "", init = true) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_jquery__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_jquery___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_jquery__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_dot__ = __webpack_require__(52);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_dot___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_dot__);
+
+
+
+
+
+const cn = 'View';
+class View extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] {
+    constructor(template = "<div></div>") {
+        super();
+
+        let p = this.private(cn, {
+            target : null,
+            // element : this.create(template),
+            // elements : this._createElements(template),
+            rendered : 0,
+            timeout : {
+                reload : null
+            },
+        });
+
+        p.elements = this._createElements(template);
+    }
+
+    _createElements(html) {
+        let p = this.private(cn),
+            elements = [],
+            div,
+            i
+        ;
+
+        div = document.createElement("div");
+        div.innerHTML = html;
+
+        for (i = 0; i < div.children.length; i++) {
+            elements.push(__WEBPACK_IMPORTED_MODULE_1_jquery___default()(div.children[i]));
+        }
+
+        return elements;
+    }
+
+    content(html) {
+        return this.element().content(html);
+    }
+
+    $(object) {
+        return __WEBPACK_IMPORTED_MODULE_1_jquery___default()(object);
+    }
+
+    /**
+     * Tworzy obiekt widoku.
+     *
+     * @return {Object}
+     */
+    create(html) {
+        let p = this.private(cn);
+
+        let wrapper = document.createElement("div");
+        wrapper.innerHTML = html;
+
+        return wrapper;
+    }
+
+    /**
+     * Przeładowanie widoku. Przeładowanie widoku jest uruchamiane z pewnym
+     * opóźnienie
+     *
+     * @return this
+     */
+    reload() {
+        let p = this.private(cn);
+
+        if (p.timeout.reload != null) {
+            clearTimeout(p.timeout.reload);
+        }
+
+        p.timeout.reload = setTimeout(() => this.render(), 100);
+
+        return this;
+    }
+
+    template(template) {
+        return __WEBPACK_IMPORTED_MODULE_2_dot___default.a.template(template);
+    }
+
+    /**
+     * Wyrenderowanie obiektu do stanu poczatkowego.
+     *
+     * @return this
+     */
+    render() {
+        let p = this.private(cn);
+
+        p.rendered = 1;
+
+        // attach tooltips
+        // this.element().find('[title]').tooltip();
+        // this.element().find('[data-toggle="tooltip"]').tooltip();
+
+        return this;
+    }
+
+    is(name) {
+        let p = this.private(cn);
+
+        switch (name) {
+            case 'rendered':
+                return p.rendered ? 1 : 0;
+            default :
+                return super.is(name);
+        }
+    }
+
+    /**
+     * Zmiana kontenera dla widoku.
+     *
+     * @params {Object}
+     * @return {Object}
+     */
+    target(target) {
+        let p = this.private(cn);
+
+        switch (arguments.length) {
+            case 0:
+                return p.target === undefined ? null : p.target;
+            case 1:
+                // Przenosze element w nowe miejsce.
+                p.target = target;
+
+                p.elements.forEach((element) => {
+                    p.target.append(element);
+                });
+
+                return this;
+        }
+
+        this.log('Unsuported params', "warn");
+    }
+
+    /**
+     * Zwraca element o podanej nazwie lub null jeśli nie został znaleziony.
+     * Jeśli nazwa nie zostanie podana, to zwraca referencje do kontenera.
+     *
+     * @param {string} name
+     * @return jQuery
+     */
+    element(name) {
+        let p = this.private(cn);
+
+        if (name === undefined) {
+            return p.elements[0];
+        } else if (typeof name == "number"){
+            return p.elements[name] === undefined ? null : p.elements[name];
+        }else{
+            let found = null;
+
+            for(let i = 0; i < p.elements.length; i++) {
+                found = p.elements[i].element(name);
+
+                if (found !== null) {
+                    break;
+                }
+            }
+
+            return found;
+        }
+    }
+
+    remove() {
+        let p = this.private(cn);
+
+        p.elements.forEach((element) => {
+            element.remove();
+        });
+
+        return this;
+    }
+
+    find(selector) {
+        let p = this.private(cn);
+
+        return p.elements[0].find(selector);
+    }
+
+    html(html) {
+        let p = this.private(cn);
+
+        if (html == undefined) {
+            return p.elements[0].html();
+        }else{
+            return p.elements[0].html(html);
+        }
+    }
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (View);
+
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports) {
+
+module.exports = "{{? it.title}}\n<div class=\"topi-dialog-alert__title\">\n    {{= it.title}}\n</div>\n{{?}}\n{{? it.content}}\n<div class=\"topi-dialog-alert__content\">\n    {{= it.content}}\n</div>\n{{?}}\n{{? it.buttons }}\n<div class=\"topi-dialog-alert__buttons\">\n    {{? it.buttons.length}}\n        {{~ it.buttons : value}}\n        <button class=\"topi-button --{{= value.type}}\" data-id=\"{{= value.id}}\">{{= value.label}}</button>\n        {{~}}\n    {{?}}\n</div>\n{{?}}\n";
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports) {
+
+module.exports = "<div class=\"topi-dialog-alert__wrapper\">\n    <div class=\"topi-dialog-alert\" name=\"content\">\n    </div>\n</div>\n";
+
+/***/ }),
+/* 7 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Body__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Utils_element__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Body__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Utils_element__ = __webpack_require__(9);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Utils_element___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_Utils_element__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_expect_js__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_expect_js__ = __webpack_require__(10);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_expect_js___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_expect_js__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_Api_apiTest__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_styles_topi_button_scss__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_styles_topi_button_scss___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_styles_topi_button_scss__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_styles_topi_checkboxList_scss__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_styles_topi_checkboxList_scss___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4_styles_topi_checkboxList_scss__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_styles_topi_dialog_scss__ = __webpack_require__(22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_styles_topi_dialog_scss___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5_styles_topi_dialog_scss__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6_styles_topi_form_scss__ = __webpack_require__(24);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6_styles_topi_form_scss___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_6_styles_topi_form_scss__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_styles_topi_input_scss__ = __webpack_require__(26);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_styles_topi_input_scss___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_7_styles_topi_input_scss__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8_styles_topi_pagination_scss__ = __webpack_require__(28);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8_styles_topi_pagination_scss___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_8_styles_topi_pagination_scss__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9_styles_topi_portlet_light_scss__ = __webpack_require__(30);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9_styles_topi_portlet_light_scss___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_9_styles_topi_portlet_light_scss__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10_styles_topi_portlet_scss__ = __webpack_require__(32);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10_styles_topi_portlet_scss___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_10_styles_topi_portlet_scss__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11_styles_topi_section_scss__ = __webpack_require__(34);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11_styles_topi_section_scss___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_11_styles_topi_section_scss__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12_styles_topi_table_scss__ = __webpack_require__(36);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12_styles_topi_table_scss___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_12_styles_topi_table_scss__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13_styles_topi_textarea_scss__ = __webpack_require__(38);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_13_styles_topi_textarea_scss___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_13_styles_topi_textarea_scss__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14_styles_topi_toolbar_scss__ = __webpack_require__(40);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_14_styles_topi_toolbar_scss___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_14_styles_topi_toolbar_scss__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_15_styles_topi_topbar_scss__ = __webpack_require__(42);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_15_styles_topi_topbar_scss___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_15_styles_topi_topbar_scss__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_16_styles_topi_variables_scss__ = __webpack_require__(44);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_16_styles_topi_variables_scss___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_16_styles_topi_variables_scss__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_17_styles_topi_scss__ = __webpack_require__(46);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_17_styles_topi_scss___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_17_styles_topi_scss__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_18_Dialog_Views_alertTest__ = __webpack_require__(48);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_19_Dialog_Views_modalTest__ = __webpack_require__(53);
+
+
+
+
+// scss
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -10935,16 +11681,26 @@ const body = new __WEBPACK_IMPORTED_MODULE_0_Body__["a" /* default */]();
 // import componentsTest from 'componentsTest';
 // componentsTest(body);
 
+// import apiTest from 'Api/apiTest';
+// apiTest(body);
 
-Object(__WEBPACK_IMPORTED_MODULE_3_Api_apiTest__["a" /* default */])(body);
+// import dialogTest from 'Dialog/dialogTest';
+// dialogTest(body);
+
+
+Object(__WEBPACK_IMPORTED_MODULE_18_Dialog_Views_alertTest__["a" /* default */])(body);
+body.clean();
+
+
+Object(__WEBPACK_IMPORTED_MODULE_19_Dialog_Views_modalTest__["a" /* default */])(body);
 
 
 /***/ }),
-/* 5 */
+/* 8 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_jquery__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_jquery__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_jquery___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_jquery__);
 
 
@@ -10978,17 +11734,17 @@ class Body {
 
 
 /***/ }),
-/* 6 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (scope, factory) {
     if (typeof module === "object" && module.exports) {
         // module.exports = factory(require("jquery"));
-        module.exports = factory(__webpack_require__(1));
+        module.exports = factory(__webpack_require__(2));
     } else if (true) {
-        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(1)], __WEBPACK_AMD_DEFINE_RESULT__ = function(jquery){
+        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(2)], __WEBPACK_AMD_DEFINE_RESULT__ = (function(jquery){
             return factory(jquery);
-        }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+        }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
     } else {
         factory(jQuery);
@@ -11068,7 +11824,7 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (scope
 
 
 /***/ }),
-/* 7 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module, Buffer) {(function (global, module) {
@@ -12356,10 +13112,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (scope
   ,  true ? module : {exports: {}}
 );
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(8)(module), __webpack_require__(9).Buffer))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(11)(module), __webpack_require__(12).Buffer))
 
 /***/ }),
-/* 8 */
+/* 11 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -12387,7 +13143,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 9 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12401,9 +13157,9 @@ module.exports = function(module) {
 
 
 
-var base64 = __webpack_require__(11)
-var ieee754 = __webpack_require__(12)
-var isArray = __webpack_require__(13)
+var base64 = __webpack_require__(14)
+var ieee754 = __webpack_require__(15)
+var isArray = __webpack_require__(16)
 
 exports.Buffer = Buffer
 exports.SlowBuffer = SlowBuffer
@@ -14181,10 +14937,10 @@ function isnan (val) {
   return val !== val // eslint-disable-line no-self-compare
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(10)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(13)))
 
 /***/ }),
-/* 10 */
+/* 13 */
 /***/ (function(module, exports) {
 
 var g;
@@ -14211,7 +14967,7 @@ module.exports = g;
 
 
 /***/ }),
-/* 11 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14231,68 +14987,102 @@ for (var i = 0, len = code.length; i < len; ++i) {
   revLookup[code.charCodeAt(i)] = i
 }
 
+// Support decoding URL-safe base64 strings, as Node.js does.
+// See: https://en.wikipedia.org/wiki/Base64#URL_applications
 revLookup['-'.charCodeAt(0)] = 62
 revLookup['_'.charCodeAt(0)] = 63
 
-function placeHoldersCount (b64) {
+function getLens (b64) {
   var len = b64.length
+
   if (len % 4 > 0) {
     throw new Error('Invalid string. Length must be a multiple of 4')
   }
 
-  // the number of equal signs (place holders)
-  // if there are two placeholders, than the two characters before it
-  // represent one byte
-  // if there is only one, then the three characters before it represent 2 bytes
-  // this is just a cheap hack to not do indexOf twice
-  return b64[len - 2] === '=' ? 2 : b64[len - 1] === '=' ? 1 : 0
+  // Trim off extra bytes after placeholder bytes are found
+  // See: https://github.com/beatgammit/base64-js/issues/42
+  var validLen = b64.indexOf('=')
+  if (validLen === -1) validLen = len
+
+  var placeHoldersLen = validLen === len
+    ? 0
+    : 4 - (validLen % 4)
+
+  return [validLen, placeHoldersLen]
 }
 
+// base64 is 4/3 + up to two characters of the original data
 function byteLength (b64) {
-  // base64 is 4/3 + up to two characters of the original data
-  return (b64.length * 3 / 4) - placeHoldersCount(b64)
+  var lens = getLens(b64)
+  var validLen = lens[0]
+  var placeHoldersLen = lens[1]
+  return ((validLen + placeHoldersLen) * 3 / 4) - placeHoldersLen
+}
+
+function _byteLength (b64, validLen, placeHoldersLen) {
+  return ((validLen + placeHoldersLen) * 3 / 4) - placeHoldersLen
 }
 
 function toByteArray (b64) {
-  var i, l, tmp, placeHolders, arr
-  var len = b64.length
-  placeHolders = placeHoldersCount(b64)
+  var tmp
+  var lens = getLens(b64)
+  var validLen = lens[0]
+  var placeHoldersLen = lens[1]
 
-  arr = new Arr((len * 3 / 4) - placeHolders)
+  var arr = new Arr(_byteLength(b64, validLen, placeHoldersLen))
+
+  var curByte = 0
 
   // if there are placeholders, only get up to the last complete 4 chars
-  l = placeHolders > 0 ? len - 4 : len
+  var len = placeHoldersLen > 0
+    ? validLen - 4
+    : validLen
 
-  var L = 0
-
-  for (i = 0; i < l; i += 4) {
-    tmp = (revLookup[b64.charCodeAt(i)] << 18) | (revLookup[b64.charCodeAt(i + 1)] << 12) | (revLookup[b64.charCodeAt(i + 2)] << 6) | revLookup[b64.charCodeAt(i + 3)]
-    arr[L++] = (tmp >> 16) & 0xFF
-    arr[L++] = (tmp >> 8) & 0xFF
-    arr[L++] = tmp & 0xFF
+  for (var i = 0; i < len; i += 4) {
+    tmp =
+      (revLookup[b64.charCodeAt(i)] << 18) |
+      (revLookup[b64.charCodeAt(i + 1)] << 12) |
+      (revLookup[b64.charCodeAt(i + 2)] << 6) |
+      revLookup[b64.charCodeAt(i + 3)]
+    arr[curByte++] = (tmp >> 16) & 0xFF
+    arr[curByte++] = (tmp >> 8) & 0xFF
+    arr[curByte++] = tmp & 0xFF
   }
 
-  if (placeHolders === 2) {
-    tmp = (revLookup[b64.charCodeAt(i)] << 2) | (revLookup[b64.charCodeAt(i + 1)] >> 4)
-    arr[L++] = tmp & 0xFF
-  } else if (placeHolders === 1) {
-    tmp = (revLookup[b64.charCodeAt(i)] << 10) | (revLookup[b64.charCodeAt(i + 1)] << 4) | (revLookup[b64.charCodeAt(i + 2)] >> 2)
-    arr[L++] = (tmp >> 8) & 0xFF
-    arr[L++] = tmp & 0xFF
+  if (placeHoldersLen === 2) {
+    tmp =
+      (revLookup[b64.charCodeAt(i)] << 2) |
+      (revLookup[b64.charCodeAt(i + 1)] >> 4)
+    arr[curByte++] = tmp & 0xFF
+  }
+
+  if (placeHoldersLen === 1) {
+    tmp =
+      (revLookup[b64.charCodeAt(i)] << 10) |
+      (revLookup[b64.charCodeAt(i + 1)] << 4) |
+      (revLookup[b64.charCodeAt(i + 2)] >> 2)
+    arr[curByte++] = (tmp >> 8) & 0xFF
+    arr[curByte++] = tmp & 0xFF
   }
 
   return arr
 }
 
 function tripletToBase64 (num) {
-  return lookup[num >> 18 & 0x3F] + lookup[num >> 12 & 0x3F] + lookup[num >> 6 & 0x3F] + lookup[num & 0x3F]
+  return lookup[num >> 18 & 0x3F] +
+    lookup[num >> 12 & 0x3F] +
+    lookup[num >> 6 & 0x3F] +
+    lookup[num & 0x3F]
 }
 
 function encodeChunk (uint8, start, end) {
   var tmp
   var output = []
   for (var i = start; i < end; i += 3) {
-    tmp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2])
+    tmp =
+      ((uint8[i] << 16) & 0xFF0000) +
+      ((uint8[i + 1] << 8) & 0xFF00) +
+      (uint8[i + 2] & 0xFF)
     output.push(tripletToBase64(tmp))
   }
   return output.join('')
@@ -14302,42 +15092,45 @@ function fromByteArray (uint8) {
   var tmp
   var len = uint8.length
   var extraBytes = len % 3 // if we have 1 byte left, pad 2 bytes
-  var output = ''
   var parts = []
   var maxChunkLength = 16383 // must be multiple of 3
 
   // go through the array every three bytes, we'll deal with trailing stuff later
   for (var i = 0, len2 = len - extraBytes; i < len2; i += maxChunkLength) {
-    parts.push(encodeChunk(uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)))
+    parts.push(encodeChunk(
+      uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)
+    ))
   }
 
   // pad the end with zeros, but make sure to not forget the extra bytes
   if (extraBytes === 1) {
     tmp = uint8[len - 1]
-    output += lookup[tmp >> 2]
-    output += lookup[(tmp << 4) & 0x3F]
-    output += '=='
+    parts.push(
+      lookup[tmp >> 2] +
+      lookup[(tmp << 4) & 0x3F] +
+      '=='
+    )
   } else if (extraBytes === 2) {
-    tmp = (uint8[len - 2] << 8) + (uint8[len - 1])
-    output += lookup[tmp >> 10]
-    output += lookup[(tmp >> 4) & 0x3F]
-    output += lookup[(tmp << 2) & 0x3F]
-    output += '='
+    tmp = (uint8[len - 2] << 8) + uint8[len - 1]
+    parts.push(
+      lookup[tmp >> 10] +
+      lookup[(tmp >> 4) & 0x3F] +
+      lookup[(tmp << 2) & 0x3F] +
+      '='
+    )
   }
-
-  parts.push(output)
 
   return parts.join('')
 }
 
 
 /***/ }),
-/* 12 */
+/* 15 */
 /***/ (function(module, exports) {
 
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
-  var eLen = nBytes * 8 - mLen - 1
+  var eLen = (nBytes * 8) - mLen - 1
   var eMax = (1 << eLen) - 1
   var eBias = eMax >> 1
   var nBits = -7
@@ -14350,12 +15143,12 @@ exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   e = s & ((1 << (-nBits)) - 1)
   s >>= (-nBits)
   nBits += eLen
-  for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8) {}
+  for (; nBits > 0; e = (e * 256) + buffer[offset + i], i += d, nBits -= 8) {}
 
   m = e & ((1 << (-nBits)) - 1)
   e >>= (-nBits)
   nBits += mLen
-  for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8) {}
+  for (; nBits > 0; m = (m * 256) + buffer[offset + i], i += d, nBits -= 8) {}
 
   if (e === 0) {
     e = 1 - eBias
@@ -14370,7 +15163,7 @@ exports.read = function (buffer, offset, isLE, mLen, nBytes) {
 
 exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   var e, m, c
-  var eLen = nBytes * 8 - mLen - 1
+  var eLen = (nBytes * 8) - mLen - 1
   var eMax = (1 << eLen) - 1
   var eBias = eMax >> 1
   var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0)
@@ -14403,7 +15196,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
       m = 0
       e = eMax
     } else if (e + eBias >= 1) {
-      m = (value * c - 1) * Math.pow(2, mLen)
+      m = ((value * c) - 1) * Math.pow(2, mLen)
       e = e + eBias
     } else {
       m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen)
@@ -14422,272 +15215,932 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 
 
 /***/ }),
-/* 13 */
+/* 16 */
 /***/ (function(module, exports) {
 
-var toString = {}.toString;
-
 module.exports = Array.isArray || function (arr) {
-  return toString.call(arr) == '[object Array]';
+  return Object.prototype.toString.call(arr) == '[object Array]';
 };
 
 
 /***/ }),
-/* 14 */
+/* 17 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(18);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(1)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-button.scss", function() {
+			var newContent = require("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-button.scss");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 18 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "/** colors **/\n.topi-button, .topi-button.\\--blue, .topi-button.\\--indigo, .topi-button.\\--purple, .topi-button.\\--pink, .topi-button.\\--red, .topi-button.\\--orange, .topi-button.\\--yellow, .topi-button.\\--green, .topi-button.\\--teal, .topi-button.\\--cyan, .topi-button.\\--white, .topi-button.\\--gray, .topi-button.\\--primary, .topi-button.\\--secondary, .topi-button.\\--success, .topi-button.\\--info, .topi-button.\\--warning, .topi-button.\\--danger, .topi-button.\\--light, .topi-button.\\--dark {\n  color: #fff;\n  display: inline-block;\n  font-weight: 400;\n  text-align: center;\n  white-space: nowrap;\n  vertical-align: middle;\n  -webkit-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n  border: 1px solid transparent;\n  padding: .375rem .75rem;\n  padding-top: 0.375rem;\n  padding-right: 0.75rem;\n  padding-bottom: 0.375rem;\n  padding-left: 0.75rem;\n  font-size: 1rem;\n  line-height: 1.5;\n  transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out; }\n\n.topi-button.\\--blue {\n  background-color: #007bff; }\n\n.topi-button.\\--indigo {\n  background-color: #6610f2; }\n\n.topi-button.\\--purple {\n  background-color: #6f42c1; }\n\n.topi-button.\\--pink {\n  background-color: #e83e8c; }\n\n.topi-button.\\--red {\n  background-color: #dc3545; }\n\n.topi-button.\\--orange {\n  background-color: #fd7e14; }\n\n.topi-button.\\--yellow {\n  background-color: #ffc107; }\n\n.topi-button.\\--green {\n  background-color: #28a745; }\n\n.topi-button.\\--teal {\n  background-color: #20c997; }\n\n.topi-button.\\--cyan {\n  background-color: #17a2b8; }\n\n.topi-button.\\--white {\n  background-color: #fff; }\n\n.topi-button.\\--gray {\n  background-color: #6c757d; }\n\n.topi-button.\\--primary {\n  background-color: #007bff; }\n\n.topi-button.\\--secondary {\n  background-color: #6c757d; }\n\n.topi-button.\\--success {\n  background-color: #28a745; }\n\n.topi-button.\\--info {\n  background-color: #17a2b8; }\n\n.topi-button.\\--warning {\n  background-color: #ffc107; }\n\n.topi-button.\\--danger {\n  background-color: #dc3545; }\n\n.topi-button.\\--light {\n  background-color: #f8f9fa; }\n\n.topi-button.\\--dark {\n  background-color: #343a40; }\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 19 */
+/***/ (function(module, exports) {
+
+
+/**
+ * When source maps are enabled, `style-loader` uses a link element with a data-uri to
+ * embed the css on the page. This breaks all relative urls because now they are relative to a
+ * bundle instead of the current page.
+ *
+ * One solution is to only use full urls, but that may be impossible.
+ *
+ * Instead, this function "fixes" the relative urls to be absolute according to the current page location.
+ *
+ * A rudimentary test suite is located at `test/fixUrls.js` and can be run via the `npm test` command.
+ *
+ */
+
+module.exports = function (css) {
+  // get current location
+  var location = typeof window !== "undefined" && window.location;
+
+  if (!location) {
+    throw new Error("fixUrls requires window.location");
+  }
+
+	// blank or null?
+	if (!css || typeof css !== "string") {
+	  return css;
+  }
+
+  var baseUrl = location.protocol + "//" + location.host;
+  var currentDir = baseUrl + location.pathname.replace(/\/[^\/]*$/, "/");
+
+	// convert each url(...)
+	/*
+	This regular expression is just a way to recursively match brackets within
+	a string.
+
+	 /url\s*\(  = Match on the word "url" with any whitespace after it and then a parens
+	   (  = Start a capturing group
+	     (?:  = Start a non-capturing group
+	         [^)(]  = Match anything that isn't a parentheses
+	         |  = OR
+	         \(  = Match a start parentheses
+	             (?:  = Start another non-capturing groups
+	                 [^)(]+  = Match anything that isn't a parentheses
+	                 |  = OR
+	                 \(  = Match a start parentheses
+	                     [^)(]*  = Match anything that isn't a parentheses
+	                 \)  = Match a end parentheses
+	             )  = End Group
+              *\) = Match anything and then a close parens
+          )  = Close non-capturing group
+          *  = Match anything
+       )  = Close capturing group
+	 \)  = Match a close parens
+
+	 /gi  = Get all matches, not the first.  Be case insensitive.
+	 */
+	var fixedCss = css.replace(/url\s*\(((?:[^)(]|\((?:[^)(]+|\([^)(]*\))*\))*)\)/gi, function(fullMatch, origUrl) {
+		// strip quotes (if they exist)
+		var unquotedOrigUrl = origUrl
+			.trim()
+			.replace(/^"(.*)"$/, function(o, $1){ return $1; })
+			.replace(/^'(.*)'$/, function(o, $1){ return $1; });
+
+		// already a full url? no change
+		if (/^(#|data:|http:\/\/|https:\/\/|file:\/\/\/)/i.test(unquotedOrigUrl)) {
+		  return fullMatch;
+		}
+
+		// convert the url to a full url
+		var newUrl;
+
+		if (unquotedOrigUrl.indexOf("//") === 0) {
+		  	//TODO: should we add protocol?
+			newUrl = unquotedOrigUrl;
+		} else if (unquotedOrigUrl.indexOf("/") === 0) {
+			// path should be relative to the base url
+			newUrl = baseUrl + unquotedOrigUrl; // already starts with '/'
+		} else {
+			// path should be relative to current directory
+			newUrl = currentDir + unquotedOrigUrl.replace(/^\.\//, ""); // Strip leading './'
+		}
+
+		// send back the fixed url(...)
+		return "url(" + JSON.stringify(newUrl) + ")";
+	});
+
+	// send back the fixed css
+	return fixedCss;
+};
+
+
+/***/ }),
+/* 20 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(21);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(1)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-checkboxList.scss", function() {
+			var newContent = require("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-checkboxList.scss");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 21 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, ".topi-checkboxList {\n  font-size: 12px;\n  background-color: white; }\n  .topi-checkboxList .__item {\n    display: flex;\n    align-items: center; }\n    .topi-checkboxList .__item .__checkbox {\n      padding: 0;\n      margin: 0; }\n    .topi-checkboxList .__item .__label {\n      font-size: 12px;\n      padding: 0;\n      margin: 0; }\n\n.topi-checkboxList.\\--border {\n  border: 1px #cacaca solid;\n  padding: 5px; }\n\n.topi-checkboxList.\\--error {\n  background-color: #fbeaea;\n  border: 1px red solid;\n  color: red; }\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 22 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(23);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(1)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-dialog.scss", function() {
+			var newContent = require("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-dialog.scss");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 23 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "/** colors **/\n.topi-dialog {\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  /* padding: 10px; */\n  /* border: 1px silver solid; */\n  /* box-shadow: 0 1px 15px 1px rgba(69, 65, 78, 0.08); */\n  /* background: #fff; */ }\n  .topi-dialog .topi-dialog__dialog {\n    width: 50%;\n    margin: 0 auto;\n    margin-top: 80px;\n    border: 1px silver solid;\n    background-color: white; }\n  .topi-dialog .topi-dialog__header {\n    padding: 10px;\n    border-bottom: 1px silver dotted; }\n  .topi-dialog .topi-dialog__content {\n    padding: 10px; }\n\n.topi-dialog-alert__wrapper {\n  position: fixed;\n  width: 100%;\n  height: 100%;\n  background-color: rgba(0, 0, 0, 0.4);\n  top: 0;\n  left: 0;\n  z-index: 1000; }\n  .topi-dialog-alert__wrapper .topi-dialog-alert {\n    width: 30%;\n    border: 1px silver solid;\n    border-radius: 10px;\n    padding: 10px;\n    margin: 0 auto;\n    background-color: white;\n    margin-top: 5%; }\n    .topi-dialog-alert__wrapper .topi-dialog-alert .topi-dialog-alert__title {\n      font-size: 25px;\n      margin-bottom: 10px; }\n    .topi-dialog-alert__wrapper .topi-dialog-alert .topi-dialog-alert__content {\n      margin-bottom: 10px; }\n    .topi-dialog-alert__wrapper .topi-dialog-alert .topi-dialog-alert__buttons {\n      text-align: center; }\n\n.topi-dialog-modal__wrapper {\n  position: fixed;\n  width: 100%;\n  height: 100%;\n  background-color: rgba(0, 0, 0, 0.4);\n  top: 0;\n  left: 0;\n  z-index: 1000; }\n  .topi-dialog-modal__wrapper .topi-dialog-modal {\n    width: 30%;\n    border: 1px silver solid;\n    border-radius: 10px;\n    padding: 10px;\n    margin: 0 auto;\n    background-color: white;\n    margin-top: 5%; }\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 24 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(25);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(1)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-form.scss", function() {
+			var newContent = require("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-form.scss");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 25 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, ".topi-form .__fields .__label.\\--error {\n  color: red; }\n\n.topi-form .__fields .__section {\n  font-size: 15px;\n  font-weight: bold; }\n\n.topi-form .__fields .__cell.\\--error {\n  background-color: #ffebeb;\n  padding-top: 10px;\n  padding-bottom: 10px; }\n\n.topi-form .__fields .__notice.\\--error {\n  color: red; }\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 26 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(27);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(1)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-input.scss", function() {
+			var newContent = require("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-input.scss");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 27 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, ".topi-input {\n  padding: 5px;\n  border: 1px #D6DBDF solid; }\n\n.topi-input.\\--error {\n  background-color: #fbeaea;\n  border: 1px red solid;\n  color: red; }\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 28 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(29);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(1)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-pagination.scss", function() {
+			var newContent = require("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-pagination.scss");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 29 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, ".topi-pagination .topi-pagination__page {\n  width: 40%; }\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 30 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(31);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(1)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-portlet-light.scss", function() {
+			var newContent = require("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-portlet-light.scss");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 31 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, ".topi-portlet-light {\n  background: #fff;\n  border: 1px silver dotted; }\n  .topi-portlet-light .__body {\n    padding: 10px;\n    background-color: white; }\n  .topi-portlet-light .__body.\\--center {\n    text-align: center; }\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 32 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(33);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(1)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-portlet.scss", function() {
+			var newContent = require("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-portlet.scss");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 33 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, ".topi-portlet {\n  border: 1px silver dotted;\n  background-color: white; }\n  .topi-portlet .__head {\n    border-bottom: 1px solid #ebedf2;\n    padding: 10px;\n    background-color: white; }\n    .topi-portlet .__head .__icon {\n      display: inline-block; }\n    .topi-portlet .__head .__icon:first-child {\n      margin-right: 10px; }\n    .topi-portlet .__head .__title {\n      font-size: 16px;\n      display: inline-block; }\n  .topi-portlet .__head.\\--center {\n    text-align: center; }\n  .topi-portlet .__head.\\--bold {\n    font-weight: bold; }\n  .topi-portlet .__body {\n    padding: 10px; }\n  .topi-portlet .__body.\\--no-padding {\n    padding: 0px; }\n  .topi-portlet .__body.\\--top-padding {\n    padding-top: 10px; }\n  .topi-portlet .__body.\\--bottom-padding {\n    padding-bottom: 10px; }\n  .topi-portlet .__foot {\n    padding: 10px;\n    border-top: 1px silver dotted; }\n\n.topi-portlet.\\--form .__body {\n  background-color: #fafafa; }\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 34 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(35);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(1)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-section.scss", function() {
+			var newContent = require("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-section.scss");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 35 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, ".topi-section {\n  border: 1px #EBEFF2 solid;\n  padding: 10px;\n  font-size: 12px; }\n  .topi-section .__head .__title {\n    font-size: 17px;\n    font-weight: bold; }\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 36 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(37);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(1)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-table.scss", function() {
+			var newContent = require("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-table.scss");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 37 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "/** colors **/\n.topi-table {\n  border: 1px whitesmoke solid;\n  width: 100%;\n  border-spacing: 0px;\n  border-collapse: separate; }\n  .topi-table tbody td {\n    padding: 5px;\n    border-bottom: 1px whitesmoke solid; }\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 38 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(39);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(1)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-textarea.scss", function() {
+			var newContent = require("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-textarea.scss");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 39 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, ".topi-textarea {\n  resize: none;\n  overflow: hidden; }\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 40 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(41);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(1)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-toolbar.scss", function() {
+			var newContent = require("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-toolbar.scss");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 41 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "", ""]);
+
+// exports
+
+
+/***/ }),
+/* 42 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(43);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(1)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-topbar.scss", function() {
+			var newContent = require("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-topbar.scss");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 43 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, ".topi-topbar {\n  border-bottom: 1px silver solid;\n  background-color: white;\n  font-size: 12px;\n  display: flex; }\n  .topi-topbar .__logo {\n    color: #c871ce;\n    font-size: 22px;\n    width: 25%; }\n  .topi-topbar .__icons {\n    width: 25%;\n    text-align: right;\n    color: #dc85c9;\n    display: flex;\n    align-items: center;\n    font-size: 25px;\n    justify-content: space-around; }\n  .topi-topbar .__search {\n    width: 50%;\n    display: flex;\n    justify-content: space-around;\n    padding-top: 5px; }\n    .topi-topbar .__search .__input {\n      display: inline-block;\n      width: 90%; }\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 44 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(45);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(1)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-variables.scss", function() {
+			var newContent = require("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi-variables.scss");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 45 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "/** colors **/\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 46 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(47);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(1)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi.scss", function() {
+			var newContent = require("!!../../../css-loader/index.js!../../../sass-loader/lib/loader.js!./topi.scss");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 47 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(false);
+// imports
+
+
+// module
+exports.push([module.i, "/** colors **/\n/** margin **/\n.topi--margin-top-10 {\n  margin-top: 10px; }\n\n.topi--margin-bottom-10 {\n  margin-bottom: 10px; }\n\n.topi--margin-left-10 {\n  margin-left: 10px; }\n\n.topi--margin-right-10 {\n  margin-right: 10px; }\n\n.topi--margin-vertical-10 {\n  margin-top: 10px;\n  margin-bottom: 10px; }\n\n/** padding **/\n.topi--padding-none {\n  padding: 0px; }\n\n.topi--padding-bottom-10 {\n  padding-bottom: 10px; }\n\n.topi--padding-top-10 {\n  padding-top: 10px; }\n\n.topi--padding-left-10 {\n  padding-left: 10px; }\n\n.topi--padding-right-10 {\n  padding-right: 10px; }\n\n.topi--padding-10 {\n  padding: 10px; }\n\n/** space **/\n.topi--space-10 {\n  margin: 10px;\n  padding: 10px; }\n\n.topi--space-horizontally-10 {\n  padding-left: 10px;\n  padding-right: 10px;\n  margin-left: 10px;\n  margin-right: 10px; }\n\n.topi--space-vertical-10 {\n  padding-top: 10px;\n  padding-bottom: 10px;\n  margin-top: 10px;\n  margin-bottom: 10px; }\n\n.topi--space-bottom-10 {\n  padding-bottom: 10px;\n  margin-bottom: 10px; }\n\n.topi--space-right-10 {\n  padding-right: 10px;\n  margin-right: 10px; }\n\n/** display **/\n.topi--display-inline-block {\n  display: inline-block; }\n\n/** border **/\n.topi--border-top-1--primary {\n  border-top: 1px #007bff solid; }\n\n.topi--border-top-2--primary {\n  border-top: 2px #007bff solid; }\n\n.topi--border-top-3--primary {\n  border-top: 3px #007bff solid; }\n\n.topi--border-1 {\n  border: 1px #ededed solid; }\n\n.topi--border-top-1 {\n  border-top: 1px #cacaca solid; }\n\n.topi--border-bottom-1 {\n  border-bottom: 1px #cacaca solid; }\n\n.topi--border-left-1 {\n  border-left: 1px #cacaca solid; }\n\n.topi--border-right-1 {\n  border-right: 1px #cacaca solid; }\n\n.topi--border-bottom-dotted-1 {\n  border-bottom: 1px #cacaca dotted; }\n\n/** positioning **/\n.topi--text-align-center {\n  text-align: center; }\n\n.topi--text-align-left {\n  text-align: left; }\n\n.topi--text-align-right {\n  text-align: right; }\n\n.topi--align-items-center {\n  align-items: center; }\n\n/** width **/\n.topi--width-100 {\n  width: 100%; }\n\n.topi--height-100 {\n  height: 100%; }\n\n/** background **/\n.topi--background-color-second {\n  background-color: white; }\n\n.topi--border-top--primary {\n  border-top: 1px; }\n\n/** hover **/\n.topi--hover:hover {\n  cursor: pointer; }\n\n.topi--no-resize {\n  resize: none; }\n\n/** link **/\n/** selected **/\n.topi--selected {\n  font-weight: bold; }\n\n/** modyficators **/\n.\\--hover {\n  cursor: pointer;\n  color: #007bff; }\n\n.\\--no-padding {\n  padding: 0px; }\n\n.\\--top-padding {\n  padding-top: 10px; }\n\n.\\--bottom-padding {\n  padding-bottom: 10px; }\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 48 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Api_Api__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Dialog_Views_Alert__ = __webpack_require__(49);
 
-
-const api = new __WEBPACK_IMPORTED_MODULE_0_Api_Api__["a" /* default */]('http://127.0.0.1:3000');
 
 /* harmony default export */ __webpack_exports__["a"] = (function(body) {
-    describe('Api', function() {
-        it('Get user Maxwell Chavez', function (done) {
-            api.request((request) => {
-                request.urn("/users/5b2d007edb7bb43108c66ca2");
+    describe('Dialog alert', function() {
+        it('Simple alert', function () {
+            let alert = new __WEBPACK_IMPORTED_MODULE_0_Topi_Dialog_Views_Alert__["a" /* default */](),
+                expected = 2
+            ;
 
-            }).promise().then((response) => {
-                let data = response.data();
+            alert
+                .target(body.element())
+                .set('title', 'New offer')
+                .set('content', 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.')
+                .set('buttons', [{
+                    id : 'confirm',
+                    label : 'Confirm',
+                    type : 'success',
+                }, {
+                    id : 'close',
+                    label : 'Close',
+                    type : 'danger',
+                }])
+                .render()
+            ;
 
-                expect(data._id).to.be.eql("5b2d007edb7bb43108c66ca2");
-                expect(data.index).to.be.eql(0);
-                expect(data.guid).to.be.eql("860ae488-19b5-4256-bc96-f66b5d087a94");
-                expect(data.isActive).to.be.eql(false);
-                expect(data.balance).to.be.eql("$1,582.99");
-                expect(data.picture).to.be.eql("http://placehold.it/32x32");
-                expect(data.age).to.be.eql(27);
-                expect(data.eyeColor).to.be.eql("blue");
-                expect(data.name).to.be.eql("Maxwell Chavez");
-                expect(data.gender).to.be.eql("male");
-                expect(data.company).to.be.eql("GEEKFARM");
-                expect(data.email).to.be.eql("maxwellchavez@geekfarm.com");
-                expect(data.phone).to.be.eql("+1 (833) 445-3228");
-                expect(data.address).to.be.eql("425 Murdock Court, Brethren, Mississippi, 8584");
-                expect(data.about).to.be.eql("Sunt consequat consequat dolor cupidatat. Aliqua consectetur magna consequat aliquip tempor officia velit ea. Laborum duis dolore proident amet. Cillum non dolore est deserunt id tempor non fugiat sunt.\r\n");
-                expect(data.registered).to.be.eql("2015-03-01T08:08:02 -01:00");
-                expect(data.latitude).to.be.eql(-23.483986);
-                expect(data.longitude).to.be.eql(-23.103694);
-                expect(data.tags).to.be.eql([ "ut", "ullamco", "excepteur", "nulla", "do", "magna", "in" ]);
-                expect(data.friends).to.be.eql([ { "id": 0, "name": "Yang Shields" }, { "id": 1, "name": "Santos Lawrence" }, { "id": 2, "name": "Chavez Nicholson" } ]);
-                expect(data.greeting).to.be.eql("Hello, Maxwell Chavez! You have 6 unread messages.");
-                expect(data.favoriteFruit).to.be.eql("strawberry");
+            expect(body.find('.topi-dialog-alert').length).to.be.eql(1);
+            expect(body.find('.topi-dialog-alert').find('button').length).to.be.eql(2);
 
-                done();
-            }).catch((error) => {
-                done(error);
+            alert.on('button.confirm', () => {
+                expected--;
             });
+
+            alert.on('button.close', () => {
+                expected--;
+            });
+
+            body.find('.topi-dialog-alert').find('button.--success').click();
+            body.find('.topi-dialog-alert').find('button.--danger').click();
+
+            expect(expected).to.be.eql(0);
         });
     });
 });;
 
 
 /***/ }),
-/* 15 */
+/* 49 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_Api_Request__ = __webpack_require__(18);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Topi_Api_Queue__ = __webpack_require__(22);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_Topi_Api_Endpoint__ = __webpack_require__(23);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_View__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Topi_Dialog_Views_Alert_content_html__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Topi_Dialog_Views_Alert_content_html___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_Topi_Dialog_Views_Alert_content_html__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_Topi_Dialog_Views_Alert_layout_html__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_Topi_Dialog_Views_Alert_layout_html___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_Topi_Dialog_Views_Alert_layout_html__);
 
 
 
 
 
-const cn = 'Api';
+
+const cn = 'Alert';
 
 /**
- * Create requests and manages the
+ * Base view to display alert.
  *
- * api.request((request) => {
- *     request.urn('/offers');
- *     request.param('categoryId', 26);
- * }).exec((response) => {
- *
- * });
- *
- * api.queue((queue) => {
- *     queue.request((request) => {
- *         request.id('offers-1');
- *         request.urn('/offers');
- *         request.param('categoryId', 26);
- *     });
- *
- *     queue.request((request) => {
- *         request.id('offers-2');
- *         request.urn('/offers');
- *         request.param('categoryId', 26);
- *     });
- * }).exec((responses) => {
- * });
- *
- * api.request(function() {
- *     this.id('offers')
- *     this.urn('/offers');
- *     this.param('categoryId', 27);
- *
- *     this.request(function() {
- *         this.id('offers2')
- *         this.urn('/offers');
- *         this.param('categoryId', 26);
- *     });
- *
- *     // this.prepare(function(request, responses, done){
- *
- *     //     done();
- *     // });
- *
- * }).exec(function(response){
- * });
+ * @param {Object} params
+ *     - type
+ *     - title
+ *     - content
+ *     - buttons
  */
-class Api extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] {
-    constructor(url = "") {
-        super();
+class Alert extends __WEBPACK_IMPORTED_MODULE_1_Topi_View__["a" /* default */] {
+    constructor(params = {}) {
+        super(__WEBPACK_IMPORTED_MODULE_3_Topi_Dialog_Views_Alert_layout_html___default.a);
 
-        let p = this.private(cn, {
-            binds : {},
-            url,
-            headers : {
-                'Content-Type' : 'application/json'
-            },
+        const p = this.private(cn, {});
+
+        this.set('-type', params.type === undefined ? 'default' : params.type);
+        this.set('-title', params.title === undefined ? null : params.title);
+        this.set('-content', params.content === undefined ? null : params.content);
+        this.set('-buttons', params.buttons === undefined ? [] : params.buttons);
+
+        this.on([
+            'type',
+            'title',
+            'content',
+            'buttons',
+        ], () => {
+            this.reload();
+        }, this.id());
+
+        this.element().on("click", (event) => {
+            const button = this.get("buttons").find(button => button.id == "close");
+
+            if (this.$(event.target).hasClass("topi-dialog")) {
+                this.emit("button.close:click", {
+                    target : button == undefined ? null : button,
+                    event
+                });
+            }
+        });
+
+        this.on("button.close:click", (event, params) => {
+            this.remove();
+        });
+
+        this.element().on("click", "button", (event) => {
+            let target = this.$(event.currentTarget),
+                id = target.data("id"),
+                button = this.get("buttons").find(button => button.id == id)
+            ;
+
+            if (button === undefined) {
+                this.log(`Button ${id} is not defined at for`, "warn");
+            }else{
+                this.emit(`button.${id}:click`, {
+                    target : button,
+                    event,
+                });
+            }
+
+            event.stopPropagation();
+            event.preventDefault();
         });
     }
 
-    /**
-     * Return URL of api.
-     *
-     * @return {string}
-     */
-    url() {
-        return this.private(cn).url;
-    }
+    render() {
+        const p = this.private(cn);
 
-    /**
-     * Return defined Endpoint.
-     *
-     * @param {string} urn
-     * @return Endpoint
-     */
-    endpoint(urn) {
-        let p = this.private(cn);
-
-        return new __WEBPACK_IMPORTED_MODULE_3_Topi_Api_Endpoint__["a" /* default */](this, urn);
-    }
-
-    /**
-     * Bind value.
-     *
-     * @param {string} name
-     * @param {string} value
-     * @return this
-     */
-    bind(name, value) {
-        let p = this.private(cn);
-
-        p.binds[name] = value;
+        this.element('content').html(this.template(__WEBPACK_IMPORTED_MODULE_2_Topi_Dialog_Views_Alert_content_html___default.a)(this.data()));
 
         return this;
-    }
-
-    binds(binds) {
-        let p = this.private(cn);
-
-        p.binds = binds;
-
-        return this;
-    }
-
-    header(name, value) {
-        let p = this.private(cn);
-
-        if (arguments.length === 1) {
-            return p.headers[name];
-        }else{
-            p.headers[name] = value;
-
-            return this;
-        }
-    }
-
-    headers(headers) {
-        let p = this.private(cn);
-
-        if (arguments.length == 1) {
-            return p.headers = headers;
-        }else{
-            return p.headers;
-        }
-    }
-
-    bind(name, value) {
-        let p = this.private(cn);
-
-        switch (arguments.length) {
-            case 1:
-                return p.binds[name];
-            case 2:
-                p.binds[name] = value;
-
-                return this;
-        }
-
-        throw('Unsuported params');
-    }
-
-    binds(binds) {
-        let p = this.private(cn);
-
-        switch (arguments.length) {
-            case 0:
-                return p.binds;
-            case 1:
-                p.binds = binds;
-
-                return this;
-        }
-
-        throw('Unsuported params');
-    }
-
-    /**
-     * Create request
-     */
-    queue(creator) {
-        let queue = new __WEBPACK_IMPORTED_MODULE_2_Topi_Api_Queue__["a" /* default */](this);
-
-        creator.call(queue, queue);
-
-        return queue;
-    }
-
-    /**
-     * Create request.
-     *
-     * @param {function} creator
-     * @return Request
-     */
-    request(creator) {
-        let p = this.private(cn),
-            request = new __WEBPACK_IMPORTED_MODULE_1_Topi_Api_Request__["a" /* default */](this)
-        ;
-
-        request.headers(this.headers());
-        request.binds(this.binds());
-
-        if (creator) creator.call(request, request);
-
-        return request;
     }
 }
 
-/* harmony default export */ __webpack_exports__["a"] = (Api);
+/* harmony default export */ __webpack_exports__["a"] = (Alert);
 
 
 /***/ }),
-/* 16 */
+/* 50 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -14742,7 +16195,7 @@ function same(p1, p2) {
 
 
 /***/ }),
-/* 17 */
+/* 51 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -14801,634 +16254,264 @@ function clone(a, params = {}) {
 
 
 /***/ }),
-/* 18 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_Api_Response__ = __webpack_require__(19);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Topi_Api_Responses__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_Topi_Api_Common_encode__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_Topi_Api_Common_decode__ = __webpack_require__(20);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_Topi_Api_Common_urn__ = __webpack_require__(21);
-
-
-
-
-
-
-
-
-const cn = 'Request';
-class Request extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] {
-    constructor(api){
-        super();
-
-        let p = this.private(cn, {
-            api,
-            name : null,
-            title : null,
-            description : null,
-            resourceId : null,
-            urn : null,
-            method : 'get',
-            binds : {},
-            data : {},
-            params : {},
-            contentType : {},
-            requests : [],
-            headers : {},
-
-            // queue,
-            timeout : null,
-
-            // events : new Events(this),
-            next : null,
-
-            control : function(request, response, next){
-                next(response);
-            },
-
-            prepare : function(request, responses, next){
-                next();
-            },
-        });
-    }
-
-    title(title) {
-        return this.private(cn, 'title', title);
-    }
-
-    name(name) {
-        return this.private(cn, 'name', name);
-    }
-
-    resourceId(resourceId) {
-        return this.private(cn, 'resourceId', resourceId);
-    }
-
-    description(description) {
-        return this.private(cn, 'description', description);
-    }
-
-    timeout(timeout) {
-        return this.private(cn, 'timeout', timeout);
-    }
-
-    urn(urn) {
-        let p = this.private(cn);
-
-        if (urn === undefined) {
-            return p.urn === undefined ? null : p.urn;
-        }else{
-            p.urn = urn;
-
-            return this;
-        }
-
-        this.log("Unsuported params.", "warn");
-    }
-
-    method(method) {
-        return this.private(cn, 'method', method);
-    }
-
-    control(control) {
-        return this.private(cn, 'control', control);
-    }
-
-    prepare(prepare) {
-        return this.private(cn, 'prepare', prepare);
-    }
-
-    header(name, value) {
-        let p = this.private(cn);
-
-        if (arguments.length === 1) {
-            return p.headers[name];
-        }else{
-            p.headers[name] = value;
-
-            return this;
-        }
-    }
-
-    headers(headers) {
-        let p = this.private(cn);
-
-        if (arguments.length == 1) {
-            return p.headers = headers;
-        }else{
-            return p.headers;
-        }
-    }
-
-    data(name, value) {
-        let p = this.private(cn);
-
-        switch (arguments.length) {
-            case 0:
-                return p.data;
-            case 1:
-                if (typeof name == 'string') {
-                    return p.data[name];
-                }else if(typeof name == 'object') {
-                    p.data = name;
-
-                    return this
-                }
-
-            case 2:
-                p.data[name] = value;
-
-                return this;
-        }
-
-        throw('Unsuported params');
-    }
-
-    param(name, value) {
-        let p = this.private(cn);
-
-        switch (arguments.length) {
-            case 1:
-                return p.params[name];
-            case 2:
-                p.params[name] = value;
-
-                return this;
-        }
-
-        throw('Unsuported params');
-    }
-
-    params(params) {
-        let p = this.private(cn);
-
-        switch (arguments.length) {
-            case 0:
-                return p.params;
-            case 1:
-                p.params = params;
-
-                return this;
-        }
-
-        throw('Unsuported params');
-    }
-
-    bind(name, value) {
-        let p = this.private(cn);
-
-        switch (arguments.length) {
-            case 1:
-                return p.binds[name];
-            case 2:
-                p.binds[name] = value;
-
-                return this;
-        }
-
-        throw('Unsuported params');
-    }
-
-    binds(binds) {
-        let p = this.private(cn);
-
-        switch (arguments.length) {
-            case 0:
-                return p.binds;
-            case 1:
-                p.binds = binds;
-
-                return this;
-        }
-
-        throw('Unsuported params');
-    }
-
-    request(creator) {
-        let p = this.private(cn),
-            request = p.api.request(creator)
-        ;
-
-        p.requests.push(request);
-
-        return request;
-    }
-
-    /**
-     * Exec request and return Promise object.
-     */
-    promise() {
-        return new Promise((resolve, reject) => {
-            this.exec((response) => {
-                if (response.error()) {
-                    reject(response);
-                }else{
-                    resolve(response);
-                }
-            });
-        });
-    }
-
-    exec(complete) {
-        let p = this.private(cn),
-            count = p.requests.length,
-            responses = [],
-            i
-        ;
-
-        let check = () => {
-            if (count > 0) {
-                return;
-            }
-
-            p.prepare.call(this, this, new __WEBPACK_IMPORTED_MODULE_2_Topi_Api_Responses__["a" /* default */](responses), () => {
-                this._xhr((response) => {
-                    p.control.call(this, this, response, (response) => {
-                        // user response
-                        if (typeof complete == 'function') {
-                            complete(response);
-                        }
-                    });
-                });
-            });
-        }
-
-        if (count > 0) {
-            // request has dependences, i go throught dependences and call
-            for (i in p.requests) {
-                p.requests[i].exec((response) => {
-                    responses.push(response);
-                    count--;
-                    check();
-                });
-            }
-        }else{
-            check();
-        }
-    }
-
-    _xhr(complete) {
-        let p = this.private(cn),
-            type = this.header('Content-Type'),
-            ended = false,
-            timeout = this.timeout(),
-            urn = Object(__WEBPACK_IMPORTED_MODULE_5_Topi_Api_Common_urn__["a" /* default */])(this.urn(), this.params(), this.binds()),
-            url = p.api.url(),
-            uri = `${url}${urn}`
-        ;
-
-        let resourceId = this.resourceId();
-
-        if (resourceId != null) {
-            uri = `${uri}/${resourceId}`;
-        }
-
-        if (type === undefined) {
-            throw("Please define header Content-Type for request.");
-        }
-
-        let data = Object(__WEBPACK_IMPORTED_MODULE_3_Topi_Api_Common_encode__["a" /* default */])(type, this.data()),
-            xhr = new XMLHttpRequest()
-        ;
-
-        // xhr.onloadstart = function(){
-
-        // }
-
-        let end = (iserror, error) => {
-            if (ended) {
-                return;
-            }
-
-            ended = true;
-
-            let params = {};
-
-            if (iserror) {
-                params.status = error;
-            }else{
-                params.status = xhr.status;
-
-                let data = Object(__WEBPACK_IMPORTED_MODULE_4_Topi_Api_Common_decode__["a" /* default */])(xhr.getResponseHeader('Content-Type'), xhr.responseText);
-
-                if (data === false) {
-                    params.status = "unread";
-                }else{
-                    params.data = data;
-                }
-            }
-
-            complete(new __WEBPACK_IMPORTED_MODULE_1_Topi_Api_Response__["a" /* default */](xhr, this, params));
-        }
-
-        xhr.onload = function () {
-            end(false);
-        };
-
-        xhr.onloadend = function() {
-            end(false);
-        }
-
-        xhr.ontimeout = function() {
-            end(true, "timeout");
-        }
-
-        xhr.onabort = function() {
-            end(true, "abort");
-        }
-
-        xhr.onerror = function() {
-            end(true, "error");
-        }
-
-        xhr.open(this.method(), uri, true);
-
-        for (let header in p.headers) {
-            xhr.setRequestHeader(header, p.headers[header]);
-        }
-
-        if (timeout != null) {
-            setTimeout(function() {
-                end(true, "timeout");
-            }, timeout);
-        }
-
-        xhr.send(data);
-    }
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (Request);
+/* 52 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_RESULT__;// doT.js
+// 2011-2014, Laura Doktorova, https://github.com/olado/doT
+// Licensed under the MIT license.
+
+(function () {
+	"use strict";
+
+	var doT = {
+		name: "doT",
+		version: "1.1.1",
+		templateSettings: {
+			evaluate:    /\{\{([\s\S]+?(\}?)+)\}\}/g,
+			interpolate: /\{\{=([\s\S]+?)\}\}/g,
+			encode:      /\{\{!([\s\S]+?)\}\}/g,
+			use:         /\{\{#([\s\S]+?)\}\}/g,
+			useParams:   /(^|[^\w$])def(?:\.|\[[\'\"])([\w$\.]+)(?:[\'\"]\])?\s*\:\s*([\w$\.]+|\"[^\"]+\"|\'[^\']+\'|\{[^\}]+\})/g,
+			define:      /\{\{##\s*([\w\.$]+)\s*(\:|=)([\s\S]+?)#\}\}/g,
+			defineParams:/^\s*([\w$]+):([\s\S]+)/,
+			conditional: /\{\{\?(\?)?\s*([\s\S]*?)\s*\}\}/g,
+			iterate:     /\{\{~\s*(?:\}\}|([\s\S]+?)\s*\:\s*([\w$]+)\s*(?:\:\s*([\w$]+))?\s*\}\})/g,
+			varname:	"it",
+			strip:		true,
+			append:		true,
+			selfcontained: false,
+			doNotSkipEncoded: false
+		},
+		template: undefined, //fn, compile template
+		compile:  undefined, //fn, for express
+		log: true
+	}, _globals;
+
+	doT.encodeHTMLSource = function(doNotSkipEncoded) {
+		var encodeHTMLRules = { "&": "&#38;", "<": "&#60;", ">": "&#62;", '"': "&#34;", "'": "&#39;", "/": "&#47;" },
+			matchHTML = doNotSkipEncoded ? /[&<>"'\/]/g : /&(?!#?\w+;)|<|>|"|'|\//g;
+		return function(code) {
+			return code ? code.toString().replace(matchHTML, function(m) {return encodeHTMLRules[m] || m;}) : "";
+		};
+	};
+
+	_globals = (function(){ return this || (0,eval)("this"); }());
+
+	/* istanbul ignore else */
+	if (typeof module !== "undefined" && module.exports) {
+		module.exports = doT;
+	} else if (true) {
+		!(__WEBPACK_AMD_DEFINE_RESULT__ = (function(){return doT;}).call(exports, __webpack_require__, exports, module),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	} else {
+		_globals.doT = doT;
+	}
+
+	var startend = {
+		append: { start: "'+(",      end: ")+'",      startencode: "'+encodeHTML(" },
+		split:  { start: "';out+=(", end: ");out+='", startencode: "';out+=encodeHTML(" }
+	}, skip = /$^/;
+
+	function resolveDefs(c, block, def) {
+		return ((typeof block === "string") ? block : block.toString())
+		.replace(c.define || skip, function(m, code, assign, value) {
+			if (code.indexOf("def.") === 0) {
+				code = code.substring(4);
+			}
+			if (!(code in def)) {
+				if (assign === ":") {
+					if (c.defineParams) value.replace(c.defineParams, function(m, param, v) {
+						def[code] = {arg: param, text: v};
+					});
+					if (!(code in def)) def[code]= value;
+				} else {
+					new Function("def", "def['"+code+"']=" + value)(def);
+				}
+			}
+			return "";
+		})
+		.replace(c.use || skip, function(m, code) {
+			if (c.useParams) code = code.replace(c.useParams, function(m, s, d, param) {
+				if (def[d] && def[d].arg && param) {
+					var rw = (d+":"+param).replace(/'|\\/g, "_");
+					def.__exp = def.__exp || {};
+					def.__exp[rw] = def[d].text.replace(new RegExp("(^|[^\\w$])" + def[d].arg + "([^\\w$])", "g"), "$1" + param + "$2");
+					return s + "def.__exp['"+rw+"']";
+				}
+			});
+			var v = new Function("def", "return " + code)(def);
+			return v ? resolveDefs(c, v, def) : v;
+		});
+	}
+
+	function unescape(code) {
+		return code.replace(/\\('|\\)/g, "$1").replace(/[\r\t\n]/g, " ");
+	}
+
+	doT.template = function(tmpl, c, def) {
+		c = c || doT.templateSettings;
+		var cse = c.append ? startend.append : startend.split, needhtmlencode, sid = 0, indv,
+			str  = (c.use || c.define) ? resolveDefs(c, tmpl, def || {}) : tmpl;
+
+		str = ("var out='" + (c.strip ? str.replace(/(^|\r|\n)\t* +| +\t*(\r|\n|$)/g," ")
+					.replace(/\r|\n|\t|\/\*[\s\S]*?\*\//g,""): str)
+			.replace(/'|\\/g, "\\$&")
+			.replace(c.interpolate || skip, function(m, code) {
+				return cse.start + unescape(code) + cse.end;
+			})
+			.replace(c.encode || skip, function(m, code) {
+				needhtmlencode = true;
+				return cse.startencode + unescape(code) + cse.end;
+			})
+			.replace(c.conditional || skip, function(m, elsecase, code) {
+				return elsecase ?
+					(code ? "';}else if(" + unescape(code) + "){out+='" : "';}else{out+='") :
+					(code ? "';if(" + unescape(code) + "){out+='" : "';}out+='");
+			})
+			.replace(c.iterate || skip, function(m, iterate, vname, iname) {
+				if (!iterate) return "';} } out+='";
+				sid+=1; indv=iname || "i"+sid; iterate=unescape(iterate);
+				return "';var arr"+sid+"="+iterate+";if(arr"+sid+"){var "+vname+","+indv+"=-1,l"+sid+"=arr"+sid+".length-1;while("+indv+"<l"+sid+"){"
+					+vname+"=arr"+sid+"["+indv+"+=1];out+='";
+			})
+			.replace(c.evaluate || skip, function(m, code) {
+				return "';" + unescape(code) + "out+='";
+			})
+			+ "';return out;")
+			.replace(/\n/g, "\\n").replace(/\t/g, '\\t').replace(/\r/g, "\\r")
+			.replace(/(\s|;|\}|^|\{)out\+='';/g, '$1').replace(/\+''/g, "");
+			//.replace(/(\s|;|\}|^|\{)out\+=''\+/g,'$1out+=');
+
+		if (needhtmlencode) {
+			if (!c.selfcontained && _globals && !_globals._encodeHTML) _globals._encodeHTML = doT.encodeHTMLSource(c.doNotSkipEncoded);
+			str = "var encodeHTML = typeof _encodeHTML !== 'undefined' ? _encodeHTML : ("
+				+ doT.encodeHTMLSource.toString() + "(" + (c.doNotSkipEncoded || '') + "));"
+				+ str;
+		}
+		try {
+			return new Function(c.varname, str);
+		} catch (e) {
+			/* istanbul ignore else */
+			if (typeof console !== "undefined") console.log("Could not create a template function: " + str);
+			throw e;
+		}
+	};
+
+	doT.compile = function(tmpl, def) {
+		return doT.template(tmpl, null, def);
+	};
+}());
 
 
 /***/ }),
-/* 19 */
+/* 53 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Dialog_Views_Modal__ = __webpack_require__(54);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_View__ = __webpack_require__(4);
 
 
-const cn = 'Response';
-class Response extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] {
-    constructor(xhr, request, params = {}) {
-        super();
 
-        let p = this.private(cn, {
-            successHttpCodes : params.successHttpCodes === undefined ? [200, 201] : params.successHttpCodes,
-            status : params.status === undefined ? null : params.status,
-            data : params.data === undefined ? {} : params.data,
-            xhr,
-            request,
-        });
-    }
+/* harmony default export */ __webpack_exports__["a"] = (function(body) {
+    describe('Modal', function() {
+        it('Simple modal', function () {
+            let form = new __WEBPACK_IMPORTED_MODULE_1_Topi_View__["a" /* default */](`
+                <h1 class="header">Contacts form</h1>
+                <p class="content">
+                    Lorem ipsum dolor sit amet, consetetur sadipscing elitr,
+                    sed diam nonumy eirmod tempor invidunt ut labore et dolore
+                    magna aliquyam erat, sed diam voluptua. At vero eos et
+                    accusam et justo duo dolores et ea rebum. Stet clita kasd
+                    gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+                    Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed
+                    diam nonumy eirmod tempor invidunt ut labore et dolore magna
+                    aliquyam erat, sed diam voluptua. At vero eos et accusam et justo
+                    duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata
+                    sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet,
+                    consetetur sadipscing elitr, sed diam nonumy eirmod tempor
+                    invidunt ut labore et dolore magna aliquyam erat, sed diam
+                    voluptua. At vero eos et accusam et justo duo dolores et ea rebum.
+                    Stet clita kasd gubergren, no sea takimata sanctus est Lorem
+                    ipsum dolor sit amet.
+                </p>
+            `);
 
-    error() {
-        let p = this.private(cn);
+            let modal = new __WEBPACK_IMPORTED_MODULE_0_Topi_Dialog_Views_Modal__["a" /* default */](form);
 
-        if (p.successHttpCodes.indexOf(this.status()) === -1) {
-            return true;
-        }
-
-        return false;
-    }
-
-    status(status) {
-        return this.private(cn, 'status', status);
-    }
-
-    data(name) {
-        let p = this.private(cn);
-
-        switch (arguments.length) {
-            case 0:
-                return p.data;
-            case 1:
-                return p.data[name];
-        }
-
-        throw('Unsuported params');
-    }
-
-    name() {
-        return this.private(cn, 'request').name();
-    }
-
-    xhr() {
-        return this.private(cn, 'xhr');
-    }
-
-    header(name) {
-        return this.private(cn, 'xhr').getResponseHeader(name);
-    }
-
-    name() {
-        return this.private(cn, 'request').name();
-    }
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (Response);
-
-
-/***/ }),
-/* 20 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-function decode(format, raw) {
-    let contentType = null;
-    const splited = format.split(';');
-
-    if (splited.length > 1) {
-        contentType = splited[0];
-    }else{
-        contentType = splited[0];
-    }
-
-    // todo Create supports for other formats and charset
-
-    switch (contentType) {
-        case "text/html" :
-        case "plain/text" :
-            return raw;
-        case 'application/json':
-            if (raw === "") {
-                return {};
-            }
-
-            raw = ''+raw+'';
-
-            raw = raw
-                .replace(/\n/g, "\\n")
-                // .replace(/\\'/g, "\\'")
-                // .replace(/\\"/g, '\\"')
-                // .replace(/\\&/g, "\\&")
-                // .replace(/\\r/g, "\\r")
-                // .replace(/\\t/g, "\\t")
-                // .replace(/\\b/g, "\\b")
-                // .replace(/\\f/g, "\\f")
+            modal
+                .target(body.element())
+                .render()
             ;
 
-            try{
-                raw = JSON.parse(raw);
-            }catch(e){
-                return false;
-            }
+            expect(body.find('.topi-dialog-modal').length).to.be.eql(1);
+            expect(body.find('.topi-dialog-modal').find('.header').length).to.be.eql(1);
+            expect(body.find('.topi-dialog-modal').find('.content').length).to.be.eql(1);
 
-            return raw;
-    }
-
-    throw('Unsuported params');
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (decode);
+            body.clean();
+        });
+    });
+});;
 
 
 /***/ }),
-/* 21 */
+/* 54 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Api_Common_encode__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_View__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Topi_Dialog_Views_Modal_content_html__ = __webpack_require__(55);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Topi_Dialog_Views_Modal_content_html___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_Topi_Dialog_Views_Modal_content_html__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_Topi_Dialog_Views_Modal_layout_html__ = __webpack_require__(56);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_Topi_Dialog_Views_Modal_layout_html___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_Topi_Dialog_Views_Modal_layout_html__);
 
 
-function urn(url, params = {}, binds = {}, format = 'application/x-www-form-urlencoded'){
-    // change binds
-    for(let i in binds){
-        url = url.replace(`{${i}}`, binds[i]);
+
+
+
+
+const cn = 'Modal';
+
+/**
+ * Base View to display modal.
+ *
+ * @param {Topi.View} view View to display at modal.
+ */
+class Modal extends __WEBPACK_IMPORTED_MODULE_1_Topi_View__["a" /* default */] {
+    constructor(view, params = {}) {
+        super(__WEBPACK_IMPORTED_MODULE_3_Topi_Dialog_Views_Modal_layout_html___default.a);
+
+        const p = this.private(cn, {});
+
+        p.view = view;
     }
 
-    let query = Object(__WEBPACK_IMPORTED_MODULE_0_Topi_Api_Common_encode__["a" /* default */])(format, params);
+    render() {
+        const p = this.private(cn);
 
-    if (query != null) {
-        url += '?' + query;
-    }
-
-    return url;
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (urn);
-
-
-/***/ }),
-/* 22 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_Api_Responses__ = __webpack_require__(2);
-
-
-
-const cn = 'Queue';
-class Queue extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] {
-    constructor(api) {
-        super();
-
-        let p = this.private(cn, {
-            api,
-            requets : []
-        });
-    }
-
-    request(creator) {
-        let p = this.private(cn);
-
-        p.requets.push(p.api.request(creator));
-
-        return this;
-    }
-
-    promise() {
-        return new Promise((resolve, reject) => {
-            this.exec(function(responses){
-                if (responses.error()) {
-                    reject(responses);
-                }else{
-                    resolve(responses);
-                }
-            });
-        });
-    }
-
-    exec(complete) {
-        let p = this.private(cn),
-            count = p.requets.length,
-            responses = [],
-            i
+        return p.view
+            .target(this.element('content'))
+            .render()
         ;
-
-        let check = () => {
-            if (count > 0) {
-                return;
-            }
-
-            if (typeof complete == 'function') {
-                complete(new __WEBPACK_IMPORTED_MODULE_1_Topi_Api_Responses__["a" /* default */](responses));
-            }
-        }
-
-        if (count > 0) {
-            for (i in p.requets) {
-                p.requets[i].exec(function(response){
-                    responses.push(response);
-                    count--;
-                    check();
-                });
-            }
-
-        }else{
-            check();
-        }
     }
 }
 
-/* harmony default export */ __webpack_exports__["a"] = (Queue);
+/* harmony default export */ __webpack_exports__["a"] = (Modal);
 
 
 /***/ }),
-/* 23 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/* 55 */
+/***/ (function(module, exports) {
 
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(0);
+module.exports = "{{? it.title}}\n<div class=\"topi-dialog-alert__title\">\n    {{= it.title}}\n</div>\n{{?}}\n{{? it.content}}\n<div class=\"topi-dialog-alert__content\">\n    {{= it.content}}\n</div>\n{{?}}\n{{? it.buttons }}\n<div class=\"topi-dialog-alert__buttons\">\n    {{? it.buttons.length}}\n        {{~ it.buttons : value}}\n        <button class=\"topi-button --{{= value.type}}\" data-id=\"{{= value.id}}\">{{= value.label}}</button>\n        {{~}}\n    {{?}}\n</div>\n{{?}}\n";
 
+/***/ }),
+/* 56 */
+/***/ (function(module, exports) {
 
-const cn = 'Endpoint';
-class Endpoint extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] {
-    constructor(api, urn) {
-        super();
-
-        let p = this.private(cn, {
-            api,
-            urn,
-        });
-    }
-
-    uri() {
-        let p = this.private(cn);
-
-        return `${p.api.url()}/${p.urn}`;
-    }
-
-    request(creator) {
-        let p = this.private(cn);
-
-        let request = p.api.request();
-
-        request.urn(p.urn);
-
-        if (creator) creator.call(request, request);
-
-        return request;
-    }
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (Endpoint);
-
+module.exports = "<div class=\"topi-dialog-modal__wrapper\">\n    <div class=\"topi-dialog-modal\" name=\"content\">\n    </div>\n</div>\n";
 
 /***/ })
 /******/ ]);
-//# sourceMappingURL=tests.js.map

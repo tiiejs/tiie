@@ -17,6 +17,8 @@ export default function(body) {
 
             expect(view.element("name").html()).to.be.equal('foo');
             expect(view.element("lastName").html()).to.be.equal('boo');
+
+            body.clean();
         });
     });
 };
