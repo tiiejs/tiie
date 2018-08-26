@@ -165,6 +165,10 @@
     @extend %topi--hover:hover;
 }
 
+.topi--no-resize {
+    resize: none;
+}
+
 /** link **/
 .topi--link {
 
