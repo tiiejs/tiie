@@ -38,7 +38,6 @@ class UtilsArray {
             row = []
         ;
 
-        console.log('splitIntoRows', items);
         items.forEach((item) => {
             row.push(item);
 
