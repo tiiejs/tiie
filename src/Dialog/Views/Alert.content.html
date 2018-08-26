@@ -1,0 +1,19 @@
+{{? it.title}}
+<div class="topi-dialog-alert__title">
+    {{= it.title}}
+</div>
+{{?}}
+{{? it.content}}
+<div class="topi-dialog-alert__content">
+    {{= it.content}}
+</div>
+{{?}}
+{{? it.buttons }}
+<div class="topi-dialog-alert__buttons">
+    {{? it.buttons.length}}
+        {{~ it.buttons : value}}
+        <button class="topi-button --{{= value.type}}" data-id="{{= value.id}}">{{= value.label}}</button>
+        {{~}}
+    {{?}}
+</div>
+{{?}}
