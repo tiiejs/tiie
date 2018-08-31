@@ -1,45 +1,32 @@
-import Body from 'Body';
+import 'Topi/main.js';
+
+import Content from 'Content';
 import element from 'Utils/element';
 import expectjs from 'expect.js';
 
-// scss
-import 'styles/topi-button.scss'
-import 'styles/topi-checkboxList.scss'
-import 'styles/topi-dialog.scss'
-import 'styles/topi-form.scss'
-import 'styles/topi-input.scss'
-import 'styles/topi-pagination.scss'
-import 'styles/topi-portlet-light.scss'
-import 'styles/topi-portlet.scss'
-import 'styles/topi-section.scss'
-import 'styles/topi-table.scss'
-import 'styles/topi-textarea.scss'
-import 'styles/topi-toolbar.scss'
-import 'styles/topi-topbar.scss'
-import 'styles/topi-variables.scss'
-import 'styles/topi.scss'
+const content = new Content();
 
-// todo Body to Document
-const body = new Body();
+import viewTest from 'viewTest';
+viewTest(content);
 
-// import viewTest from 'viewTest';
-// viewTest(body);
-//
-// import objectTest from 'objectTest';
-// objectTest(body);
+import objectTest from 'objectTest';
+objectTest(content);
 
-// import componentsTest from 'componentsTest';
-// componentsTest(body);
+import componentsTest from 'componentsTest';
+componentsTest(content);
 
-// import apiTest from 'Api/apiTest';
-// apiTest(body);
+import apiTest from 'Api/apiTest';
+apiTest(content);
 
-// import dialogTest from 'Dialog/dialogTest';
-// dialogTest(body);
+import dialogTest from 'Dialog/Views/dialogTest';
+dialogTest(content);
 
 import alertTest from 'Dialog/Views/alertTest';
-alertTest(body);
-body.clean();
+alertTest(content);
+content.clean();
 
 import modalTest from 'Dialog/Views/modalTest';
-modalTest(body);
+modalTest(content);
+
+import dateTest from 'Views/Widgets/dateTest';
+dateTest(content);

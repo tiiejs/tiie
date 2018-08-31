@@ -58,10 +58,10 @@ module.exports = {
     resolve : {
         // zdefiniowanie sciezek z ktory maja byc pobierane pliki
         modules: [
+            '../node_modules',
             './',
             './src',
             '../src',
-            '../../../node_modules',
         ],
         // aliasy
         alias : {

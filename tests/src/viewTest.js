@@ -1,6 +1,7 @@
 import View from 'View';
 
-export default function(body) {
+// ofiko-test
+export default function(content) {
     describe('View', function() {
         it('Simple view', function () {
             let view = new View(`
@@ -11,14 +12,14 @@ export default function(body) {
             `);
 
             view
-                .target(body.element())
+                .target(content.element())
                 .render()
             ;
 
             expect(view.element("name").html()).to.be.equal('foo');
             expect(view.element("lastName").html()).to.be.equal('boo');
 
-            body.clean();
+            content.clean();
         });
     });
 };
