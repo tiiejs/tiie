@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 4);
+/******/ 	return __webpack_require__(__webpack_require__.s = 6);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -10573,7 +10573,7 @@ var singleton = null;
 var	singletonCounter = 0;
 var	stylesInsertedAtTop = [];
 
-var	fixUrls = __webpack_require__(8);
+var	fixUrls = __webpack_require__(10);
 
 module.exports = function(list, options) {
 	if (typeof DEBUG !== "undefined" && DEBUG) {
@@ -10890,6 +10890,96 @@ function updateLink (link, options, obj) {
 
 /***/ }),
 /* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (scope, factory) {
+    if (typeof module === "object" && module.exports) {
+        // module.exports = factory(require("jquery"));
+        module.exports = factory(__webpack_require__(0));
+    } else if (true) {
+        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0)], __WEBPACK_AMD_DEFINE_RESULT__ = (function(jquery){
+            return factory(jquery);
+        }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+    } else {
+        factory(jQuery);
+    }
+}(this, function (jQuery) {
+    "use strict";
+
+    let element = {
+        reindex(object) {
+            let i,
+                name,
+                list,
+                length,
+                elements = {}
+            ;
+
+            list = object.querySelectorAll("[name]");
+
+            // Go throught all elements with "name" attribute
+            for(i = 0, length = list.length; i < length; i++) {
+                elements[list[i].getAttribute("name")] = jQuery(list[i]);
+            }
+
+            // todo Zastąpić atrybut "ui" atrybutem "name".
+            // Tymczasowo odczytuje atrybut "ui"
+            list = object.querySelectorAll("[ui]");
+
+            // Go throught all elements with name attribute
+            for(i = 0, length = list.length; i < length; i++) {
+                elements[list[i].getAttribute("ui")] = jQuery(list[i]);
+            }
+
+            object.elements = elements;
+        }
+    };
+
+    // Save previos html function
+    let jqueryHtml = jQuery.fn.html;
+
+    jQuery.fn.html = function(value) {
+        if (value == undefined) {
+            return jqueryHtml.call(this);
+        }else{
+            let result = jqueryHtml.call(this, value);
+
+            element.reindex(this[0]);
+
+            return result;
+        }
+    };
+
+    // todo Zastąpić metodę content metodą html
+    jQuery.fn.content = function(value) {
+        return jQuery.fn.html.call(this, value);
+    };
+
+    jQuery.fn.ui = function(name) {
+        return jQuery.fn.element.call(this, name);
+    };
+
+    jQuery.fn.element = function(name) {
+        let object = this[0];
+
+        if (object.getAttribute("name") === name) {
+            return jQuery(object);
+        }
+
+        if (object.elements === undefined) {
+            element.reindex(object);
+        }
+
+        return object.elements[name] === undefined ? null : object.elements[name];
+    };
+
+    return element;
+}));
+
+
+/***/ }),
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -21260,25 +21350,517 @@ return jQuery;
 
 
 /***/ }),
-/* 4 */
+/* 5 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Utils_same__ = __webpack_require__(26);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__ = __webpack_require__(27);
+
+
+
+let uniqueId = 0,
+    components = null
+;
+
+/**
+ * EventsQueue
+ */
+class EventsQueue {
+
+    constructor() {
+        this.queue = [];
+        this.processing = false;
+    }
+
+    add(callback, event = {}, params = {}) {
+        this.queue.push({
+            callback,
+            event,
+            params,
+        });
+
+        this._process();
+    }
+
+    _process() {
+        if (this.processing) {
+            return;
+        }
+
+        this.processing = true;
+
+        let event;
+
+        while(this.queue.length) {
+            event = this.queue.shift();
+            event.callback.call(window, event.event, event.params);
+        }
+
+        this.processing = false;
+    }
+}
+
+let eventsQueue = new EventsQueue();
+
+/**
+ * TopiObject
+ */
+const cn = 'TopiObject';
+class TopiObject {
+
+    constructor(data = {}) {
+        let p = this.private(cn, {
+            // Eventy
+            events : {},
+
+            // Dane obiektu
+            data,
+        });
+    }
+
+    /**
+     * Tworzy klon obiektu.
+     */
+    clone() {
+
+    }
+
+    warn(message) {
+        console.warn(message);
+
+        return this;
+    }
+
+    error(error) {
+        let p = this.private(cn),
+            router = this.component('@router')
+        ;
+
+        router.forward('@error', {error});
+
+        return this;
+    }
+
+    log(message, type = 'log') {
+        switch (type) {
+            case 'error':
+                return this.error(message);
+            default:
+                console.warn(type, message);
+        }
+
+        return this;
+    }
+
+    /**
+     * Set value of attribute for object. Given value is always cloned.
+     *
+     * @param {string} name Name of attribute. Name can use docs notation. For
+     * example this.set("value", 12) or this.set("value.async", 1).
+     *
+     * @param {mixed} value
+     * @param {object} emitparams
+     */
+    set(name, value, emitparams = {}) {
+        let p = this.private(cn);
+
+        value = Object(__WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__["a" /* default */])(value);
+
+        // Czy wartość ma być ustawiona, bez emitowania zdarzeń.
+        emitparams.silently = emitparams.silently === undefined ? 0 : 1;
+
+        if (name[0] == '-') {
+            // Skrócona metoda ustawiania wartości, bez emitowania
+            // this.set('-name', "Pawel")
+            emitparams.silently = 1;
+            name = name.substr(1);
+        }
+
+        if (typeof name == 'object') {
+            // todo Ustawianie wielu wartości za pomoca jednego obiektu.
+        }else if(typeof name == 'string') {
+            return this.__setValue(p.data, name, value, emitparams);
+        }else{
+            this.error("Unsuported params");
+        }
+    }
+
+    /**
+     * Ustawienie wartości w obiekcie, wraz z emitowaniem eventów.
+     *
+     * @param {object} target
+     * @param {string} name
+     * @param {*} value
+     * @param {object} emitparams
+     * @return this
+     */
+    __setValue(target, name, value, emitparams = {}) {
+        let p = this.private(cn);
+
+        if (target[name] === undefined) {
+            target[name] = value;
+
+            this.emit(`${name}:init`, {}, emitparams);
+            this.emit(`${name}:change`, {
+                previous : undefined
+            }, emitparams);
+
+        }else{
+            if (emitparams.silently) {
+                target[name] = value;
+            }else{
+                if (!Object(__WEBPACK_IMPORTED_MODULE_0_Topi_Utils_same__["a" /* default */])(target[name], value)) {
+                    let previous = target[name];
+
+                    target[name] = value;
+
+                    this.emit(`${name}:change`, {
+                        previous
+                    }, emitparams);
+                }
+            }
+        }
+
+        return this;
+    }
+
+    /**
+     * Zwraca informację czy obiekt spełnia podane kryteriu
+     *
+     * @param {string} name
+     * @return {integer} 0 lub 1
+     */
+    is(name) {
+        return 0;
+    }
+
+    data(params = {}) {
+        let p = this.private(cn);
+
+        // todo clone to reference
+        // Zmienic nazwe parametru clone na reference
+        params.clone = params.clone === undefined ? 1 : params.clone;
+        params.data = params.data === undefined ? 1 : params.data;
+
+        if (params.clone) {
+            return Object(__WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__["a" /* default */])(p.data, params);
+        }else{
+            return p.data;
+        }
+    }
+
+    get(name, value = null, params = {}) {
+        let p = this.private(cn),
+            pointer = p.data,
+            i,
+            length,
+            t,
+            splited
+        ;
+
+        // default params
+        params.clone = params.clone === undefined ? 1 : params.clone;
+        params.data = params.data === undefined ? 1 : params.data;
+
+        if (name[0] == '&') {
+            params.clone = 0;
+
+            name = name.substring(1);
+        }else if(name[0] == '*') {
+            params.data = 0;
+            name = name.substring(1);
+        }
+
+        // split name
+        // splited = name.split('.');
+
+        // while(splited.length > 1){
+        //     t = splited.shift();
+
+        //     if (pointer[t] === undefined) {
+        //         return value;
+        //     }
+
+        //     pointer = pointer[t];
+        // }
+
+        if (pointer[name] === undefined) {
+            return value;
+        }
+
+        if (params.clone) {
+            return Object(__WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__["a" /* default */])(pointer[name], params);
+        }else{
+            return pointer[name];
+        }
+    }
+
+    /**
+     * Return private scope for object.
+     *
+     * this.private("App") - return private scope for App
+     * let p = this.private("App", {}) - init private scope for App, and return
+     * the
+     * this.private("App", "name") - return value of name attribute at App
+     * private scope.
+     *
+     * When private scope is inited like this
+     *     this.private("View", {
+     *         domain : "www.test.pl",
+     *         name : this.prepareName()
+     *     });
+     *
+     * Inited values can not be generated by other methods wich use private
+     * scope. At this case, this should be do like this.
+     *     let p this.private("View", {
+     *         domain : "www.test.pl",
+     *         name : this.prepareName()
+     *     });
+     *
+     *     p.name = this.prepareName();
+     *
+     *
+     * @param {string} id
+     * @param {string} attr
+     * @param {mixed} value
+     * @return {mixed}
+     */
+    private(id, attr, value){
+        if (!pscope.has(this)) {
+            // Inicjuje prywatną przestrzeń dla obiektu
+            pscope.set(this, {});
+        }
+
+        if (pscope.get(this)[id] === undefined) {
+            // Nie ma prywatnej przestrzeni dla ID
+
+            if (attr === undefined) {
+                pscope.get(this)[id] = {};
+            }else{
+                // Sytuacja w której podane są wartości do zainicjowania
+                pscope.get(this)[id] = attr;
+            }
+
+            return pscope.get(this)[id];
+        }
+
+        if (attr === undefined) {
+            // Zwraca całą prywatną przestrzeń
+            return pscope.get(this)[id];
+        }else{
+            if (typeof attr == 'string') {
+                if (value === undefined) {
+                    // Zwracam wartość podanego argumentu
+                    return pscope.get(this)[id][attr];
+                }else{
+                    // Ustawiam nową wartość
+                    pscope.get(this)[id][attr] = value;
+
+                    return this;
+                }
+            }
+
+            this.log("Wrong private call", "warn");
+        }
+
+        this.log("Wrong private call", "warn");
+    }
+
+    /**
+     * Register event listener of specific event.
+     *
+     * @param {string} name Na of event. For example button.submit:click.
+     * @param {string} callback Function to call.
+     * @param {string} group Grouo of owner. It can be any string. We recoment
+     * use this.id() of object.
+     *
+     * @return $this
+     */
+    on(name, callback, group) {
+        let p = this.private(cn),
+            i
+        ;
+
+        if (Array.isArray(name)) {
+            for (i in name) {
+                this.on(name[i], callback, group);
+            }
+
+            return this;
+        }
+
+        if (p.events[name] === undefined) {
+            p.events[name] = [];
+        }
+
+        p.events[name].push({
+            name,
+            callback,
+            group
+        });
+
+        return this;
+    }
+
+    id() {
+        let p = this.private(cn);
+
+        if (p.id === undefined) {
+            p.id = uniqueId++;
+        }
+
+        return p.id;
+    }
+
+    /**
+     * Emituje zdarzenie.
+     *
+     * @param {string} name - Name of event.
+     * @param {Object} params - Params which will be send listener.
+     * @param {Object} emitparams - Options for emit.
+     */
+    emit(name, params = {}, emitparams = {}) {
+        let p = this.private(cn),
+            call = [],
+            event = {},
+            i,
+            j
+        ;
+
+        event.this = this;
+        event.name = name;
+
+        emitparams.ommit = emitparams.ommit === undefined ? null : emitparams.ommit;
+
+        name = name.split(':');
+
+        if (name.length == 1) {
+            call.push(name[0]);
+        }else if(name.length == 2){
+            if (name[0] == '') {
+                call.push(`:${name[1]}`);
+            }else{
+                call.push(`${name[0]}:${name[1]}`);
+                call.push(`${name[0]}`);
+                call.push(`:${name[1]}`);
+            }
+        }else{
+            throw("Unsuported event format");
+        }
+
+        // eventy sa wywolywane od tylu
+        for (i = call.length -1; i >= 0; i--) {
+            if (p.events[call[i]] === undefined) {
+                continue;
+            }
+
+            for (j in p.events[call[i]]) {
+                if (emitparams.ommit != null) {
+                    if (p.events[call[i]][j].group == emitparams.ommit) {
+                        continue;
+                    }
+                }
+
+                eventsQueue.add(p.events[call[i]][j].callback, event, params);
+            }
+        }
+
+        return this;
+    }
+
+    /**
+     * Delete event listeners.
+     *
+     * @param {string|number|function} name
+     */
+    off(name) {
+        let p = this.private(cn);
+
+        switch (typeof name) {
+            case 'undefined':
+                p.events = {};
+
+                return this;
+            case 'string':
+            case 'number':
+                for (let event in p.events) {
+                    let events = [];
+
+                    for (let i in p.events[event]) {
+                        if (p.events[event][i].group != name) {
+                            events.push(p.events[event][i]);
+                        }
+                    }
+
+                    p.events[event] = events;
+                }
+
+                return this;
+            default :
+                this.error("Unsuported params");
+        }
+    }
+
+    component(name, params = {}) {
+        return components.get(name, params);
+    }
+
+    components() {
+        return components;
+    }
+
+    // this.trigger('selectRow:success', {
+
+    // });
+
+    // this.on('selectRow#app', funcRef)
+    // this.on('selectRow.app', funcRef)
+
+    // this.off();
+    // this.off(funcRef);
+
+    // this.off('.app');
+    // this.off('#app');
+    // this.off('selectRow');
+
+    // this.on('saved:success')
+    // this.on('saved:faile')
+
+    // widget.on('event', function(){}, id);
+
+    // widget.off(id);
+    // widget.off('change.name');
+    // widget.off(function(){});
+
+    // Events
+}
+
+TopiObject.components = function(p) {
+    components = p
+}
+
+if (window.pscope === undefined) {
+    window.pscope = new WeakMap();
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (TopiObject);
+
+
+/***/ }),
+/* 6 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_main_js__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Content__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Utils_element__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_main_js__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Content__ = __webpack_require__(16);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Utils_element__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Utils_element___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_Utils_element__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_expect_js__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_expect_js__ = __webpack_require__(17);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_expect_js___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_expect_js__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_viewTest__ = __webpack_require__(22);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_objectTest__ = __webpack_require__(31);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6_componentsTest__ = __webpack_require__(32);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_Api_apiTest__ = __webpack_require__(34);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8_Dialog_Views_dialogTest__ = __webpack_require__(42);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9_Dialog_Views_alertTest__ = __webpack_require__(46);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10_Dialog_Views_modalTest__ = __webpack_require__(50);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11_Views_Widgets_dateTest__ = __webpack_require__(53);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_Views_Components_Loader_managerTest__ = __webpack_require__(32);
+
 
 
 
@@ -21287,59 +21869,62 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 const content = new __WEBPACK_IMPORTED_MODULE_1_Content__["a" /* default */]();
 
+// import viewTest from 'viewTest';
+// viewTest(content);
+//
+// import objectTest from 'objectTest';
+// objectTest(content);
+//
+// import componentsTest from 'componentsTest';
+// componentsTest(content);
+//
+// import apiTest from 'Api/apiTest';
+// apiTest(content);
+//
+// import dialogTest from 'Dialog/Views/dialogTest';
+// dialogTest(content);
+//
+// import alertTest from 'Dialog/Views/alertTest';
+// alertTest(content);
+// content.clean();
+//
+// import modalTest from 'Dialog/Views/modalTest';
+// modalTest(content);
 
-Object(__WEBPACK_IMPORTED_MODULE_4_viewTest__["a" /* default */])(content);
 
+Object(__WEBPACK_IMPORTED_MODULE_4_Views_Components_Loader_managerTest__["a" /* default */])(content);
 
-Object(__WEBPACK_IMPORTED_MODULE_5_objectTest__["a" /* default */])(content);
-
-
-Object(__WEBPACK_IMPORTED_MODULE_6_componentsTest__["a" /* default */])(content);
-
-
-Object(__WEBPACK_IMPORTED_MODULE_7_Api_apiTest__["a" /* default */])(content);
-
-
-Object(__WEBPACK_IMPORTED_MODULE_8_Dialog_Views_dialogTest__["a" /* default */])(content);
-
-
-Object(__WEBPACK_IMPORTED_MODULE_9_Dialog_Views_alertTest__["a" /* default */])(content);
-content.clean();
-
-
-Object(__WEBPACK_IMPORTED_MODULE_10_Dialog_Views_modalTest__["a" /* default */])(content);
-
-
-Object(__WEBPACK_IMPORTED_MODULE_11_Views_Widgets_dateTest__["a" /* default */])(content);
+// import dateTest from 'Views/Widgets/dateTest';
+// dateTest(content);
 
 
 /***/ }),
-/* 5 */
+/* 7 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_styles_topi_scss__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_styles_topi_scss___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_styles_topi_scss__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_styles_topi_scss__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_styles_topi_scss___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_Topi_styles_topi_scss__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_jquery__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_jquery___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_jquery__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_jquery_datetimepicker_build_jquery_datetimepicker_full_js__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_jquery_datetimepicker_build_jquery_datetimepicker_full_js___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_jquery_datetimepicker_build_jquery_datetimepicker_full_js__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_jquery_datetimepicker_build_jquery_datetimepicker_min_css__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_jquery_datetimepicker_build_jquery_datetimepicker_min_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_jquery_datetimepicker_build_jquery_datetimepicker_min_css__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Topi_Utils_element__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Topi_Utils_element___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_Topi_Utils_element__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_Topi_Utils_animate__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_Topi_Utils_animate___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_Topi_Utils_animate__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_jquery_datetimepicker_build_jquery_datetimepicker_full_js__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_jquery_datetimepicker_build_jquery_datetimepicker_full_js___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4_jquery_datetimepicker_build_jquery_datetimepicker_full_js__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_jquery_datetimepicker_build_jquery_datetimepicker_min_css__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_jquery_datetimepicker_build_jquery_datetimepicker_min_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5_jquery_datetimepicker_build_jquery_datetimepicker_min_css__);
 
 
-// jQuery
-// Cześć bibliotek zewnętrznych jest trudna do spakowania za pomocą webpacka,
-// ze względu na różne zleżne pliki. Dlatego takie biblioteki sa ładowane w
-// tradycyjny sposób. Takie biblioteki są umieszczone w katalogu
-// dist/packages i są bezpośrednio włączone w index.html. Aby miały tą samą
-// referencję co te spakowe, muszę wyeksportować je na do przestrzeni
-// globalnej.
+// Import jquery and export to global. It's import to have the same reference
+// used by framework and other plugins.
 
 window.jQuery = __WEBPACK_IMPORTED_MODULE_1_jquery___default.a;
 
-// import element from "Topi/Utils/element";
-// import animate from "Topi/Utils/animate";
+// import some utils
+
+
 
 // jquery-datetimepicker
 
@@ -21347,13 +21932,13 @@ window.jQuery = __WEBPACK_IMPORTED_MODULE_1_jquery___default.a;
 
 
 /***/ }),
-/* 6 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(7);
+var content = __webpack_require__(9);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -21378,7 +21963,7 @@ if(false) {
 }
 
 /***/ }),
-/* 7 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(1)(false);
@@ -21386,13 +21971,13 @@ exports = module.exports = __webpack_require__(1)(false);
 
 
 // module
-exports.push([module.i, "/** colors **/\n/** colors **/\n.topi-button-wrapper.\\--center {\n  text-align: center; }\n\n/** colors **/\n.topi-button, .topi-button.\\--blue, .topi-button.\\--indigo, .topi-button.\\--purple, .topi-button.\\--pink, .topi-button.\\--red, .topi-button.\\--orange, .topi-button.\\--yellow, .topi-button.\\--green, .topi-button.\\--teal, .topi-button.\\--cyan, .topi-button.\\--white, .topi-button.\\--gray, .topi-button.\\--primary, .topi-button.\\--secondary, .topi-button.\\--success, .topi-button.\\--info, .topi-button.\\--warning, .topi-button.\\--danger, .topi-button.\\--light, .topi-button.\\--dark {\n  color: #fff;\n  display: inline-block;\n  font-weight: 400;\n  text-align: center;\n  white-space: nowrap;\n  vertical-align: middle;\n  -webkit-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n  border: 1px solid transparent;\n  padding: .375rem .75rem;\n  padding-top: 0.375rem;\n  padding-right: 0.75rem;\n  padding-bottom: 0.375rem;\n  padding-left: 0.75rem;\n  font-size: 1rem;\n  line-height: 1.5;\n  transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out; }\n\n.topi-button.\\--blue {\n  background-color: #007bff; }\n\n.topi-button.\\--indigo {\n  background-color: #6610f2; }\n\n.topi-button.\\--purple {\n  background-color: #6f42c1; }\n\n.topi-button.\\--pink {\n  background-color: #e83e8c; }\n\n.topi-button.\\--red {\n  background-color: #dc3545; }\n\n.topi-button.\\--orange {\n  background-color: #fd7e14; }\n\n.topi-button.\\--yellow {\n  background-color: #ffc107; }\n\n.topi-button.\\--green {\n  background-color: #28a745; }\n\n.topi-button.\\--teal {\n  background-color: #20c997; }\n\n.topi-button.\\--cyan {\n  background-color: #17a2b8; }\n\n.topi-button.\\--white {\n  background-color: #fff; }\n\n.topi-button.\\--gray {\n  background-color: #6c757d; }\n\n.topi-button.\\--primary {\n  background-color: #007bff; }\n\n.topi-button.\\--secondary {\n  background-color: #6c757d; }\n\n.topi-button.\\--success {\n  background-color: #28a745; }\n\n.topi-button.\\--info {\n  background-color: #17a2b8; }\n\n.topi-button.\\--warning {\n  background-color: #ffc107; }\n\n.topi-button.\\--danger {\n  background-color: #dc3545; }\n\n.topi-button.\\--light {\n  background-color: #f8f9fa; }\n\n.topi-button.\\--dark {\n  background-color: #343a40; }\n\n.topi-checkboxList {\n  font-size: 12px;\n  background-color: white; }\n  .topi-checkboxList .__item {\n    display: flex;\n    align-items: center; }\n    .topi-checkboxList .__item .__checkbox {\n      padding: 0;\n      margin: 0; }\n    .topi-checkboxList .__item .__label {\n      font-size: 12px;\n      padding: 0;\n      margin: 0; }\n\n.topi-checkboxList.\\--border {\n  border: 1px #cacaca solid;\n  padding: 5px; }\n\n.topi-checkboxList.\\--error {\n  background-color: #fbeaea;\n  border: 1px red solid;\n  color: red; }\n\n/** colors **/\n.topi-dialog {\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  /* padding: 10px; */\n  /* border: 1px silver solid; */\n  /* box-shadow: 0 1px 15px 1px rgba(69, 65, 78, 0.08); */\n  /* background: #fff; */ }\n  .topi-dialog .topi-dialog__dialog {\n    width: 50%;\n    margin: 0 auto;\n    margin-top: 80px;\n    border: 1px silver solid;\n    background-color: white; }\n  .topi-dialog .topi-dialog__header {\n    padding: 10px;\n    border-bottom: 1px silver dotted; }\n  .topi-dialog .topi-dialog__content {\n    padding: 10px; }\n\n.topi-dialog-alert__wrapper {\n  position: fixed;\n  width: 100%;\n  height: 100%;\n  background-color: rgba(0, 0, 0, 0.4);\n  top: 0;\n  left: 0;\n  z-index: 1000; }\n  .topi-dialog-alert__wrapper .topi-dialog-alert {\n    width: 30%;\n    border: 1px silver solid;\n    border-radius: 10px;\n    padding: 10px;\n    margin: 0 auto;\n    background-color: white;\n    margin-top: 5%; }\n    .topi-dialog-alert__wrapper .topi-dialog-alert .topi-dialog-alert__title {\n      font-size: 25px;\n      margin-bottom: 10px; }\n    .topi-dialog-alert__wrapper .topi-dialog-alert .topi-dialog-alert__content {\n      margin-bottom: 10px; }\n    .topi-dialog-alert__wrapper .topi-dialog-alert .topi-dialog-alert__buttons {\n      text-align: center; }\n\n.topi-dialog-modal__wrapper {\n  position: fixed;\n  width: 100%;\n  height: 100%;\n  background-color: rgba(0, 0, 0, 0.4);\n  top: 0;\n  left: 0;\n  z-index: 1000; }\n  .topi-dialog-modal__wrapper .topi-dialog-modal {\n    width: 30%;\n    border: 1px silver solid;\n    border-radius: 10px;\n    padding: 10px;\n    margin: 0 auto;\n    background-color: white;\n    margin-top: 5%; }\n\n.topi-form .__fields .__label.\\--error {\n  color: red; }\n\n.topi-form .__fields .__section {\n  font-size: 15px;\n  font-weight: bold; }\n\n.topi-form .__fields .__cell.\\--error {\n  background-color: #ffebeb;\n  padding-top: 10px;\n  padding-bottom: 10px; }\n\n.topi-form .__fields .__notice.\\--error {\n  color: red; }\n\n.topi-input {\n  padding: 5px;\n  border: 1px #D6DBDF solid; }\n\n.topi-input.\\--error {\n  background-color: #fbeaea;\n  border: 1px red solid;\n  color: red; }\n\n.topi-pagination .topi-pagination__page {\n  width: 40%; }\n\n.topi-portlet-light {\n  background: #fff;\n  border: 1px silver dotted; }\n  .topi-portlet-light .__body {\n    padding: 10px;\n    background-color: white; }\n  .topi-portlet-light .__body.\\--center {\n    text-align: center; }\n\n.topi-portlet {\n  border: 1px silver dotted;\n  background-color: white; }\n  .topi-portlet .__head {\n    border-bottom: 1px solid #ebedf2;\n    padding: 10px;\n    background-color: white; }\n    .topi-portlet .__head .__icon {\n      display: inline-block; }\n    .topi-portlet .__head .__icon:first-child {\n      margin-right: 10px; }\n    .topi-portlet .__head .__title {\n      font-size: 16px;\n      display: inline-block; }\n  .topi-portlet .__head.\\--center {\n    text-align: center; }\n  .topi-portlet .__head.\\--bold {\n    font-weight: bold; }\n  .topi-portlet .__body {\n    padding: 10px; }\n  .topi-portlet .__body.\\--no-padding {\n    padding: 0px; }\n  .topi-portlet .__body.\\--top-padding {\n    padding-top: 10px; }\n  .topi-portlet .__body.\\--bottom-padding {\n    padding-bottom: 10px; }\n  .topi-portlet .__foot {\n    padding: 10px;\n    border-top: 1px silver dotted; }\n\n.topi-portlet.\\--form .__body {\n  background-color: #fafafa; }\n\n.topi-section {\n  border: 1px #EBEFF2 solid;\n  padding: 10px;\n  font-size: 12px; }\n  .topi-section .__head .__title {\n    font-size: 17px;\n    font-weight: bold; }\n\n/** colors **/\n.topi-table {\n  border: 1px whitesmoke solid;\n  width: 100%;\n  border-spacing: 0px;\n  border-collapse: separate; }\n  .topi-table tbody td {\n    padding: 5px;\n    border-bottom: 1px whitesmoke solid; }\n\n.topi-textarea {\n  resize: none;\n  overflow: hidden; }\n\n.topi-topbar {\n  border-bottom: 1px silver solid;\n  background-color: white;\n  font-size: 12px;\n  display: flex; }\n  .topi-topbar .__logo {\n    color: #c871ce;\n    font-size: 22px;\n    width: 25%; }\n  .topi-topbar .__icons {\n    width: 25%;\n    text-align: right;\n    color: #dc85c9;\n    display: flex;\n    align-items: center;\n    font-size: 25px;\n    justify-content: space-around; }\n  .topi-topbar .__search {\n    width: 50%;\n    display: flex;\n    justify-content: space-around;\n    padding-top: 5px; }\n    .topi-topbar .__search .__input {\n      display: inline-block;\n      width: 90%; }\n\n/** margin **/\n.topi--margin-top-10 {\n  margin-top: 10px; }\n\n.topi--margin-bottom-10 {\n  margin-bottom: 10px; }\n\n.topi--margin-left-10 {\n  margin-left: 10px; }\n\n.topi--margin-right-10 {\n  margin-right: 10px; }\n\n.topi--margin-vertical-10 {\n  margin-top: 10px;\n  margin-bottom: 10px; }\n\n/** padding **/\n.topi--padding-none {\n  padding: 0px; }\n\n.topi--padding-bottom-10 {\n  padding-bottom: 10px; }\n\n.topi--padding-top-10 {\n  padding-top: 10px; }\n\n.topi--padding-left-10 {\n  padding-left: 10px; }\n\n.topi--padding-right-10 {\n  padding-right: 10px; }\n\n.topi--padding-10 {\n  padding: 10px; }\n\n/** space **/\n.topi--space-10 {\n  margin: 10px;\n  padding: 10px; }\n\n.topi--space-horizontally-10 {\n  padding-left: 10px;\n  padding-right: 10px;\n  margin-left: 10px;\n  margin-right: 10px; }\n\n.topi--space-vertical-10 {\n  padding-top: 10px;\n  padding-bottom: 10px;\n  margin-top: 10px;\n  margin-bottom: 10px; }\n\n.topi--space-bottom-10 {\n  padding-bottom: 10px;\n  margin-bottom: 10px; }\n\n.topi--space-right-10 {\n  padding-right: 10px;\n  margin-right: 10px; }\n\n/** display **/\n.topi--display-inline-block {\n  display: inline-block; }\n\n/** border **/\n.topi--border-top-1--primary {\n  border-top: 1px #007bff solid; }\n\n.topi--border-top-2--primary {\n  border-top: 2px #007bff solid; }\n\n.topi--border-top-3--primary {\n  border-top: 3px #007bff solid; }\n\n.topi--border-1 {\n  border: 1px #ededed solid; }\n\n.topi--border-top-1 {\n  border-top: 1px #cacaca solid; }\n\n.topi--border-bottom-1 {\n  border-bottom: 1px #cacaca solid; }\n\n.topi--border-left-1 {\n  border-left: 1px #cacaca solid; }\n\n.topi--border-right-1 {\n  border-right: 1px #cacaca solid; }\n\n.topi--border-bottom-dotted-1 {\n  border-bottom: 1px #cacaca dotted; }\n\n/** positioning **/\n.topi--text-align-center {\n  text-align: center; }\n\n.topi--text-align-left {\n  text-align: left; }\n\n.topi--text-align-right {\n  text-align: right; }\n\n.topi--align-items-center {\n  align-items: center; }\n\n/** width **/\n.topi--width-100 {\n  width: 100%; }\n\n.topi--height-100 {\n  height: 100%; }\n\n/** background **/\n.topi--background-color-second {\n  background-color: white; }\n\n.topi--border-top--primary {\n  border-top: 1px; }\n\n/** hover **/\n.topi--hover:hover {\n  cursor: pointer; }\n\n.topi--no-resize {\n  resize: none; }\n\n/** link **/\n/** selected **/\n.topi--selected {\n  font-weight: bold; }\n\n/** modyficators **/\n.\\--hover {\n  cursor: pointer;\n  color: #007bff; }\n\n.\\--no-padding {\n  padding: 0px; }\n\n.\\--top-padding {\n  padding-top: 10px; }\n\n.\\--bottom-padding {\n  padding-bottom: 10px; }\n", ""]);
+exports.push([module.i, "/** colors **/\n/** colors **/\n.topi-button-wrapper.\\--center {\n  text-align: center; }\n\n/** colors **/\n.topi-button, .topi-button.\\--blue, .topi-button.\\--indigo, .topi-button.\\--purple, .topi-button.\\--pink, .topi-button.\\--red, .topi-button.\\--orange, .topi-button.\\--yellow, .topi-button.\\--green, .topi-button.\\--teal, .topi-button.\\--cyan, .topi-button.\\--white, .topi-button.\\--gray, .topi-button.\\--primary, .topi-button.\\--secondary, .topi-button.\\--success, .topi-button.\\--info, .topi-button.\\--warning, .topi-button.\\--danger, .topi-button.\\--light, .topi-button.\\--dark {\n  color: #fff;\n  display: inline-block;\n  font-weight: 400;\n  text-align: center;\n  white-space: nowrap;\n  vertical-align: middle;\n  -webkit-user-select: none;\n  -moz-user-select: none;\n  -ms-user-select: none;\n  user-select: none;\n  border: 1px solid transparent;\n  padding: .375rem .75rem;\n  padding-top: 0.375rem;\n  padding-right: 0.75rem;\n  padding-bottom: 0.375rem;\n  padding-left: 0.75rem;\n  font-size: 1rem;\n  line-height: 1.5;\n  transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out; }\n\n.topi-button.\\--blue {\n  background-color: #007bff; }\n\n.topi-button.\\--indigo {\n  background-color: #6610f2; }\n\n.topi-button.\\--purple {\n  background-color: #6f42c1; }\n\n.topi-button.\\--pink {\n  background-color: #e83e8c; }\n\n.topi-button.\\--red {\n  background-color: #dc3545; }\n\n.topi-button.\\--orange {\n  background-color: #fd7e14; }\n\n.topi-button.\\--yellow {\n  background-color: #ffc107; }\n\n.topi-button.\\--green {\n  background-color: #28a745; }\n\n.topi-button.\\--teal {\n  background-color: #20c997; }\n\n.topi-button.\\--cyan {\n  background-color: #17a2b8; }\n\n.topi-button.\\--white {\n  background-color: #fff; }\n\n.topi-button.\\--gray {\n  background-color: #6c757d; }\n\n.topi-button.\\--primary {\n  background-color: #007bff; }\n\n.topi-button.\\--secondary {\n  background-color: #6c757d; }\n\n.topi-button.\\--success {\n  background-color: #28a745; }\n\n.topi-button.\\--info {\n  background-color: #17a2b8; }\n\n.topi-button.\\--warning {\n  background-color: #ffc107; }\n\n.topi-button.\\--danger {\n  background-color: #dc3545; }\n\n.topi-button.\\--light {\n  background-color: #f8f9fa; }\n\n.topi-button.\\--dark {\n  background-color: #343a40; }\n\n.topi-checkbox-list {\n  background-color: white; }\n  .topi-checkbox-list .__item {\n    display: flex;\n    align-items: center; }\n    .topi-checkbox-list .__item .__checkbox {\n      padding: 0;\n      margin: 0; }\n    .topi-checkbox-list .__item .__label {\n      padding: 0;\n      margin: 0; }\n\n.topi-checkbox-list.\\--border {\n  border: 1px #cacaca solid;\n  border-radius: 5px;\n  padding: 5px; }\n\n.topi-checkbox-list.\\--error {\n  background-color: #fbeaea;\n  border: 1px red solid;\n  color: red; }\n\n/** colors **/\n.topi-dialog {\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  /* padding: 10px; */\n  /* border: 1px silver solid; */\n  /* box-shadow: 0 1px 15px 1px rgba(69, 65, 78, 0.08); */\n  /* background: #fff; */ }\n  .topi-dialog .topi-dialog__dialog {\n    width: 50%;\n    margin: 0 auto;\n    margin-top: 80px;\n    border: 1px silver solid;\n    background-color: white; }\n  .topi-dialog .topi-dialog__header {\n    padding: 10px;\n    border-bottom: 1px silver dotted; }\n  .topi-dialog .topi-dialog__content {\n    padding: 10px; }\n\n.topi-dialog-alert__wrapper {\n  position: fixed;\n  width: 100%;\n  height: 100%;\n  background-color: rgba(0, 0, 0, 0.4);\n  top: 0;\n  left: 0;\n  z-index: 1000; }\n  .topi-dialog-alert__wrapper .topi-dialog-alert {\n    width: 30%;\n    border: 1px silver solid;\n    border-radius: 10px;\n    padding: 10px;\n    margin: 0 auto;\n    background-color: white;\n    margin-top: 5%; }\n    .topi-dialog-alert__wrapper .topi-dialog-alert .topi-dialog-alert__title {\n      font-size: 25px;\n      margin-bottom: 10px; }\n    .topi-dialog-alert__wrapper .topi-dialog-alert .topi-dialog-alert__content {\n      margin-bottom: 10px; }\n    .topi-dialog-alert__wrapper .topi-dialog-alert .topi-dialog-alert__buttons {\n      text-align: center; }\n\n.topi-dialog-modal__wrapper {\n  position: fixed;\n  width: 100%;\n  height: 100%;\n  background-color: rgba(0, 0, 0, 0.4);\n  top: 0;\n  left: 0;\n  z-index: 1000; }\n  .topi-dialog-modal__wrapper .topi-dialog-modal {\n    width: 30%;\n    border: 1px silver solid;\n    border-radius: 10px;\n    padding: 10px;\n    margin: 0 auto;\n    background-color: white;\n    margin-top: 5%; }\n\n.topi-form .__fields .__label.\\--error {\n  color: red; }\n\n.topi-form .__fields .__section {\n  font-size: 15px;\n  font-weight: bold; }\n\n.topi-form .__fields .__cell.\\--error {\n  background-color: #ffebeb;\n  padding-top: 10px;\n  padding-bottom: 10px; }\n\n.topi-form .__fields .__notice.\\--error {\n  color: red; }\n\n.topi-input {\n  padding: 10px;\n  border: 1px silver solid;\n  border-radius: 5px;\n  background-color: white; }\n\n.topi-input.\\--error {\n  background-color: #fbeaea;\n  border: 1px red solid;\n  color: red; }\n\n.topi-input-select {\n  padding: 10px;\n  border: 1px silver solid;\n  border-radius: 5px;\n  background-color: white; }\n\n.topi-input-select.\\--error {\n  background-color: #fbeaea;\n  border: 1px red solid;\n  color: red; }\n\n.topi-pagination .topi-pagination__page {\n  width: 40%; }\n\n.topi-portlet-light {\n  background: #fff;\n  border: 1px silver dotted; }\n  .topi-portlet-light .__body {\n    padding: 10px;\n    background-color: white; }\n  .topi-portlet-light .__body.\\--center {\n    text-align: center; }\n\n.topi-portlet {\n  border: 1px silver dotted;\n  background-color: white; }\n  .topi-portlet .__head {\n    border-bottom: 1px solid #ebedf2;\n    padding: 10px;\n    background-color: white; }\n    .topi-portlet .__head .__icon {\n      display: inline-block; }\n    .topi-portlet .__head .__icon:first-child {\n      margin-right: 10px; }\n    .topi-portlet .__head .__title {\n      font-size: 16px;\n      display: inline-block; }\n  .topi-portlet .__head.\\--center {\n    text-align: center; }\n  .topi-portlet .__head.\\--bold {\n    font-weight: bold; }\n  .topi-portlet .__body {\n    padding: 10px; }\n  .topi-portlet .__body.\\--no-padding {\n    padding: 0px; }\n  .topi-portlet .__body.\\--top-padding {\n    padding-top: 10px; }\n  .topi-portlet .__body.\\--bottom-padding {\n    padding-bottom: 10px; }\n  .topi-portlet .__foot {\n    padding: 10px;\n    border-top: 1px silver dotted; }\n\n.topi-portlet.\\--form .__body {\n  background-color: #fafafa; }\n\n.topi-section {\n  border: 1px #EBEFF2 solid;\n  padding: 10px;\n  font-size: 12px; }\n  .topi-section .__head .__title {\n    font-size: 17px;\n    font-weight: bold; }\n\n/** colors **/\n.topi-table {\n  border: 1px whitesmoke solid;\n  width: 100%;\n  border-spacing: 0px;\n  border-collapse: separate; }\n  .topi-table tbody td {\n    padding: 5px;\n    border-bottom: 1px whitesmoke solid; }\n\n.topi-textarea {\n  resize: none;\n  overflow: hidden; }\n\n.topi-topbar {\n  border-bottom: 1px silver solid;\n  background-color: white;\n  font-size: 12px;\n  display: flex; }\n  .topi-topbar .__logo {\n    color: #c871ce;\n    font-size: 22px;\n    width: 25%; }\n  .topi-topbar .__icons {\n    width: 25%;\n    text-align: right;\n    color: #dc85c9;\n    display: flex;\n    align-items: center;\n    font-size: 25px;\n    justify-content: space-around; }\n  .topi-topbar .__search {\n    width: 50%;\n    display: flex;\n    justify-content: space-around;\n    padding-top: 5px; }\n    .topi-topbar .__search .__input {\n      display: inline-block;\n      width: 90%; }\n\n.topi-vc-loader__background {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  background-color: silver;\n  opacity: 0.1; }\n\n.topi-vc-loader {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  display: flex;\n  align-items: center; }\n  .topi-vc-loader .spinner {\n    width: 100%;\n    height: 20px;\n    text-align: center;\n    font-size: 10px; }\n  .topi-vc-loader .spinner > div {\n    background-color: #333;\n    height: 100%;\n    width: 6px;\n    display: inline-block;\n    -webkit-animation: sk-stretchdelay 1.2s infinite ease-in-out;\n    animation: sk-stretchdelay 1.2s infinite ease-in-out; }\n  .topi-vc-loader .spinner .rect2 {\n    -webkit-animation-delay: -1.1s;\n    animation-delay: -1.1s; }\n  .topi-vc-loader .spinner .rect3 {\n    -webkit-animation-delay: -1.0s;\n    animation-delay: -1.0s; }\n  .topi-vc-loader .spinner .rect4 {\n    -webkit-animation-delay: -0.9s;\n    animation-delay: -0.9s; }\n  .topi-vc-loader .spinner .rect5 {\n    -webkit-animation-delay: -0.8s;\n    animation-delay: -0.8s; }\n\n@-webkit-keyframes sk-stretchdelay {\n  0%, 40%, 100% {\n    -webkit-transform: scaleY(0.4); }\n  20% {\n    -webkit-transform: scaleY(1); } }\n\n@keyframes sk-stretchdelay {\n  0%, 40%, 100% {\n    transform: scaleY(0.4);\n    -webkit-transform: scaleY(0.4); }\n  20% {\n    transform: scaleY(1);\n    -webkit-transform: scaleY(1); } }\n\n/** margin **/\n.topi--margin-top-10 {\n  margin-top: 10px; }\n\n.topi--margin-bottom-10 {\n  margin-bottom: 10px; }\n\n.topi--margin-left-10 {\n  margin-left: 10px; }\n\n.topi--margin-right-10 {\n  margin-right: 10px; }\n\n.topi--margin-vertical-10 {\n  margin-top: 10px;\n  margin-bottom: 10px; }\n\n/** padding **/\n.topi--padding-none {\n  padding: 0px; }\n\n.topi--padding-bottom-10 {\n  padding-bottom: 10px; }\n\n.topi--padding-top-10 {\n  padding-top: 10px; }\n\n.topi--padding-left-10 {\n  padding-left: 10px; }\n\n.topi--padding-right-10 {\n  padding-right: 10px; }\n\n.topi--padding-10 {\n  padding: 10px; }\n\n/** space **/\n.topi--space-10 {\n  margin: 10px;\n  padding: 10px; }\n\n.topi--space-horizontally-10 {\n  padding-left: 10px;\n  padding-right: 10px;\n  margin-left: 10px;\n  margin-right: 10px; }\n\n.topi--space-vertical-10 {\n  padding-top: 10px;\n  padding-bottom: 10px;\n  margin-top: 10px;\n  margin-bottom: 10px; }\n\n.topi--space-bottom-10 {\n  padding-bottom: 10px;\n  margin-bottom: 10px; }\n\n.topi--space-right-10 {\n  padding-right: 10px;\n  margin-right: 10px; }\n\n/** display **/\n.topi--display-inline-block {\n  display: inline-block; }\n\n/** border **/\n.topi--border-top-1--primary {\n  border-top: 1px #007bff solid; }\n\n.topi--border-top-2--primary {\n  border-top: 2px #007bff solid; }\n\n.topi--border-top-3--primary {\n  border-top: 3px #007bff solid; }\n\n.topi--border-1 {\n  border: 1px #ededed solid; }\n\n.topi--border-top-1 {\n  border-top: 1px #cacaca solid; }\n\n.topi--border-bottom-1 {\n  border-bottom: 1px #cacaca solid; }\n\n.topi--border-left-1 {\n  border-left: 1px #cacaca solid; }\n\n.topi--border-right-1 {\n  border-right: 1px #cacaca solid; }\n\n.topi--border-bottom-dotted-1 {\n  border-bottom: 1px #cacaca dotted; }\n\n/** positioning **/\n.topi--text-align-center {\n  text-align: center; }\n\n.topi--text-align-left {\n  text-align: left; }\n\n.topi--text-align-right {\n  text-align: right; }\n\n.topi--align-items-center {\n  align-items: center; }\n\n/** width **/\n.topi--width-100 {\n  width: 100%; }\n\n.topi--height-100 {\n  height: 100%; }\n\n/** background **/\n.topi--background-color-second {\n  background-color: white; }\n\n.topi--border-top--primary {\n  border-top: 1px; }\n\n/** hover **/\n.topi--hover:hover {\n  cursor: pointer; }\n\n.topi--no-resize {\n  resize: none; }\n\n/** link **/\n/** selected **/\n.topi--selected {\n  font-weight: bold; }\n\n/** modyficators **/\n.\\--hover {\n  cursor: pointer;\n  color: #007bff; }\n\n.\\--no-padding {\n  padding: 0px; }\n\n.\\--top-padding {\n  padding-top: 10px; }\n\n.\\--bottom-padding {\n  padding-bottom: 10px; }\n", ""]);
 
 // exports
 
 
 /***/ }),
-/* 8 */
+/* 10 */
 /***/ (function(module, exports) {
 
 
@@ -21487,7 +22072,56 @@ module.exports = function (css) {
 
 
 /***/ }),
-/* 9 */
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (scope, factory) {
+    if (typeof module === "object" && module.exports) {
+        // module.exports = factory(require("jquery"));
+        module.exports = factory(__webpack_require__(0));
+    } else if (true) {
+        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0)], __WEBPACK_AMD_DEFINE_RESULT__ = (function(jquery){
+            return factory(jquery);
+        }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+    } else {
+        factory(jQuery);
+    }
+}(this, function (jQuery) {
+    "use strict";
+
+    jQuery.fn.extend({
+        animateCss: function(animationName, callback) {
+            var animationEnd = (function(el) {
+            var animations = {
+                animation: 'animationend',
+                OAnimation: 'oAnimationEnd',
+                MozAnimation: 'mozAnimationEnd',
+                WebkitAnimation: 'webkitAnimationEnd',
+            };
+
+            for (var t in animations) {
+                if (el.style[t] !== undefined) {
+                return animations[t];
+                }
+            }
+            })(document.createElement('div'));
+
+            this.addClass('animated ' + animationName).one(animationEnd, function() {
+
+            jQuery(this).removeClass('animated ' + animationName);
+
+            if (typeof callback === 'function') callback();
+            });
+
+            return this;
+        },
+    });
+}));
+
+
+/***/ }),
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -24145,7 +24779,7 @@ var datetimepickerFactory = function ($) {
 	if ( true ) {
 	    // ofiko-test
 		// AMD. Register as an anonymous module.
-		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(3), __webpack_require__(10)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+		!(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(4), __webpack_require__(13)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
 				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
 				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -24170,7 +24804,7 @@ var datetimepickerFactory = function ($) {
 (function (factory) {
     if ( true ) {
         // AMD. Register as an anonymous module.
-        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(3)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(4)], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
 				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
 				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -24386,7 +25020,7 @@ var datetimepickerFactory = function ($) {
 
 
 /***/ }),
-/* 10 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -24616,13 +25250,13 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
 
 /***/ }),
-/* 11 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(12);
+var content = __webpack_require__(15);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -24647,7 +25281,7 @@ if(false) {
 }
 
 /***/ }),
-/* 12 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(1)(false);
@@ -24661,7 +25295,7 @@ exports.push([module.i, ".xdsoft_datetimepicker{box-shadow:0 5px 15px -5px rgba(
 
 
 /***/ }),
-/* 13 */
+/* 16 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -24711,97 +25345,7 @@ class Content {
 
 
 /***/ }),
-/* 14 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (scope, factory) {
-    if (typeof module === "object" && module.exports) {
-        // module.exports = factory(require("jquery"));
-        module.exports = factory(__webpack_require__(0));
-    } else if (true) {
-        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(0)], __WEBPACK_AMD_DEFINE_RESULT__ = (function(jquery){
-            return factory(jquery);
-        }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-    } else {
-        factory(jQuery);
-    }
-}(this, function (jQuery) {
-    "use strict";
-
-    let element = {
-        reindex(object) {
-            let i,
-                name,
-                list,
-                length,
-                elements = {}
-            ;
-
-            list = object.querySelectorAll("[name]");
-
-            // Go throught all elements with "name" attribute
-            for(i = 0, length = list.length; i < length; i++) {
-                elements[list[i].getAttribute("name")] = jQuery(list[i]);
-            }
-
-            // todo Zastąpić atrybut "ui" atrybutem "name".
-            // Tymczasowo odczytuje atrybut "ui"
-            list = object.querySelectorAll("[ui]");
-
-            // Go throught all elements with name attribute
-            for(i = 0, length = list.length; i < length; i++) {
-                elements[list[i].getAttribute("ui")] = jQuery(list[i]);
-            }
-
-            object.elements = elements;
-        }
-    };
-
-    // Save previos html function
-    let jqueryHtml = jQuery.fn.html;
-
-    jQuery.fn.html = function(value) {
-        if (value == undefined) {
-            return jqueryHtml.call(this);
-        }else{
-            let result = jqueryHtml.call(this, value);
-
-            element.reindex(this[0]);
-
-            return result;
-        }
-    };
-
-    // todo Zastąpić metodę content metodą html
-    jQuery.fn.content = function(value) {
-        return jQuery.fn.html.call(this, value);
-    };
-
-    jQuery.fn.ui = function(name) {
-        return jQuery.fn.element.call(this, name);
-    };
-
-    jQuery.fn.element = function(name) {
-        let object = this[0];
-
-        if (object.getAttribute("name") === name) {
-            return jQuery(object);
-        }
-
-        if (object.elements === undefined) {
-            element.reindex(object);
-        }
-
-        return object.elements[name] === undefined ? null : object.elements[name];
-    };
-
-    return element;
-}));
-
-
-/***/ }),
-/* 15 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module, Buffer) {(function (global, module) {
@@ -26089,10 +26633,10 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (scope
   ,  true ? module : {exports: {}}
 );
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(16)(module), __webpack_require__(17).Buffer))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(18)(module), __webpack_require__(19).Buffer))
 
 /***/ }),
-/* 16 */
+/* 18 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -26120,7 +26664,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 17 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -26134,9 +26678,9 @@ module.exports = function(module) {
 
 
 
-var base64 = __webpack_require__(19)
-var ieee754 = __webpack_require__(20)
-var isArray = __webpack_require__(21)
+var base64 = __webpack_require__(21)
+var ieee754 = __webpack_require__(22)
+var isArray = __webpack_require__(23)
 
 exports.Buffer = Buffer
 exports.SlowBuffer = SlowBuffer
@@ -27914,10 +28458,10 @@ function isnan (val) {
   return val !== val // eslint-disable-line no-self-compare
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(18)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(20)))
 
 /***/ }),
-/* 18 */
+/* 20 */
 /***/ (function(module, exports) {
 
 var g;
@@ -27944,7 +28488,7 @@ module.exports = g;
 
 
 /***/ }),
-/* 19 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -28102,7 +28646,7 @@ function fromByteArray (uint8) {
 
 
 /***/ }),
-/* 20 */
+/* 22 */
 /***/ (function(module, exports) {
 
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
@@ -28192,7 +28736,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 
 
 /***/ }),
-/* 21 */
+/* 23 */
 /***/ (function(module, exports) {
 
 module.exports = Array.isArray || function (arr) {
@@ -28201,47 +28745,130 @@ module.exports = Array.isArray || function (arr) {
 
 
 /***/ }),
-/* 22 */
+/* 24 */,
+/* 25 */,
+/* 26 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_View__ = __webpack_require__(23);
+/**
+ * Check if two object are same.
+ */
+function same(p1, p2) {
+    if (p1 === null || p1 === undefined || p2 === null || p2 === undefined) {
+        if (p1 === p2) {
+            return true;
+        }else{
+            return false;
+        }
+    }
 
+    if (typeof p1 != 'object' || typeof p2 != 'object') {
+        if (p1 == p2) {
+            return true;
+        }else{
+            return false;
+        }
+    }
 
-// ofiko-test
-/* harmony default export */ __webpack_exports__["a"] = (function(content) {
-    describe('View', function() {
-        it('Simple view', function () {
-            let view = new __WEBPACK_IMPORTED_MODULE_0_View__["a" /* default */](`
-                <div>
-                    <div name="name">foo</div>
-                    <div name="lastName">boo</div>
-                </div>
-            `);
+    let i;
 
-            view
-                .target(content.element())
-                .render()
-            ;
+    if(Array.isArray(p1) && Array.isArray(p2)) {
+        if (p1.length != p2.length) {
+            return false;
+        }
 
-            expect(view.element("name").html()).to.be.equal('foo');
-            expect(view.element("lastName").html()).to.be.equal('boo');
+        for (i in p1) {
+            if (!same(p1[i], p2[i])) {
+                return false;
+            }
+        }
+    }else{
+        if (!same(Object.keys(p1), Object.keys(p2))) {
+            return false
+        }
 
-            content.clean();
-        });
-    });
-});;
+        for (i in p1) {
+            if (!same(p1[i], p2[i])) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (same);
 
 
 /***/ }),
-/* 23 */
+/* 27 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(24);
+/**
+ * Create clone of object.
+ */
+function clone(a, params = {}) {
+    // params.data = params.data === undefined ? 1 : params.data;
+
+    // Po analizie okazało się że robienie kopi obiektu za pomocą
+    // JSON.stringify i JSON.parse wychodzi najwolnie. Implementacja z recznym
+    // kopiowaniem wypada o wiele szybciej niż JSON.parse. W benchmarku jedynie
+    // szybszym rozwiązaniem był loadash deep clone. Ale nie wiem co on
+    // dokładie robi. Szybko wypadał też Object.assign, ale ten nie robi deep
+    // clona. Dotego psóuje tablice
+
+    let cloned,
+        i
+    ;
+
+    if (a === null) {
+        return a;
+    }else if(a === undefined){
+        return a;
+    }else if(Array.isArray(a)){
+        cloned = [];
+
+        for (i in a) {
+            cloned.push(clone(a[i], params));
+        }
+    }else{
+        switch (typeof a) {
+            case 'string':
+            case 'number':
+            case 'function':
+            case 'symbol':
+                return a;
+            case 'object':
+                cloned = {};
+
+                for (i in a) {
+                    cloned[i] = clone(a[i], params);
+                }
+
+                break;
+            default :
+                console.warn(`unknow type of object ${typeof a}`);
+                return a;
+        }
+    }
+
+    return cloned;
+};
+
+/* harmony default export */ __webpack_exports__["a"] = (clone);
+
+
+/***/ }),
+/* 28 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_jquery__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_jquery___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_jquery__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_dot__ = __webpack_require__(27);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_dot__ = __webpack_require__(29);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_dot___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_dot__);
 
 
@@ -28466,619 +29093,7 @@ class View extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] 
 
 
 /***/ }),
-/* 24 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Utils_same__ = __webpack_require__(25);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__ = __webpack_require__(26);
-
-
-
-let uniqueId = 0,
-    components = null
-;
-
-/**
- * EventsQueue
- */
-class EventsQueue {
-
-    constructor() {
-        this.queue = [];
-        this.processing = false;
-    }
-
-    add(callback, event = {}, params = {}) {
-        this.queue.push({
-            callback,
-            event,
-            params,
-        });
-
-        this._process();
-    }
-
-    _process() {
-        if (this.processing) {
-            return;
-        }
-
-        this.processing = true;
-
-        let event;
-
-        while(this.queue.length) {
-            event = this.queue.shift();
-            event.callback.call(window, event.event, event.params);
-        }
-
-        this.processing = false;
-    }
-}
-
-let eventsQueue = new EventsQueue();
-
-/**
- * TopiObject
- */
-const cn = 'TopiObject';
-class TopiObject {
-
-    constructor(data = {}) {
-        let p = this.private(cn, {
-            // Eventy
-            events : {},
-
-            // Dane obiektu
-            data,
-        });
-    }
-
-    /**
-     * Tworzy klon obiektu.
-     */
-    clone() {
-
-    }
-
-    warn(message) {
-        console.warn(message);
-
-        return this;
-    }
-
-    error(error) {
-        let p = this.private(cn),
-            router = this.component('@router')
-        ;
-
-        router.forward('@error', {error});
-
-        return this;
-    }
-
-    log(message, type = 'log') {
-        switch (type) {
-            case 'error':
-                return this.error(message);
-            default:
-                console.warn(type, message);
-        }
-
-        return this;
-    }
-
-    /**
-     * Set value of attribute for object. Given value is always cloned.
-     *
-     * @param {string} name Name of attribute. Name can use docs notation. For
-     * example this.set("value", 12) or this.set("value.async", 1).
-     *
-     * @param {mixed} value
-     * @param {object} emitparams
-     */
-    set(name, value, emitparams = {}) {
-        let p = this.private(cn);
-
-        value = Object(__WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__["a" /* default */])(value);
-
-        // Czy wartość ma być ustawiona, bez emitowania zdarzeń.
-        emitparams.silently = emitparams.silently === undefined ? 0 : 1;
-
-        if (name[0] == '-') {
-            // Skrócona metoda ustawiania wartości, bez emitowania
-            // this.set('-name', "Pawel")
-            emitparams.silently = 1;
-            name = name.substr(1);
-        }
-
-        if (typeof name == 'object') {
-            // todo Ustawianie wielu wartości za pomoca jednego obiektu.
-        }else if(typeof name == 'string') {
-            return this.__setValue(p.data, name, value, emitparams);
-        }else{
-            this.error("Unsuported params");
-        }
-    }
-
-    /**
-     * Ustawienie wartości w obiekcie, wraz z emitowaniem eventów.
-     *
-     * @param {object} target
-     * @param {string} name
-     * @param {*} value
-     * @param {object} emitparams
-     * @return this
-     */
-    __setValue(target, name, value, emitparams = {}) {
-        let p = this.private(cn);
-
-        if (target[name] === undefined) {
-            target[name] = value;
-
-            this.emit(`${name}:init`, {}, emitparams);
-            this.emit(`${name}:change`, {
-                previous : undefined
-            }, emitparams);
-
-        }else{
-            if (emitparams.silently) {
-                target[name] = value;
-            }else{
-                if (!Object(__WEBPACK_IMPORTED_MODULE_0_Topi_Utils_same__["a" /* default */])(target[name], value)) {
-                    let previous = target[name];
-
-                    target[name] = value;
-
-                    this.emit(`${name}:change`, {
-                        previous
-                    }, emitparams);
-                }
-            }
-        }
-
-        return this;
-    }
-
-    /**
-     * Zwraca informację czy obiekt spełnia podane kryteriu
-     *
-     * @param {string} name
-     * @return {integer} 0 lub 1
-     */
-    is(name) {
-        return 0;
-    }
-
-    data(params = {}) {
-        let p = this.private(cn);
-
-        // todo clone to reference
-        // Zmienic nazwe parametru clone na reference
-        params.clone = params.clone === undefined ? 1 : params.clone;
-        params.data = params.data === undefined ? 1 : params.data;
-
-        if (params.clone) {
-            return Object(__WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__["a" /* default */])(p.data, params);
-        }else{
-            return p.data;
-        }
-    }
-
-    get(name, value = null, params = {}) {
-        let p = this.private(cn),
-            pointer = p.data,
-            i,
-            length,
-            t,
-            splited
-        ;
-
-        // default params
-        params.clone = params.clone === undefined ? 1 : params.clone;
-        params.data = params.data === undefined ? 1 : params.data;
-
-        if (name[0] == '&') {
-            params.clone = 0;
-
-            name = name.substring(1);
-        }else if(name[0] == '*') {
-            params.data = 0;
-            name = name.substring(1);
-        }
-
-        // split name
-        // splited = name.split('.');
-
-        // while(splited.length > 1){
-        //     t = splited.shift();
-
-        //     if (pointer[t] === undefined) {
-        //         return value;
-        //     }
-
-        //     pointer = pointer[t];
-        // }
-
-        if (pointer[name] === undefined) {
-            return value;
-        }
-
-        if (params.clone) {
-            return Object(__WEBPACK_IMPORTED_MODULE_1_Topi_Utils_clone__["a" /* default */])(pointer[name], params);
-        }else{
-            return pointer[name];
-        }
-    }
-
-    /**
-     * Return private scope for object.
-     *
-     * this.private("App") - return private scope for App
-     * let p = this.private("App", {}) - init private scope for App, and return
-     * the
-     * this.private("App", "name") - return value of name attribute at App
-     * private scope.
-     *
-     * When private scope is inited like this
-     *     this.private("View", {
-     *         domain : "www.test.pl",
-     *         name : this.prepareName()
-     *     });
-     *
-     * Inited values can not be generated by other methods wich use private
-     * scope. At this case, this should be do like this.
-     *     let p this.private("View", {
-     *         domain : "www.test.pl",
-     *         name : this.prepareName()
-     *     });
-     *
-     *     p.name = this.prepareName();
-     *
-     *
-     * @param {string} id
-     * @param {string} attr
-     * @param {mixed} value
-     * @return {mixed}
-     */
-    private(id, attr, value){
-        if (!pscope.has(this)) {
-            // Inicjuje prywatną przestrzeń dla obiektu
-            pscope.set(this, {});
-        }
-
-        if (pscope.get(this)[id] === undefined) {
-            // Nie ma prywatnej przestrzeni dla ID
-
-            if (attr === undefined) {
-                pscope.get(this)[id] = {};
-            }else{
-                // Sytuacja w której podane są wartości do zainicjowania
-                pscope.get(this)[id] = attr;
-            }
-
-            return pscope.get(this)[id];
-        }
-
-        if (attr === undefined) {
-            // Zwraca całą prywatną przestrzeń
-            return pscope.get(this)[id];
-        }else{
-            if (typeof attr == 'string') {
-                if (value === undefined) {
-                    // Zwracam wartość podanego argumentu
-                    return pscope.get(this)[id][attr];
-                }else{
-                    // Ustawiam nową wartość
-                    pscope.get(this)[id][attr] = value;
-
-                    return this;
-                }
-            }
-
-            this.log("Wrong private call", "warn");
-        }
-
-        this.log("Wrong private call", "warn");
-    }
-
-    /**
-     * Register event listener of specific event.
-     *
-     * @param {string} name Na of event. For example button.submit:click.
-     * @param {string} callback Function to call.
-     * @param {string} group Grouo of owner. It can be any string. We recoment
-     * use this.id() of object.
-     *
-     * @return $this
-     */
-    on(name, callback, group) {
-        let p = this.private(cn),
-            i
-        ;
-
-        if (Array.isArray(name)) {
-            for (i in name) {
-                this.on(name[i], callback, group);
-            }
-
-            return this;
-        }
-
-        if (p.events[name] === undefined) {
-            p.events[name] = [];
-        }
-
-        p.events[name].push({
-            name,
-            callback,
-            group
-        });
-
-        return this;
-    }
-
-    id() {
-        let p = this.private(cn);
-
-        if (p.id === undefined) {
-            p.id = uniqueId++;
-        }
-
-        return p.id;
-    }
-
-    /**
-     * Emituje zdarzenie.
-     *
-     * @param {string} name - Name of event.
-     * @param {Object} params - Params which will be send listener.
-     * @param {Object} emitparams - Options for emit.
-     */
-    emit(name, params = {}, emitparams = {}) {
-        let p = this.private(cn),
-            call = [],
-            event = {},
-            i,
-            j
-        ;
-
-        event.this = this;
-        event.name = name;
-
-        emitparams.ommit = emitparams.ommit === undefined ? null : emitparams.ommit;
-
-        name = name.split(':');
-
-        if (name.length == 1) {
-            call.push(name[0]);
-        }else if(name.length == 2){
-            if (name[0] == '') {
-                call.push(`:${name[1]}`);
-            }else{
-                call.push(`${name[0]}:${name[1]}`);
-                call.push(`${name[0]}`);
-                call.push(`:${name[1]}`);
-            }
-        }else{
-            throw("Unsuported event format");
-        }
-
-        // eventy sa wywolywane od tylu
-        for (i = call.length -1; i >= 0; i--) {
-            if (p.events[call[i]] === undefined) {
-                continue;
-            }
-
-            for (j in p.events[call[i]]) {
-                if (emitparams.ommit != null) {
-                    if (p.events[call[i]][j].group == emitparams.ommit) {
-                        continue;
-                    }
-                }
-
-                eventsQueue.add(p.events[call[i]][j].callback, event, params);
-            }
-        }
-
-        return this;
-    }
-
-    /**
-     * Delete event listeners.
-     *
-     * @param {string|number|function} name
-     */
-    off(name) {
-        let p = this.private(cn);
-
-        switch (typeof name) {
-            case 'undefined':
-                p.events = {};
-
-                return this;
-            case 'string':
-            case 'number':
-                for (let event in p.events) {
-                    let events = [];
-
-                    for (let i in p.events[event]) {
-                        if (p.events[event][i].group != name) {
-                            events.push(p.events[event][i]);
-                        }
-                    }
-
-                    p.events[event] = events;
-                }
-
-                return this;
-            default :
-                this.error("Unsuported params");
-        }
-    }
-
-    component(name, params = {}) {
-        return components.get(name, params);
-    }
-
-    components() {
-        return components;
-    }
-
-    // this.trigger('selectRow:success', {
-
-    // });
-
-    // this.on('selectRow#app', funcRef)
-    // this.on('selectRow.app', funcRef)
-
-    // this.off();
-    // this.off(funcRef);
-
-    // this.off('.app');
-    // this.off('#app');
-    // this.off('selectRow');
-
-    // this.on('saved:success')
-    // this.on('saved:faile')
-
-    // widget.on('event', function(){}, id);
-
-    // widget.off(id);
-    // widget.off('change.name');
-    // widget.off(function(){});
-
-    // Events
-}
-
-TopiObject.components = function(p) {
-    components = p
-}
-
-if (window.pscope === undefined) {
-    window.pscope = new WeakMap();
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (TopiObject);
-
-
-/***/ }),
-/* 25 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/**
- * Check if two object are same.
- */
-function same(p1, p2) {
-    if (p1 === null || p1 === undefined || p2 === null || p2 === undefined) {
-        if (p1 === p2) {
-            return true;
-        }else{
-            return false;
-        }
-    }
-
-    if (typeof p1 != 'object' || typeof p2 != 'object') {
-        if (p1 == p2) {
-            return true;
-        }else{
-            return false;
-        }
-    }
-
-    let i;
-
-    if(Array.isArray(p1) && Array.isArray(p2)) {
-        if (p1.length != p2.length) {
-            return false;
-        }
-
-        for (i in p1) {
-            if (!same(p1[i], p2[i])) {
-                return false;
-            }
-        }
-    }else{
-        if (!same(Object.keys(p1), Object.keys(p2))) {
-            return false
-        }
-
-        for (i in p1) {
-            if (!same(p1[i], p2[i])) {
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (same);
-
-
-/***/ }),
-/* 26 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/**
- * Create clone of object.
- */
-function clone(a, params = {}) {
-    // params.data = params.data === undefined ? 1 : params.data;
-
-    // Po analizie okazało się że robienie kopi obiektu za pomocą
-    // JSON.stringify i JSON.parse wychodzi najwolnie. Implementacja z recznym
-    // kopiowaniem wypada o wiele szybciej niż JSON.parse. W benchmarku jedynie
-    // szybszym rozwiązaniem był loadash deep clone. Ale nie wiem co on
-    // dokładie robi. Szybko wypadał też Object.assign, ale ten nie robi deep
-    // clona. Dotego psóuje tablice
-
-    let cloned,
-        i
-    ;
-
-    if (a === null) {
-        return a;
-    }else if(a === undefined){
-        return a;
-    }else if(Array.isArray(a)){
-        cloned = [];
-
-        for (i in a) {
-            cloned.push(clone(a[i], params));
-        }
-    }else{
-        switch (typeof a) {
-            case 'string':
-            case 'number':
-            case 'function':
-            case 'symbol':
-                return a;
-            case 'object':
-                cloned = {};
-
-                for (i in a) {
-                    cloned[i] = clone(a[i], params);
-                }
-
-                break;
-            default :
-                console.warn(`unknow type of object ${typeof a}`);
-                return a;
-        }
-    }
-
-    return cloned;
-};
-
-/* harmony default export */ __webpack_exports__["a"] = (clone);
-
-
-/***/ }),
-/* 27 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_RESULT__;// doT.js
@@ -29229,487 +29244,43 @@ var __WEBPACK_AMD_DEFINE_RESULT__;// doT.js
 
 
 /***/ }),
-/* 28 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(24);
-
-
-const cn = 'Responses';
-class Responses extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] {
-    constructor(responses){
-        super();
-
-        let p = this.private(cn, {
-            responses,
-        });
-    }
-
-    getByName(name) {
-        return this.get(name);
-    }
-
-    get(name) {
-        return this.private(cn, 'responses').find((response) => {
-            return response.name() == name;
-        });
-    }
-
-    error() {
-        return undefined != this.private(cn, 'responses').find((response) => {
-            return response.error();
-        });
-    }
-
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (Responses);
-
-
-/***/ }),
-/* 29 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-function urlencoded(data, base = "", init = true) {
-    let encoded = [];
-
-    for(let i in data){
-        let v = data[i];
-
-        if(typeof v == 'string' || typeof v == 'number'){
-            if(init){
-                encoded.push(`${i}=${v}`);
-            }else{
-                encoded.push(`${base}[${i}]=${v}`);
-            }
-        }else{
-            if(init){
-                encoded = encoded.concat(urlencoded(v, `${i}`, false));
-            }else{
-                encoded = encoded.concat(urlencoded(v, `${base}[${i}]`, false));
-            }
-        }
-    }
-
-    if(init){
-        if (encoded.length) {
-            return encodeURI(encoded.join('&'));
-        }else{
-            return null;
-        }
-    }else{
-        return encoded;
-    }
-};
-
-/* harmony default export */ __webpack_exports__["a"] = (function(format, data) {
-    switch (format) {
-        case 'application/x-www-form-urlencoded':
-            return urlencoded(data);
-        case 'application/json':
-            return JSON.stringify(data);
-    }
-});
-
-
-/***/ }),
-/* 30 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(24);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_View__ = __webpack_require__(23);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Topi_Dialog_Views_Modal_content_html__ = __webpack_require__(51);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Topi_Dialog_Views_Modal_content_html___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_Topi_Dialog_Views_Modal_content_html__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_Topi_Dialog_Views_Modal_layout_html__ = __webpack_require__(52);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_Topi_Dialog_Views_Modal_layout_html___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_Topi_Dialog_Views_Modal_layout_html__);
-
-
-
-
-
-
-const cn = 'Modal';
-
-/**
- * Base View to display modal.
- *
- * @param {Topi.View} view View to display at modal.
- */
-class Modal extends __WEBPACK_IMPORTED_MODULE_1_Topi_View__["a" /* default */] {
-    constructor(view, params = {}) {
-        super(__WEBPACK_IMPORTED_MODULE_3_Topi_Dialog_Views_Modal_layout_html___default.a);
-
-        const p = this.private(cn, {});
-
-        p.view = view;
-    }
-
-    render() {
-        const p = this.private(cn);
-
-        return p.view
-            .target(this.element('content'))
-            .render()
-        ;
-    }
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (Modal);
-
-
-/***/ }),
-/* 31 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(24);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_expect_js__ = __webpack_require__(15);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_expect_js___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_expect_js__);
-
-
-
-/* harmony default export */ __webpack_exports__["a"] = (function(body) {
-    describe('Object', function() {
-        describe('Setting and getting', function() {
-            it('self reference', function () {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */]();
-                let result = object.set("name", "Foo")
-
-                __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(result).to.be.equal(object);
-            });
-
-            it('check value', function () {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */]();
-                let result = object.set("name", "Foo")
-
-                __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(object.get('name')).to.be.equal("Foo");
-            });
-
-            it('multi types', function () {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */]();
-                let types = {
-                    number : 1,
-                    string : "foo",
-                    array : [1, 2, {name : 1}],
-                };
-
-                object.set("number", types.number);
-                object.set("string", types.string);
-                object.set("array", types.array);
-
-                __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(object.get('number')).to.be.eql(types.number);
-                __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(object.get('string')).to.be.eql(types.string);
-                __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(object.get('array')).to.be.eql(types.array);
-            });
-
-            it('get by reference', function () {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */]();
-                object.set("list", [1, 2, {name : 1}]);
-
-                let list = object.get("list", null, {clone : 0});
-
-                __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(object.get('list')).to.be.eql(list);
-                __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(object.get('list', null, {clone : 0})).to.be.equal(list);
-                __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(object.get('&list')).to.be.equal(list);
-            });
-
-            it('sub values', function () {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */]();
-                object.set("value", {name : "foo"});
-                object.set("value.async", 1);
-
-                __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(object.get('value')).to.be.eql({name : "foo"});
-                __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(object.get('value.async')).to.be.equal(1);
-            });
-
-            it('all data', function () {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */]();
-                object.set("value", {name : "foo"});
-                object.set("value.async", 1);
-
-                console.log('data', object.data());
-                // expect(object.get('value')).to.be.eql({name : "foo"});
-                // expect(object.get('value.async')).to.be.equal(1);
-            });
-        });
-
-        describe('Events', function() {
-            it('init', function (done) {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */]();
-
-                object.on("value:init", (event, params) => {
-
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(event.name).to.be.eql("value:init");
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(event.this).to.be.equal(object);
-
-                    done();
-                });
-
-                object.set("value", 10);
-            });
-
-            it('change', function (done) {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */]();
-                object.set("value", 10);
-
-                object.on("value:change", (event, params) => {
-
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(event.name).to.be.eql("value:change");
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(event.this).to.be.equal(object);
-
-                    // params should has previous value
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(params.previous).to.be.equal(10);
-
-                    // new value should be 20
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(object.get("value")).to.be.equal(20);
-
-                    done();
-                });
-
-                object.set("value", 20);
-            });
-
-            it('change silently mode', function (done) {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */]();
-                let doned = 0;
-
-                object.set("value", 10);
-
-                object.on("value:change", (event, params) => {
-                    doned = 1;
-                    done("silently does not work")
-                });
-
-                object.set("value", 20, {silently : 1});
-
-                setTimeout(function() {
-                    if (doned == 0) {
-                        done();
-                    }
-                }, 500);
-            });
-
-            it('change silently mode mark', function (done) {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */]();
-                let doned = 0;
-
-                object.set("value", 10);
-
-                object.on("value:change", (event, params) => {
-                    doned = 1;
-                    done("silently does not work")
-                });
-
-                object.set("-value", 20);
-
-                setTimeout(function() {
-                    if (doned == 0) {
-                        done();
-                    }
-                }, 500);
-            });
-
-            it('off group', function (done) {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */](),
-                    doned = 0
-                ;
-
-                object.set("value", 10);
-
-                object.on("value:change", (event, params) => {
-                    done("off does not work")
-
-                    doned = 1;
-                }, 'topi');
-
-                object.off("topi");
-
-                object.set("value", 20);
-
-                setTimeout(function() {
-                    if (doned == 0) {
-                        done();
-                    }
-                }, 500);
-            });
-
-            it('off all', function (done) {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */](),
-                    doned = 0
-                ;
-
-                object.set("value", 10);
-
-                object.on("value:change", (event, params) => {
-                    if (doned == 0) {
-                        done("off does not work")
-                        doned = 1;
-                    }
-                }, 'topi');
-
-                object.on("value:change", (event, params) => {
-                    if (doned == 0) {
-                        done("off does not work")
-                        doned = 1;
-                    }
-                });
-
-                object.off();
-
-                object.set("value", 20);
-
-                setTimeout(function() {
-                    if (doned == 0) {
-                        done();
-                    }
-                }, 500);
-            });
-
-            // it('event queue', function (done) {
-            //     let object = new TopiObject(),
-            //         doned = 0,
-            //         checks
-            //     ;
-
-            //     object.set("value", 10);
-
-            //     object.on("value:change", (event, params) => {
-
-            //     }, 'topi');
-
-            //     object.on("value:change", (event, params) => {
-
-            //     });
-
-            //     setTimeout(function() {
-            //         if (doned == 0) {
-            //             done();
-            //         }
-            //     }, 500);
-            // });
-
-            it('emit', function (done) {
-                let object = new __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */](),
-                    doned = 0,
-                    counter = 0
-                ;
-
-                object.on("item:click", (event, params) => {
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(event.name).to.be.eql("item:click");
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(event.this).to.be.equal(object);
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(params.name).to.be.equal('foo');
-
-                    counter++;
-                });
-
-                object.on("item", (event, params) => {
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(event.name).to.be.eql("item:click");
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(event.this).to.be.equal(object);
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(params.name).to.be.equal('foo');
-
-                    counter++;
-                });
-
-                object.on(":click", (event, params) => {
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(event.name).to.be.eql("item:click");
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(event.this).to.be.equal(object);
-                    __WEBPACK_IMPORTED_MODULE_1_expect_js___default()(params.name).to.be.equal('foo');
-
-                    counter++;
-                });
-
-                object.emit('item:click', {name : 'foo'});
-
-                setTimeout(function() {
-                    if (counter != 3) {
-                        done("not all events call");
-                    }else{
-                        done();
-                    }
-
-                }, 1000);
-            });
-        });
-    });
-});;
-
-
-
-/***/ }),
+/* 30 */,
+/* 31 */,
 /* 32 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Components__ = __webpack_require__(33);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Views_Components_Loader_Manager__ = __webpack_require__(33);
 
 
-class Component {
-    constructor(name) {
-        let p = this.private = {
-            counter : 0,
-            name
-        };
-    }
+/* harmony default export */ __webpack_exports__["a"] = (function(content) {
+    describe('Views.Components.Loader.Manager', function() {
+        it('Full target loader', function (done) {
+            let expected = 0;
 
-    name() {
-        return this.private.name;
-    }
+            content.element().html(`
+                <p>
+                    <table>
+                        <tr >
+                            <td>1</td>
+                            <td >Lorem</td>
+                        </tr>
+                        <tr></tr>
+                    </table>
+                </p>
 
-    counter() {
-        return ++this.private.counter;
-    }
-}
+            `);
 
-/* harmony default export */ __webpack_exports__["a"] = (function(body) {
-    describe('Components', function() {
-        it('Creating component', function () {
-            // let local = new Component("Api");
+            // let loader = new LoaderManager(content.element());
+            let loader = new __WEBPACK_IMPORTED_MODULE_0_Topi_Views_Components_Loader_Manager__["a" /* default */](content.find('#test-test'));
+            let handler = loader.show();
 
-            let components = new __WEBPACK_IMPORTED_MODULE_0_Components__["a" /* default */]({
-                'api' : () => {
-                    return new Component("Api");
-                }
-            });
 
-            expect(components.get("api").name()).to.be.equal("Api");
-            expect(components.get("api").counter()).to.be.equal(1);
-        });
+            setTimeout(function() {
+                handler.remove()
+            }, 5000);
 
-        it('Component as service', function () {
-            let components = new __WEBPACK_IMPORTED_MODULE_0_Components__["a" /* default */]({
-                '@apiOne' : () => {
-                    return new Component("ApiOne");
-                },
-                'apiTwo' : () => {
-                    return new Component("ApiTwo");
-                }
-            });
-
-            expect(components.get("@apiOne").name()).to.be.equal("ApiOne");
-            expect(components.get("apiTwo").name()).to.be.equal("ApiTwo");
-
-            expect(components.get("@apiOne").counter()).to.be.equal(1);
-            expect(components.get("@apiOne").counter()).to.be.equal(2);
-            expect(components.get("@apiOne").counter()).to.be.equal(3);
-
-            expect(components.get("apiTwo").counter()).to.be.equal(1);
-            expect(components.get("apiTwo").counter()).to.be.equal(1);
-            expect(components.get("apiTwo").counter()).to.be.equal(1);
-        });
-
-        it('Set component', function () {
-            let api = new Component("Api");
-
-            let components = new __WEBPACK_IMPORTED_MODULE_0_Components__["a" /* default */]();
-            components.set("@api", api);
-
-            expect(components.get("@api").name()).to.be.equal("Api");
-            expect(components.get("@api").counter()).to.be.equal(1);
-            expect(components.get("@api").counter()).to.be.equal(2);
-            expect(components.get("@api").counter()).to.be.equal(3);
+            done();
         });
     });
 });;
@@ -29720,52 +29291,46 @@ class Component {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(24);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_Views_Components_Loader_Loader__ = __webpack_require__(34);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Topi_Views_Components_Loader_Handler__ = __webpack_require__(36);
 
 
-const cn = 'Components';
-class Components extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] {
-    constructor(components = {}) {
+
+
+const cn = 'Manager';
+
+/**
+ * Manager to control loader view.
+ */
+class Manager extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] {
+    constructor(target, params = {}) {
         super();
 
-        let p = this.private(cn, {
-            components,
-            inited : {}
-        });
+        const p = this.private(cn);
+
+        p.target = target;
+        // p.params = params;
     }
 
-    get(name, params = {}) {
-        let p = this.private(cn);
+    show(target = null, params = {}) {
+        const p = this.private(cn);
 
-        if (name[0] == '@') {
-            if (p.inited[name] === undefined) {
-                if (p.components[name] === undefined) {
-                    this.error(`Component ${name} is not defined.`);
-                }
+        let loaderView = new __WEBPACK_IMPORTED_MODULE_1_Topi_Views_Components_Loader_Loader__["a" /* default */]();
+        let loaderHandler = new __WEBPACK_IMPORTED_MODULE_2_Topi_Views_Components_Loader_Handler__["a" /* default */](loaderView, this, params);
 
-                p.inited[name] = p.components[name](this, params);
-            }
+        p.target.css('position', 'relative');
 
-            return p.inited[name];
-        }else{
-            if (p.components[name] === undefined) {
-                this.error(`Component ${name} is not defined.`);
-            }
+        loaderView
+            .target(p.target)
+            .render()
+        ;
 
-            return p.components[name](this, params);
-        }
-    }
-
-    set(name, service) {
-        let p = this.private(cn);
-
-        p.inited[name] = service;
-
-        return this;
+        return loaderHandler;
     }
 }
 
-/* harmony default export */ __webpack_exports__["a"] = (Components);
+/* harmony default export */ __webpack_exports__["a"] = (Manager);
 
 
 /***/ }),
@@ -29773,1485 +29338,67 @@ class Components extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* defaul
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Api_Api__ = __webpack_require__(35);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_View__ = __webpack_require__(28);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__Loader_layout_html__ = __webpack_require__(35);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__Loader_layout_html___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__Loader_layout_html__);
 
 
-const api = new __WEBPACK_IMPORTED_MODULE_0_Api_Api__["a" /* default */]('http://127.0.0.1:3000');
 
-/* harmony default export */ __webpack_exports__["a"] = (function(body) {
-    describe('Api', function() {
-        it('Get user Maxwell Chavez', function (done) {
-            api.request((request) => {
-                request.urn("/users/5b2d007edb7bb43108c66ca2");
 
-            }).promise().then((response) => {
-                let data = response.data();
 
-                expect(data._id).to.be.eql("5b2d007edb7bb43108c66ca2");
-                expect(data.index).to.be.eql(0);
-                expect(data.guid).to.be.eql("860ae488-19b5-4256-bc96-f66b5d087a94");
-                expect(data.isActive).to.be.eql(false);
-                expect(data.balance).to.be.eql("$1,582.99");
-                expect(data.picture).to.be.eql("http://placehold.it/32x32");
-                expect(data.age).to.be.eql(27);
-                expect(data.eyeColor).to.be.eql("blue");
-                expect(data.name).to.be.eql("Maxwell Chavez");
-                expect(data.gender).to.be.eql("male");
-                expect(data.company).to.be.eql("GEEKFARM");
-                expect(data.email).to.be.eql("maxwellchavez@geekfarm.com");
-                expect(data.phone).to.be.eql("+1 (833) 445-3228");
-                expect(data.address).to.be.eql("425 Murdock Court, Brethren, Mississippi, 8584");
-                expect(data.about).to.be.eql("Sunt consequat consequat dolor cupidatat. Aliqua consectetur magna consequat aliquip tempor officia velit ea. Laborum duis dolore proident amet. Cillum non dolore est deserunt id tempor non fugiat sunt.\r\n");
-                expect(data.registered).to.be.eql("2015-03-01T08:08:02 -01:00");
-                expect(data.latitude).to.be.eql(-23.483986);
-                expect(data.longitude).to.be.eql(-23.103694);
-                expect(data.tags).to.be.eql([ "ut", "ullamco", "excepteur", "nulla", "do", "magna", "in" ]);
-                expect(data.friends).to.be.eql([ { "id": 0, "name": "Yang Shields" }, { "id": 1, "name": "Santos Lawrence" }, { "id": 2, "name": "Chavez Nicholson" } ]);
-                expect(data.greeting).to.be.eql("Hello, Maxwell Chavez! You have 6 unread messages.");
-                expect(data.favoriteFruit).to.be.eql("strawberry");
+const cn = 'Loader';
 
-                done();
-            }).catch((error) => {
-                done(error);
-            });
-        });
-    });
-});;
+/**
+ * Base view to display loader.
+ */
+class Loader extends __WEBPACK_IMPORTED_MODULE_1_Topi_View__["a" /* default */] {
+    constructor(params = {}) {
+        super(__WEBPACK_IMPORTED_MODULE_2__Loader_layout_html___default.a);
+    }
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (Loader);
 
 
 /***/ }),
 /* 35 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(24);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_Api_Request__ = __webpack_require__(36);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Topi_Api_Queue__ = __webpack_require__(40);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_Topi_Api_Endpoint__ = __webpack_require__(41);
-
-
-
-
-
-const cn = 'Api';
-
-/**
- * Create requests and manages the
- *
- * api.request((request) => {
- *     request.urn('/offers');
- *     request.param('categoryId', 26);
- * }).exec((response) => {
- *
- * });
- *
- * api.queue((queue) => {
- *     queue.request((request) => {
- *         request.id('offers-1');
- *         request.urn('/offers');
- *         request.param('categoryId', 26);
- *     });
- *
- *     queue.request((request) => {
- *         request.id('offers-2');
- *         request.urn('/offers');
- *         request.param('categoryId', 26);
- *     });
- * }).exec((responses) => {
- * });
- *
- * api.request(function() {
- *     this.id('offers')
- *     this.urn('/offers');
- *     this.param('categoryId', 27);
- *
- *     this.request(function() {
- *         this.id('offers2')
- *         this.urn('/offers');
- *         this.param('categoryId', 26);
- *     });
- *
- *     // this.prepare(function(request, responses, done){
- *
- *     //     done();
- *     // });
- *
- * }).exec(function(response){
- * });
- */
-class Api extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] {
-    constructor(url = "") {
-        super();
-
-        let p = this.private(cn, {
-            binds : {},
-            url,
-            headers : {
-                'Content-Type' : 'application/json'
-            },
-        });
-    }
-
-    /**
-     * Return URL of api.
-     *
-     * @return {string}
-     */
-    url() {
-        return this.private(cn).url;
-    }
-
-    /**
-     * Return defined Endpoint.
-     *
-     * @param {string} urn
-     * @return Endpoint
-     */
-    endpoint(urn) {
-        let p = this.private(cn);
-
-        return new __WEBPACK_IMPORTED_MODULE_3_Topi_Api_Endpoint__["a" /* default */](this, urn);
-    }
-
-    /**
-     * Bind value.
-     *
-     * @param {string} name
-     * @param {string} value
-     * @return this
-     */
-    bind(name, value) {
-        let p = this.private(cn);
-
-        p.binds[name] = value;
-
-        return this;
-    }
-
-    binds(binds) {
-        let p = this.private(cn);
-
-        p.binds = binds;
-
-        return this;
-    }
-
-    header(name, value) {
-        let p = this.private(cn);
-
-        if (arguments.length === 1) {
-            return p.headers[name];
-        }else{
-            p.headers[name] = value;
-
-            return this;
-        }
-    }
-
-    headers(headers) {
-        let p = this.private(cn);
-
-        if (arguments.length == 1) {
-            return p.headers = headers;
-        }else{
-            return p.headers;
-        }
-    }
-
-    bind(name, value) {
-        let p = this.private(cn);
-
-        switch (arguments.length) {
-            case 1:
-                return p.binds[name];
-            case 2:
-                p.binds[name] = value;
-
-                return this;
-        }
-
-        throw('Unsuported params');
-    }
-
-    binds(binds) {
-        let p = this.private(cn);
-
-        switch (arguments.length) {
-            case 0:
-                return p.binds;
-            case 1:
-                p.binds = binds;
-
-                return this;
-        }
-
-        throw('Unsuported params');
-    }
-
-    /**
-     * Create request
-     */
-    queue(creator) {
-        let queue = new __WEBPACK_IMPORTED_MODULE_2_Topi_Api_Queue__["a" /* default */](this);
-
-        creator.call(queue, queue);
-
-        return queue;
-    }
-
-    /**
-     * Create request.
-     *
-     * @param {function} creator
-     * @return Request
-     */
-    request(creator) {
-        let p = this.private(cn),
-            request = new __WEBPACK_IMPORTED_MODULE_1_Topi_Api_Request__["a" /* default */](this)
-        ;
-
-        request.headers(this.headers());
-        request.binds(this.binds());
-
-        if (creator) creator.call(request, request);
-
-        return request;
-    }
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (Api);
-
+module.exports = "<div class=\"topi-vc-loader__background\">\n</div>\n<div class=\"topi-vc-loader\">\n    <div class=\"spinner\">\n        <div class=\"rect1\"></div>\n        <div class=\"rect2\"></div>\n        <div class=\"rect3\"></div>\n        <div class=\"rect4\"></div>\n        <div class=\"rect5\"></div>\n    </div>\n</div>\n";
 
 /***/ }),
 /* 36 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(24);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_Api_Response__ = __webpack_require__(37);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Topi_Api_Responses__ = __webpack_require__(28);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_Topi_Api_Common_encode__ = __webpack_require__(29);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_Topi_Api_Common_decode__ = __webpack_require__(38);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_Topi_Api_Common_urn__ = __webpack_require__(39);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(5);
 
 
-
-
-
-
-
-
-const cn = 'Request';
-class Request extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] {
-    constructor(api){
-        super();
-
-        let p = this.private(cn, {
-            api,
-            name : null,
-            title : null,
-            description : null,
-            resourceId : null,
-            urn : null,
-            method : 'get',
-            binds : {},
-            data : {},
-            params : {},
-            contentType : {},
-            requests : [],
-            headers : {},
-
-            // queue,
-            timeout : null,
-
-            // events : new Events(this),
-            next : null,
-
-            control : function(request, response, next){
-                next(response);
-            },
-
-            prepare : function(request, responses, next){
-                next();
-            },
-        });
-    }
-
-    title(title) {
-        return this.private(cn, 'title', title);
-    }
-
-    name(name) {
-        return this.private(cn, 'name', name);
-    }
-
-    resourceId(resourceId) {
-        return this.private(cn, 'resourceId', resourceId);
-    }
-
-    description(description) {
-        return this.private(cn, 'description', description);
-    }
-
-    timeout(timeout) {
-        return this.private(cn, 'timeout', timeout);
-    }
-
-    urn(urn) {
-        let p = this.private(cn);
-
-        if (urn === undefined) {
-            return p.urn === undefined ? null : p.urn;
-        }else{
-            p.urn = urn;
-
-            return this;
-        }
-
-        this.log("Unsuported params.", "warn");
-    }
-
-    method(method) {
-        return this.private(cn, 'method', method);
-    }
-
-    control(control) {
-        return this.private(cn, 'control', control);
-    }
-
-    prepare(prepare) {
-        return this.private(cn, 'prepare', prepare);
-    }
-
-    header(name, value) {
-        let p = this.private(cn);
-
-        if (arguments.length === 1) {
-            return p.headers[name];
-        }else{
-            p.headers[name] = value;
-
-            return this;
-        }
-    }
-
-    headers(headers) {
-        let p = this.private(cn);
-
-        if (arguments.length == 1) {
-            return p.headers = headers;
-        }else{
-            return p.headers;
-        }
-    }
-
-    data(name, value) {
-        let p = this.private(cn);
-
-        switch (arguments.length) {
-            case 0:
-                return p.data;
-            case 1:
-                if (typeof name == 'string') {
-                    return p.data[name];
-                }else if(typeof name == 'object') {
-                    p.data = name;
-
-                    return this
-                }
-
-            case 2:
-                p.data[name] = value;
-
-                return this;
-        }
-
-        throw('Unsuported params');
-    }
-
-    param(name, value) {
-        let p = this.private(cn);
-
-        switch (arguments.length) {
-            case 1:
-                return p.params[name];
-            case 2:
-                p.params[name] = value;
-
-                return this;
-        }
-
-        throw('Unsuported params');
-    }
-
-    params(params) {
-        let p = this.private(cn);
-
-        switch (arguments.length) {
-            case 0:
-                return p.params;
-            case 1:
-                p.params = params;
-
-                return this;
-        }
-
-        throw('Unsuported params');
-    }
-
-    bind(name, value) {
-        let p = this.private(cn);
-
-        switch (arguments.length) {
-            case 1:
-                return p.binds[name];
-            case 2:
-                p.binds[name] = value;
-
-                return this;
-        }
-
-        throw('Unsuported params');
-    }
-
-    binds(binds) {
-        let p = this.private(cn);
-
-        switch (arguments.length) {
-            case 0:
-                return p.binds;
-            case 1:
-                p.binds = binds;
-
-                return this;
-        }
-
-        throw('Unsuported params');
-    }
-
-    request(creator) {
-        let p = this.private(cn),
-            request = p.api.request(creator)
-        ;
-
-        p.requests.push(request);
-
-        return request;
-    }
-
-    /**
-     * Exec request and return Promise object.
-     */
-    promise() {
-        return new Promise((resolve, reject) => {
-            this.exec((response) => {
-                if (response.error()) {
-                    reject(response);
-                }else{
-                    resolve(response);
-                }
-            });
-        });
-    }
-
-    exec(complete) {
-        let p = this.private(cn),
-            count = p.requests.length,
-            responses = [],
-            i
-        ;
-
-        let check = () => {
-            if (count > 0) {
-                return;
-            }
-
-            p.prepare.call(this, this, new __WEBPACK_IMPORTED_MODULE_2_Topi_Api_Responses__["a" /* default */](responses), () => {
-                this._xhr((response) => {
-                    p.control.call(this, this, response, (response) => {
-                        // user response
-                        if (typeof complete == 'function') {
-                            complete(response);
-                        }
-                    });
-                });
-            });
-        }
-
-        if (count > 0) {
-            // request has dependences, i go throught dependences and call
-            for (i in p.requests) {
-                p.requests[i].exec((response) => {
-                    responses.push(response);
-                    count--;
-                    check();
-                });
-            }
-        }else{
-            check();
-        }
-    }
-
-    _xhr(complete) {
-        let p = this.private(cn),
-            type = this.header('Content-Type'),
-            ended = false,
-            timeout = this.timeout(),
-            urn = Object(__WEBPACK_IMPORTED_MODULE_5_Topi_Api_Common_urn__["a" /* default */])(this.urn(), this.params(), this.binds()),
-            url = p.api.url(),
-            uri = `${url}${urn}`
-        ;
-
-        let resourceId = this.resourceId();
-
-        if (resourceId != null) {
-            uri = `${uri}/${resourceId}`;
-        }
-
-        if (type === undefined) {
-            throw("Please define header Content-Type for request.");
-        }
-
-        let data = Object(__WEBPACK_IMPORTED_MODULE_3_Topi_Api_Common_encode__["a" /* default */])(type, this.data()),
-            xhr = new XMLHttpRequest()
-        ;
-
-        // xhr.onloadstart = function(){
-
-        // }
-
-        let end = (iserror, error) => {
-            if (ended) {
-                return;
-            }
-
-            ended = true;
-
-            let params = {};
-
-            if (iserror) {
-                params.status = error;
-            }else{
-                params.status = xhr.status;
-
-                let data = Object(__WEBPACK_IMPORTED_MODULE_4_Topi_Api_Common_decode__["a" /* default */])(xhr.getResponseHeader('Content-Type'), xhr.responseText);
-
-                if (data === false) {
-                    params.status = "unread";
-                }else{
-                    params.data = data;
-                }
-            }
-
-            complete(new __WEBPACK_IMPORTED_MODULE_1_Topi_Api_Response__["a" /* default */](xhr, this, params));
-        }
-
-        xhr.onload = function () {
-            end(false);
-        };
-
-        xhr.onloadend = function() {
-            end(false);
-        }
-
-        xhr.ontimeout = function() {
-            end(true, "timeout");
-        }
-
-        xhr.onabort = function() {
-            end(true, "abort");
-        }
-
-        xhr.onerror = function() {
-            end(true, "error");
-        }
-
-        xhr.open(this.method(), uri, true);
-
-        for (let header in p.headers) {
-            xhr.setRequestHeader(header, p.headers[header]);
-        }
-
-        if (timeout != null) {
-            setTimeout(function() {
-                end(true, "timeout");
-            }, timeout);
-        }
-
-        xhr.send(data);
-    }
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (Request);
-
-
-/***/ }),
-/* 37 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(24);
-
-
-const cn = 'Response';
-class Response extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] {
-    constructor(xhr, request, params = {}) {
-        super();
-
-        let p = this.private(cn, {
-            successHttpCodes : params.successHttpCodes === undefined ? [200, 201] : params.successHttpCodes,
-            status : params.status === undefined ? null : params.status,
-            data : params.data === undefined ? {} : params.data,
-            xhr,
-            request,
-        });
-    }
-
-    error() {
-        let p = this.private(cn);
-
-        if (p.successHttpCodes.indexOf(this.status()) === -1) {
-            return true;
-        }
-
-        return false;
-    }
-
-    status(status) {
-        return this.private(cn, 'status', status);
-    }
-
-    data(name) {
-        let p = this.private(cn);
-
-        switch (arguments.length) {
-            case 0:
-                return p.data;
-            case 1:
-                return p.data[name];
-        }
-
-        throw('Unsuported params');
-    }
-
-    name() {
-        return this.private(cn, 'request').name();
-    }
-
-    xhr() {
-        return this.private(cn, 'xhr');
-    }
-
-    header(name) {
-        return this.private(cn, 'xhr').getResponseHeader(name);
-    }
-
-    name() {
-        return this.private(cn, 'request').name();
-    }
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (Response);
-
-
-/***/ }),
-/* 38 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-function decode(format, raw) {
-    let contentType = null;
-    const splited = format.split(';');
-
-    if (splited.length > 1) {
-        contentType = splited[0];
-    }else{
-        contentType = splited[0];
-    }
-
-    // todo Create supports for other formats and charset
-
-    switch (contentType) {
-        case "text/html" :
-        case "plain/text" :
-            return raw;
-        case 'application/json':
-            if (raw === "") {
-                return {};
-            }
-
-            raw = ''+raw+'';
-
-            raw = raw
-                .replace(/\n/g, "\\n")
-                // .replace(/\\'/g, "\\'")
-                // .replace(/\\"/g, '\\"')
-                // .replace(/\\&/g, "\\&")
-                // .replace(/\\r/g, "\\r")
-                // .replace(/\\t/g, "\\t")
-                // .replace(/\\b/g, "\\b")
-                // .replace(/\\f/g, "\\f")
-            ;
-
-            try{
-                raw = JSON.parse(raw);
-            }catch(e){
-                return false;
-            }
-
-            return raw;
-    }
-
-    throw('Unsuported params');
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (decode);
-
-
-/***/ }),
-/* 39 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Api_Common_encode__ = __webpack_require__(29);
-
-
-function urn(url, params = {}, binds = {}, format = 'application/x-www-form-urlencoded'){
-    // change binds
-    for(let i in binds){
-        url = url.replace(`{${i}}`, binds[i]);
-    }
-
-    let query = Object(__WEBPACK_IMPORTED_MODULE_0_Topi_Api_Common_encode__["a" /* default */])(format, params);
-
-    if (query != null) {
-        url += '?' + query;
-    }
-
-    return url;
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (urn);
-
-
-/***/ }),
-/* 40 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(24);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_Api_Responses__ = __webpack_require__(28);
-
-
-
-const cn = 'Queue';
-class Queue extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] {
-    constructor(api) {
-        super();
-
-        let p = this.private(cn, {
-            api,
-            requets : []
-        });
-    }
-
-    request(creator) {
-        let p = this.private(cn);
-
-        p.requets.push(p.api.request(creator));
-
-        return this;
-    }
-
-    promise() {
-        return new Promise((resolve, reject) => {
-            this.exec(function(responses){
-                if (responses.error()) {
-                    reject(responses);
-                }else{
-                    resolve(responses);
-                }
-            });
-        });
-    }
-
-    exec(complete) {
-        let p = this.private(cn),
-            count = p.requets.length,
-            responses = [],
-            i
-        ;
-
-        let check = () => {
-            if (count > 0) {
-                return;
-            }
-
-            if (typeof complete == 'function') {
-                complete(new __WEBPACK_IMPORTED_MODULE_1_Topi_Api_Responses__["a" /* default */](responses));
-            }
-        }
-
-        if (count > 0) {
-            for (i in p.requets) {
-                p.requets[i].exec(function(response){
-                    responses.push(response);
-                    count--;
-                    check();
-                });
-            }
-
-        }else{
-            check();
-        }
-    }
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (Queue);
-
-
-/***/ }),
-/* 41 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(24);
-
-
-const cn = 'Endpoint';
-class Endpoint extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] {
-    constructor(api, urn) {
-        super();
-
-        let p = this.private(cn, {
-            api,
-            urn,
-        });
-    }
-
-    uri() {
-        let p = this.private(cn);
-
-        return `${p.api.url()}${p.urn}`;
-    }
-
-    request(creator) {
-        let p = this.private(cn);
-
-        let request = p.api.request();
-
-        request.urn(p.urn);
-
-        if (creator) creator.call(request, request);
-
-        return request;
-    }
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (Endpoint);
-
-
-/***/ }),
-/* 42 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Dialog_Views_Dialog__ = __webpack_require__(43);
-
-
-/* harmony default export */ __webpack_exports__["a"] = (function(body) {
-    describe('Dialog', function() {
-        // it('Simple dialog', function (done) {
-        //     // expect(data._id).to.be.eql("5b2d007edb7bb43108c66ca2");
-        //     let dialog = new Dialog();
-
-        //     dialog
-        //         .target(body.element())
-        //         .render()
-        //         .set('title', 'New offer')
-        //         .set('content', "test")
-        //     ;
-        // });
-    });
-
-});;
-
-
-/***/ }),
-/* 43 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(24);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_View__ = __webpack_require__(23);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Topi_Dialog_Views_Dialog_dialog_html__ = __webpack_require__(44);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Topi_Dialog_Views_Dialog_dialog_html___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_Topi_Dialog_Views_Dialog_dialog_html__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_Topi_Dialog_Views_Dialog_layout_html__ = __webpack_require__(45);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_Topi_Dialog_Views_Dialog_layout_html___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_Topi_Dialog_Views_Dialog_layout_html__);
-
-
-
-
-
-
-const cn = 'Dialog';
+const cn = 'Handler';
 
 /**
- * Base view to display simple dialog.
- *
- * @param {Object} params
- *     - title
- *     - content
- *     - buttons
+ * Handler to control loader view.
  */
-class Dialog extends __WEBPACK_IMPORTED_MODULE_1_Topi_View__["a" /* default */] {
-
-    constructor(params = {}) {
-        super(__WEBPACK_IMPORTED_MODULE_3_Topi_Dialog_Views_Dialog_layout_html___default.a);
-
-        const p = this.private(cn, {});
-
-        this.set('-title', params.title === undefined ? null : params.title);
-        this.set('-content', params.content === undefined ? null : params.content);
-        this.set('-buttons', params.buttons === undefined ? [] : params.buttons);
-
-        this.on([
-            'title',
-            'content',
-            'title',
-        ], () => {
-            this.reload();
-        }, this.id());
-
-        this.element().on("click", (event) => {
-            const button = this.get("buttons").find(button => button.id == "close");
-
-            if (this.$(event.target).hasClass("topi-dialog")) {
-                this.emit("button.close:click", {
-                    target : button == undefined ? null : button,
-                    event
-                });
-            }
-        });
-
-        this.on("button.close:click", (event, params) => {
-            this.remove();
-        });
-
-        this.element().on("click", "button", (event) => {
-            let target = this.$(event.currentTarget),
-                id = target.data("id"),
-                button = this.get("buttons").find(button => button.id == id)
-            ;
-
-            if (button === undefined) {
-                this.log(`Button ${id} is not defined at for`, "warn");
-            }else{
-                this.emit(`button.${id}:click`, {
-                    target : button,
-                    event,
-                });
-            }
-
-            event.stopPropagation();
-            event.preventDefault();
-        });
-    }
-
-    render() {
-        const p = this.private(cn);
-
-        this.element().html(this.template(__WEBPACK_IMPORTED_MODULE_2_Topi_Dialog_Views_Dialog_dialog_html___default.a)(this.data()));
-
-        return this;
-    }
-}
-
-/* unused harmony default export */ var _unused_webpack_default_export = (Dialog);
-
-
-/***/ }),
-/* 44 */
-/***/ (function(module, exports) {
-
-module.exports = "<div class=\"topi-dialog__dialog\">\n    {{?\n        it.buttons.find(button => button.section == 'header')\n        || it.title\n    }}\n    <div class=\"topi-dialog__header grid-x\">\n        {{? it.title}}\n            <div class=\"cell auto topi-dialog__title\">{{= it.title}}</div>\n        {{?}}\n        {{? it.buttons.find(button => button.section == 'header')}}\n            <div class=\"cell auto topi-dialog__icons\">\n                {{~ it.buttons.filter(button => button.section == 'header') :value}}\n                <button class=\"topi-button--{{= value.type}}\" data-id=\"{{= value.id}}\">{{= value.label}}</button>\n                {{~}}\n            </div>\n        {{?}}\n    </div>\n    {{?}}\n\n    {{? it.content}}\n    <div class=\"topi-dialog__content\">\n        {{= it.content}}\n    </div>\n    {{?}}\n\n    {{?\n        it.buttons.find(button => button.section == 'footer.left')\n        || it.buttons.find(button => button.section == 'footer.center')\n        || it.buttons.find(button => button.section == 'footer.right')\n    }}\n    <div class=\"__footer grix-x\">\n        {{? it.buttons.find(button => button.section == 'footer.left')}}\n            <div class=\"cell auto topi--text-align-left topi--padding-10\">\n                {{~ it.buttons.filter(button => button.section == 'footer.left') :value}}\n                <button class=\"topi-button--{{= value.type}}\" data-id=\"{{= value.id}}\">{{= value.label}}</button>\n                {{~}}\n            </div>\n        {{?}}\n        {{? it.buttons.find(button => button.section == 'footer.center')}}\n            <div class=\"cell auto topi--text-align-center topi--padding-10\">\n                {{~ it.buttons.filter(button => button.section == 'footer.center') :value}}\n                <button class=\"topi-button--{{= value.type}}\" data-id=\"{{= value.id}}\">{{= value.label}}</button>\n                {{~}}\n            </div>\n        {{?}}\n        {{? it.buttons.find(button => button.section == 'footer.right')}}\n            <div class=\"cell auto topi--text-align-right topi--padding-10\">\n                {{~ it.buttons.filter(button => button.section == 'footer.right') :value}}\n                <button class=\"topi-button--{{= value.type}}\" data-id=\"{{= value.id}}\">{{= value.label}}</button>\n                {{~}}\n            </div>\n        {{?}}\n    </div>\n    {{?}}\n</div>\n";
-
-/***/ }),
-/* 45 */
-/***/ (function(module, exports) {
-
-module.exports = "<div class=\"topi-dialog\">\n</div>\n";
-
-/***/ }),
-/* 46 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Dialog_Views_Alert__ = __webpack_require__(47);
-
-
-/* harmony default export */ __webpack_exports__["a"] = (function(body) {
-    describe('Dialog alert', function() {
-        it('Simple alert', function () {
-            let alert = new __WEBPACK_IMPORTED_MODULE_0_Topi_Dialog_Views_Alert__["a" /* default */](),
-                expected = 2
-            ;
-
-            alert
-                .target(body.element())
-                .set('title', 'New offer')
-                .set('content', 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.')
-                .set('buttons', [{
-                    id : 'confirm',
-                    label : 'Confirm',
-                    type : 'success',
-                }, {
-                    id : 'close',
-                    label : 'Close',
-                    type : 'danger',
-                }])
-                .render()
-            ;
-
-            expect(body.find('.topi-dialog-alert').length).to.be.eql(1);
-            expect(body.find('.topi-dialog-alert').find('button').length).to.be.eql(2);
-
-            alert.on('button.confirm', () => {
-                expected--;
-            });
-
-            alert.on('button.close', () => {
-                expected--;
-            });
-
-            body.find('.topi-dialog-alert').find('button.--success').click();
-            body.find('.topi-dialog-alert').find('button.--danger').click();
-
-            expect(expected).to.be.eql(0);
-        });
-    });
-});;
-
-
-/***/ }),
-/* 47 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Object__ = __webpack_require__(24);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_View__ = __webpack_require__(23);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Topi_Dialog_Views_Alert_content_html__ = __webpack_require__(48);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Topi_Dialog_Views_Alert_content_html___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_Topi_Dialog_Views_Alert_content_html__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_Topi_Dialog_Views_Alert_layout_html__ = __webpack_require__(49);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_Topi_Dialog_Views_Alert_layout_html___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_Topi_Dialog_Views_Alert_layout_html__);
-
-
-
-
-
-
-const cn = 'Alert';
-
-/**
- * Base view to display alert.
- *
- * @param {Object} params
- *     - type
- *     - title
- *     - content
- *     - buttons
- */
-class Alert extends __WEBPACK_IMPORTED_MODULE_1_Topi_View__["a" /* default */] {
-    constructor(params = {}) {
-        super(__WEBPACK_IMPORTED_MODULE_3_Topi_Dialog_Views_Alert_layout_html___default.a);
-
-        const p = this.private(cn, {});
-
-        this.set('-type', params.type === undefined ? 'default' : params.type);
-        this.set('-title', params.title === undefined ? null : params.title);
-        this.set('-content', params.content === undefined ? null : params.content);
-        this.set('-buttons', params.buttons === undefined ? [] : params.buttons);
-
-        this.on([
-            'type',
-            'title',
-            'content',
-            'buttons',
-        ], () => {
-            this.reload();
-        }, this.id());
-
-        this.element().on("click", (event) => {
-            const button = this.get("buttons").find(button => button.id == "close");
-
-            if (this.$(event.target).hasClass("topi-dialog")) {
-                this.emit("button.close:click", {
-                    target : button == undefined ? null : button,
-                    event
-                });
-            }
-        });
-
-        this.on("button.close:click", (event, params) => {
-            this.remove();
-        });
-
-        this.element().on("click", "button", (event) => {
-            let target = this.$(event.currentTarget),
-                id = target.data("id"),
-                button = this.get("buttons").find(button => button.id == id)
-            ;
-
-            if (button === undefined) {
-                this.log(`Button ${id} is not defined at for`, "warn");
-            }else{
-                this.emit(`button.${id}:click`, {
-                    target : button,
-                    event,
-                });
-            }
-
-            event.stopPropagation();
-            event.preventDefault();
-        });
-    }
-
-    render() {
-        const p = this.private(cn);
-
-        this.element('content').html(this.template(__WEBPACK_IMPORTED_MODULE_2_Topi_Dialog_Views_Alert_content_html___default.a)(this.data()));
-
-        return this;
-    }
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (Alert);
-
-
-/***/ }),
-/* 48 */
-/***/ (function(module, exports) {
-
-module.exports = "{{? it.title}}\n<div class=\"topi-dialog-alert__title\">\n    {{= it.title}}\n</div>\n{{?}}\n{{? it.content}}\n<div class=\"topi-dialog-alert__content\">\n    {{= it.content}}\n</div>\n{{?}}\n{{? it.buttons }}\n<div class=\"topi-dialog-alert__buttons\">\n    {{? it.buttons.length}}\n        {{~ it.buttons : value}}\n        <button class=\"topi-button --{{= value.type}}\" data-id=\"{{= value.id}}\">{{= value.label}}</button>\n        {{~}}\n    {{?}}\n</div>\n{{?}}\n";
-
-/***/ }),
-/* 49 */
-/***/ (function(module, exports) {
-
-module.exports = "<div class=\"topi-dialog-alert__wrapper\">\n    <div class=\"topi-dialog-alert\" name=\"content\">\n    </div>\n</div>\n";
-
-/***/ }),
-/* 50 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Dialog_Views_Modal__ = __webpack_require__(30);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_View__ = __webpack_require__(23);
-
-
-
-/* harmony default export */ __webpack_exports__["a"] = (function(body) {
-    describe('Modal', function() {
-        it('Simple modal', function () {
-            let form = new __WEBPACK_IMPORTED_MODULE_1_Topi_View__["a" /* default */](`
-                <h1 class="header">Contacts form</h1>
-                <p class="content">
-                    Lorem ipsum dolor sit amet, consetetur sadipscing elitr,
-                    sed diam nonumy eirmod tempor invidunt ut labore et dolore
-                    magna aliquyam erat, sed diam voluptua. At vero eos et
-                    accusam et justo duo dolores et ea rebum. Stet clita kasd
-                    gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
-                    Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed
-                    diam nonumy eirmod tempor invidunt ut labore et dolore magna
-                    aliquyam erat, sed diam voluptua. At vero eos et accusam et justo
-                    duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata
-                    sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet,
-                    consetetur sadipscing elitr, sed diam nonumy eirmod tempor
-                    invidunt ut labore et dolore magna aliquyam erat, sed diam
-                    voluptua. At vero eos et accusam et justo duo dolores et ea rebum.
-                    Stet clita kasd gubergren, no sea takimata sanctus est Lorem
-                    ipsum dolor sit amet.
-                </p>
-            `);
-
-            let modal = new __WEBPACK_IMPORTED_MODULE_0_Topi_Dialog_Views_Modal__["a" /* default */](form);
-
-            modal
-                .target(body.element())
-                .render()
-            ;
-
-            expect(body.find('.topi-dialog-modal').length).to.be.eql(1);
-            expect(body.find('.topi-dialog-modal').find('.header').length).to.be.eql(1);
-            expect(body.find('.topi-dialog-modal').find('.content').length).to.be.eql(1);
-
-            body.clean();
-        });
-    });
-});;
-
-
-/***/ }),
-/* 51 */
-/***/ (function(module, exports) {
-
-module.exports = "{{? it.title}}\n<div class=\"topi-dialog-alert__title\">\n    {{= it.title}}\n</div>\n{{?}}\n{{? it.content}}\n<div class=\"topi-dialog-alert__content\">\n    {{= it.content}}\n</div>\n{{?}}\n{{? it.buttons }}\n<div class=\"topi-dialog-alert__buttons\">\n    {{? it.buttons.length}}\n        {{~ it.buttons : value}}\n        <button class=\"topi-button --{{= value.type}}\" data-id=\"{{= value.id}}\">{{= value.label}}</button>\n        {{~}}\n    {{?}}\n</div>\n{{?}}\n";
-
-/***/ }),
-/* 52 */
-/***/ (function(module, exports) {
-
-module.exports = "<div class=\"topi-dialog-modal__wrapper\">\n    <div class=\"topi-dialog-modal\" name=\"content\">\n    </div>\n</div>\n";
-
-/***/ }),
-/* 53 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Dialog_Views_Modal__ = __webpack_require__(30);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_Topi_View__ = __webpack_require__(23);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_Topi_Views_Widgets_Date__ = __webpack_require__(54);
-
-
-
-
-/* harmony default export */ __webpack_exports__["a"] = (function(content) {
-    describe('Views.Widgets.Date', function() {
-        it('Change date', function (done) {
-            let expected = 0;
-
-            let widget = new __WEBPACK_IMPORTED_MODULE_2_Topi_Views_Widgets_Date__["a" /* default */]({
-                value : '2018-01-01'
-            });
-
-            widget
-                .target(content.element())
-                .render()
-            ;
-
-            widget.element().trigger('focusin');
-
-            setTimeout(function() {
-                content.body().find('[data-date="5"]').click();
-            }, 1000);
-
-            widget.on('value', (event, params = {}) => {
-                expect(event.name).to.be.eql("value:change");
-                expect(params.previous).to.be.equal('2018-01-01');
-                expect(event.this.get('value')).to.be.equal('2018-01-05');
-
-                done();
-
-                content.clean();
-            });
-        });
-
-        it('State error', function (done) {
-            let expected = 0;
-
-            let widget = new __WEBPACK_IMPORTED_MODULE_2_Topi_Views_Widgets_Date__["a" /* default */]({
-                value : '2018-01-01'
-            });
-
-            widget
-                .target(content.element())
-                .render()
-            ;
-
-            widget.set('state', {
-                type : 'error',
-            });
-
-            setTimeout(function() {
-                expect(widget.element().hasClass('--error')).to.be.eql(true);
-
-                widget.element().trigger('focusin');
-                expect(widget.element().hasClass('--error')).to.be.eql(false);
-
-                widget.element().trigger('focusout');
-                expect(widget.element().hasClass('--error')).to.be.eql(true);
-
-                done();
-            }, 1000);
-
-
-            // setTimeout(function() {
-            //     content.body().find('[data-date="5"]').click();
-            // }, 1000);
-
-            // widget.on('value', (event, params = {}) => {
-            //     expect(event.name).to.be.eql("value:change");
-            //     expect(params.previous).to.be.equal('2018-01-01');
-            //     expect(event.this.get('value')).to.be.equal('2018-01-05');
-
-            //     done();
-            // });
-        });
-    });
-});;
-
-
-/***/ }),
-/* 54 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_Views_Widgets_Widget__ = __webpack_require__(55);
-
-
-const cn = "Date";
-
-/**
- * Widget to display date.
- *
- * @param {Object} params
- *     value
- *     placeholder
- *     type
- *     state
- */
-class Date extends __WEBPACK_IMPORTED_MODULE_0_Topi_Views_Widgets_Widget__["a" /* default */] {
-    constructor(params = {}) {
-        super(`<input class="topi-input">`, params);
+class Handler extends __WEBPACK_IMPORTED_MODULE_0_Topi_Object__["a" /* default */] {
+    constructor(view, manager, params = {}) {
+        super();
 
         const p = this.private(cn);
 
-        this.set("-value", params.value === undefined ? null : params.value);
-        this.set("-placeholder", params.placeholder === undefined ? null : params.placeholder);
-        this.set("-type", params.type === undefined ? null : params.type);
-        this.set("-state", params.state === undefined ? {type : "default"} : params.state);
-        this.set("-format", params.format === undefined ? 'Y-m-d' : params.format);
-
-        this.on([
-            "value",
-            "placeholder",
-            "type",
-        ], () => {
-            this.reload();
-        }, this.id());
-
-        this.on([
-            "state",
-        ], () => {
-            this._reloadState();
-        }, this.id());
-
-        this.element().on("focusin", () => {
-            let state = this.get("&state");
-
-            if (state.type == "error") {
-                this.element().removeClass("--error");
-            }
-
-            this.element().val(this.get("value"));
-        });
-
-        this.element().on("focusout", () => {
-            let input = this.element().get(0);
-            let value;
-
-            let state = this.get("&state");
-
-            if (state.type == "error") {
-                this.element().addClass("--error");
-            }
-
-            if (input.inputmask) {
-                value = input.inputmask.unmaskedvalue();
-            }else{
-                value = this.element().val();
-            }
-
-            if (value === undefined) {
-                this.log("Value of input can not be get.", "warn");
-                value = null;
-            }
-
-            this.set("value", value === "" ? null : value);
-        });
-
-        this.element().datetimepicker({
-            // i18n:{
-            //     de:{
-            //         months:[
-            //             'Januar','Februar','März','April',
-            //             'Mai','Juni','Juli','August',
-            //             'September','Oktober','November','Dezember',
-            //         ],
-            //         dayOfWeek:[
-            //             "So.", "Mo", "Di", "Mi",
-            //             "Do", "Fr", "Sa.",
-            //         ]
-            //     }
-            // },
-            timepicker : false,
-            format : this.get('format'),
-        });
-
-        this.element().change((event) => {
-            this.set('value', event.currentTarget.value);
-        });
+        p.view = view;
+        p.manager = manager;
+        // p.params = view;
     }
 
-    /**
-     * Render Date
-     */
-    render() {
-        super.render();
+    remove() {
+        const p = this.private(cn);
 
-        const p = this.private(cn),
-            value = this.get("&value"),
-            placeholder = this.get("&placeholder")
-        ;
-
-        if (placeholder != null) {
-            this.element().attr("placeholder", placeholder);
-        }else{
-            this.element().removeAttr("placeholder");
-        }
-
-        if (value == null) {
-            this.element().val("");
-        }else{
-            this.element().val(value);
-        }
-
-        this._reloadState();
-
-        return this;
-    }
-
-    _reloadState() {
-        let p = this.private(cn),
-            state = this.get("&state")
-        ;
-
-        this.element().removeClass("--error");
-
-        switch (state.type) {
-            case "error":
-                this.element().addClass("--error");
-        }
+        p.view.remove();
     }
 }
 
-/* harmony default export */ __webpack_exports__["a"] = (Date);
-
-
-/***/ }),
-/* 55 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_Topi_View__ = __webpack_require__(23);
-
-
-const cn = 'Widget';
-class Widget extends __WEBPACK_IMPORTED_MODULE_0_Topi_View__["a" /* default */] {
-
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (Widget);
+/* harmony default export */ __webpack_exports__["a"] = (Handler);
 
 
 /***/ })
