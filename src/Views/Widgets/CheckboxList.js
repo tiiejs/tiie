@@ -227,11 +227,11 @@ class CheckboxList extends Widget {
         }
 
         if (this.get("border")) {
-            // this.element().removeClass("topi-checkboxList");
+            // this.element().removeClass("topi-checkbox-list");
             this.element().addClass("--border");
         }else{
             this.element().removeClass("--border");
-            // this.element().addClass("topi-checkboxList");
+            // this.element().addClass("topi-checkbox-list");
         }
 
         this._reloadValue();

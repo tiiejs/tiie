@@ -1,5 +1,4 @@
-.topi-checkboxList {
-    font-size: 12px;
+.topi-checkbox-list {
     background-color: white;
 
     .__item {
@@ -12,19 +11,19 @@
         }
 
         .__label {
-            font-size: 12px;
             padding: 0;
             margin: 0;
         }
     }
 }
 
-.topi-checkboxList.--border {
+.topi-checkbox-list.--border {
     border : 1px #cacaca solid;
+    border-radius: 5px;
     padding: 5px;
 }
 
-.topi-checkboxList.--error {
+.topi-checkbox-list.--error {
     background-color: #fbeaea;
     border: 1px red solid;
     color: red;
