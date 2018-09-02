@@ -1,17 +1,13 @@
-import 'styles/topi.scss';
+import 'Topi/styles/topi.scss';
 
-// jQuery
-// Cześć bibliotek zewnętrznych jest trudna do spakowania za pomocą webpacka,
-// ze względu na różne zleżne pliki. Dlatego takie biblioteki sa ładowane w
-// tradycyjny sposób. Takie biblioteki są umieszczone w katalogu
-// dist/packages i są bezpośrednio włączone w index.html. Aby miały tą samą
-// referencję co te spakowe, muszę wyeksportować je na do przestrzeni
-// globalnej.
+// Import jquery and export to global. It's import to have the same reference
+// used by framework and other plugins.
 import jQuery from "jquery";
 window.jQuery = jQuery;
 
-// import element from "Topi/Utils/element";
-// import animate from "Topi/Utils/animate";
+// import some utils
+import element from "Topi/Utils/element";
+import animate from "Topi/Utils/animate";
 
 // jquery-datetimepicker
 import 'jquery-datetimepicker/build/jquery.datetimepicker.full.js';
