@@ -3,7 +3,7 @@ import Widget from 'Topi/Views/Widgets/Widget';
 const cn = 'Select';
 class Select extends Widget {
     constructor(params = {}) {
-        super(`<select style='width : 100%'></select>`);
+        super(`<select class="topi-input-select" style='width : 100%'></select>`);
 
         let p = this.private(cn, {
             inited : 0

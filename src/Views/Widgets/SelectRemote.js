@@ -3,7 +3,7 @@ import Widget from 'Topi/Views/Widgets/Widget';
 const cn = 'SelectRemote';
 class SelectRemote extends Widget {
     constructor(params = {}) {
-        super(`<select style='width : 100%'></select>`);
+        super(`<select class="topi-input-select" style='width : 100%'></select>`);
 
         if (params.endpoint === undefined) {
             throw ("SelectRemote needs defined endpoint.");
