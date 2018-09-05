@@ -476,7 +476,7 @@ class Form extends Widget {
                 buttons[button.section] = [];
             }
 
-            buttons[button.section].push(`<button class="topi-button--${button.type}" data-id="${button.id}" type="button">${button.label}</button>`);
+            buttons[button.section].push(`<button class="topi-button --${button.type}" data-id="${button.id}" type="button">${button.label}</button>`);
         });
 
         if (buttons["footer.left"] !== undefined) {
