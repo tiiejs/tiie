@@ -12,12 +12,15 @@ class SelectRemote extends Widget {
         let p = this.private(cn, {
             inited : 0,
             endpoint : params.endpoint,
-            items : []
+            items : [],
+            templateResult : params.templateResult == undefined ? null : params.templateResult,
+            templateSelection : params.templateSelection == undefined ? null : params.templateSelection,
         });
 
         this.set('-keyValue', params.keyValue === undefined ? 'id' : params.keyValue);
         this.set('-keyLabel', params.keyLabel === undefined ? 'name' : params.keyLabel);
         this.set('-multiple', params.multiple === undefined ? 0 : params.multiple);
+        this.set('-items', params.items === undefined ? [] : params.items);
 
         // Flaga oznaczajaca czy select jest gotowy do uzycia
         this.set('-ready', null);
@@ -72,7 +75,7 @@ class SelectRemote extends Widget {
 
             if (typeof value == 'string' || typeof value == 'number') {
                 // Szukam elementów, na liscie elementów w pierwszym kroku
-                let item = p.items.find(item => item[keyValue] == value);
+                let item = this.get('&items').find(item => item[keyValue] == value);
 
                 if (item != undefined) {
                     // element został znaleziony
@@ -114,7 +117,7 @@ class SelectRemote extends Widget {
 
                     if (id !== null) {
                         // Szukam elementów, na liscie elementów
-                        let item = p.items.find(item => item[keyValue] == id);
+                        let item = this.get('&items').find(item => item[keyValue] == id);
 
                         if (item !== undefined) {
                             found.push(item);
@@ -191,7 +194,7 @@ class SelectRemote extends Widget {
             values.forEach((value) => {
                 let found = 0;
 
-                p.items.forEach((item) => {
+                this.get('&items').forEach((item) => {
                     if (item[keyValue] == value[keyValue]) {
                         found = 1;
                     }
@@ -202,7 +205,7 @@ class SelectRemote extends Widget {
                     // zmienia. Ogólnie, emitowanie takiego zdarzenia, mogłoby
                     // spowodować wpicie się poda zmienę items, ale ta lista nie ma
                     // stałej ilości elementów i będzie sie dynamicznie zmieniać.
-                    p.items.push(value);
+                    this.get('&items').push(value);
                 }
             });
 
@@ -274,7 +277,7 @@ class SelectRemote extends Widget {
         if (p.inited == 0) {
             let value = this.get("value");
 
-            let data = p.items.filter((item) => {
+            let data = this.get('&items').filter((item) => {
                 if (value === null) {
                     return 0;
                 }
@@ -322,6 +325,14 @@ class SelectRemote extends Widget {
                 select2.placeholder = placeholder;
             }
 
+            if (p.templateResult) {
+                select2.templateResult = p.templateResult;
+            }
+
+            if (p.templateSelection) {
+                select2.templateSelection = p.templateSelection;
+            }
+
             this.element().select2(select2);
         }
     }
@@ -336,7 +347,7 @@ class SelectRemote extends Widget {
         values.forEach((value) => {
             let found = 0;
 
-            p.items.forEach((item) => {
+            this.get('&items').forEach((item) => {
                 if (item[keyValue] == value[keyValue]) {
                     found = 1;
                 }
@@ -347,7 +358,7 @@ class SelectRemote extends Widget {
                 // zmienia. Ogólnie, emitowanie takiego zdarzenia, mogłoby
                 // spowodować wpicie się poda zmienę items, ale ta lista nie ma
                 // stałej ilości elementów i będzie sie dynamicznie zmieniać.
-                p.items.push(value);
+                this.get('&items').push(value);
             }
         });
     }
