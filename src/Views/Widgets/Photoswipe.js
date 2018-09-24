@@ -9,7 +9,7 @@ class Photoswipe extends Widget {
 
         let p = this.private(cn, {
             value : [],
-        }, params);
+        });
     }
 
     render() {

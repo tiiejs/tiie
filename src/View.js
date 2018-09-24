@@ -4,6 +4,7 @@ import jQuery from "jquery";
 import doT from 'dot';
 
 const cn = 'View';
+
 class View extends TopiObject {
     constructor(template = "<div></div>") {
         super();
@@ -20,6 +21,10 @@ class View extends TopiObject {
 
         p.elements = this._createElements(template);
         p.elements.forEach(element => this._attachEventsListener(element));
+
+        this.set('view.ready', 0, {silently : 1});
+        this.set('view.rendered', 0, {silently : 1});
+        this.set('view.synced', 0, {silently : 1});
 
         // attach to standard events
         // this.element().
@@ -108,7 +113,7 @@ class View extends TopiObject {
     }
 
     /**
-     * Wyrenderowanie obiektu do stanu poczatkowego.
+     * Display view object base on data of object.
      *
      * @return this
      */
@@ -122,6 +127,15 @@ class View extends TopiObject {
         // this.element().find('[data-toggle="tooltip"]').tooltip();
 
         return this;
+    }
+
+    /**
+     * Data synchronization with external data.
+     *
+     * @returns {Promise}
+     */
+    async sync() {
+        return Promise.resolve();
     }
 
     is(name) {

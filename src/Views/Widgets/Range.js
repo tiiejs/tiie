@@ -12,7 +12,7 @@ class Range extends Widget {
 
         let p = this.private(cn, {
             widgets : [],
-        }, params);
+        });
 
         this.set('-structure', params.structure === undefined ? 'cols' : parastructure);
         this.set('-value', params.value === undefined ? {} : paravalue);
