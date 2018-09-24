@@ -113,8 +113,6 @@ class Router extends TopiObject {
     }
 
     go(action, params = {}) {
-        console.log('Router.go', params);
-
         this.urn(action, params, {route : 1});
 
         return this;
@@ -309,8 +307,6 @@ class Router extends TopiObject {
             t
         ;
 
-        console.log('Router.urn.params', params);
-
         paramsin.route = paramsin.route === undefined ? 0 : paramsin.route;
 
         if (action === undefined && params === undefined) {
@@ -324,8 +320,6 @@ class Router extends TopiObject {
 
             // Serializuje parametry
             params = this._serializeParams(params);
-
-            console.log('_serializeParams', params);
 
             if (params == null) {
                 // Nie mamy parametrów
