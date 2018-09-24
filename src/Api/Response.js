@@ -35,7 +35,7 @@ class Response extends TopiObject {
             case 0:
                 return p.data;
             case 1:
-                return p.data[name];
+                return p.data[name] == undefined ? null : p.data[name];
         }
 
         throw('Unsuported params');
