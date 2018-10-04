@@ -4,15 +4,15 @@ import templateLayout from "Topi/Views/Widgets/Pagination.layout.html";
 
 const cn = "Pagination";
 class Pagination extends Widget {
-    constructor(params = {}) {
+    constructor(state = {}) {
         super(templateLayout);
 
         let p = this.private(cn, {
             previousValue : null,
         });
 
-        this.set("-pages", params.pages === undefined ? 0 : params.pages);
-        this.set("-value", params.value === undefined ? 0 : params.value);
+        this.set("-pages", state.pages === undefined ? 0 : state.pages);
+        this.set("-value", state.value === undefined ? 0 : state.value);
 
         this.on([
             "pages",

@@ -22,15 +22,15 @@ class View extends TopiObject {
         p.elements = this._createElements(template);
         p.elements.forEach(element => this._attachEventsListener(element));
 
-        this.set('view.ready', 0, {silently : 1});
-        this.set('view.rendered', 0, {silently : 1});
-        this.set('view.synced', 0, {silently : 1});
+        this.set('@view.ready', 0, {silently : 1});
+        this.set('@view.rendered', 0, {silently : 1});
+        this.set('@view.synced', 0, {silently : 1});
 
         // attach to standard events
         // this.element().
         // Set default attribute
-        // this.set(".view.ready", 0, {silently : 1});
-        // this.set(".view.loading", 0, {silently : 1});
+        // this.set(".@view.ready", 0, {silently : 1});
+        // this.set(".@view.loading", 0, {silently : 1});
     }
 
     _attachEventsListener(element) {
