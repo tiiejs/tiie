@@ -6,7 +6,6 @@
 @import 'topi-form.scss';
 @import 'topi-input.scss';
 @import 'topi-input-select.scss';
-@import 'topi-pagination.scss';
 @import 'topi-portlet-light.scss';
 @import 'topi-portlet.scss';
 @import 'topi-section.scss';
@@ -14,7 +13,9 @@
 @import 'topi-textarea.scss';
 @import 'topi-toolbar.scss';
 @import 'topi-topbar.scss';
+
 @import 'topi-vc-loader.scss';
+@import 'topi-vw-pagination.scss';
 
 /** margin **/
 .topi--margin-top-10 {

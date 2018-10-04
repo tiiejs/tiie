@@ -1,6 +1,10 @@
 @import 'topi-variables';
 
-%topi-button {
+@function make-greener($value) {
+    @return $value + rgb(0,50,0); // arithmetic with colors is totally fine, btw
+}
+
+.topi-button {
     color: $topi-color-white;
     display: inline-block;
     font-weight: 400;
@@ -23,106 +27,201 @@
     // border-radius: .25rem;
 }
 
-.topi-button {
-    @extend %topi-button;
+// hover
+.topi-button:hover {
+    cursor: pointer;
 }
 
+.topi-button.--primary:hover {
+    background-color: make-greener($topi-color-primary);
+}
+
+.topi-button.--blue:hover {
+    background-color: make-greener($topi-color-blue);
+}
+
+.topi-button.--indigo:hover {
+    background-color: make-greener($topi-color-indigo);
+}
+
+.topi-button.--purple:hover {
+    background-color: make-greener($topi-color-purple);
+}
+
+.topi-button.--pink:hover {
+    background-color: make-greener($topi-color-pink);
+}
+
+.topi-button.--red:hover {
+    background-color: make-greener($topi-color-red);
+}
+
+.topi-button.--orange:hover {
+    background-color: make-greener($topi-color-orange);
+}
+
+.topi-button.--yellow:hover {
+    background-color: make-greener($topi-color-yellow);
+}
+
+.topi-button.--green:hover {
+    background-color: make-greener($topi-color-green);
+}
+
+.topi-button.--teal:hover {
+    background-color: make-greener($topi-color-teal);
+}
+
+.topi-button.--cyan:hover {
+    background-color: make-greener($topi-color-cyan);
+}
+
+.topi-button.--white:hover {
+    background-color: make-greener($topi-color-white);
+}
+
+.topi-button.--gray:hover {
+    background-color: make-greener($topi-color-gray);
+}
+
+.topi-button.--primary:hover {
+    background-color: make-greener($topi-color-primary);
+}
+
+.topi-button.--secondary:hover {
+    background-color: make-greener($topi-color-secondary);
+}
+
+.topi-button.--success:hover {
+    background-color: make-greener($topi-color-success);
+}
+
+.topi-button.--info:hover {
+    background-color: make-greener($topi-color-info);
+}
+
+.topi-button.--warning:hover {
+    background-color: make-greener($topi-color-warning);
+}
+
+.topi-button.--danger:hover {
+    background-color: make-greener($topi-color-danger);
+}
+
+.topi-button.--light:hover {
+    background-color: make-greener($topi-color-light);
+}
+
+.topi-button.--dark:hover {
+    background-color: make-greener($topi-color-dark);
+}
+
+.topi-button > :first-child {
+    margin-right: 5px;
+}
+
+// modyficators
+.topi-button.--bold {
+    font-weight : bold;
+}
+
+// size
+.topi-button.--tiny {
+    font-size: 0.6rem;
+}
+
+.topi-button.--small {
+    font-size: 0.75rem;
+}
+
+.topi-button.--large {
+    font-size: 1.25rem;
+}
+
+.topi-button.--expanded {
+    display: block;
+    width: 100%;
+    margin-right: 0;
+    margin-left: 0;
+}
+
+// type
 .topi-button.--blue {
-    @extend %topi-button;
     background-color: $topi-color-blue;
 }
 
 .topi-button.--indigo {
-    @extend %topi-button;
     background-color: $topi-color-indigo;
 }
 
 .topi-button.--purple {
-    @extend %topi-button;
     background-color: $topi-color-purple;
 }
 
 .topi-button.--pink {
-    @extend %topi-button;
     background-color: $topi-color-pink;
 }
 
 .topi-button.--red {
-    @extend %topi-button;
     background-color: $topi-color-red;
 }
 
 .topi-button.--orange {
-    @extend %topi-button;
     background-color: $topi-color-orange;
 }
 
 .topi-button.--yellow {
-    @extend %topi-button;
     background-color: $topi-color-yellow;
 }
 
 .topi-button.--green {
-    @extend %topi-button;
     background-color: $topi-color-green;
 }
 
 .topi-button.--teal {
-    @extend %topi-button;
     background-color: $topi-color-teal;
 }
 
 .topi-button.--cyan {
-    @extend %topi-button;
     background-color: $topi-color-cyan;
 }
 
 .topi-button.--white {
-    @extend %topi-button;
     background-color: $topi-color-white;
 }
 
 .topi-button.--gray {
-    @extend %topi-button;
     background-color: $topi-color-gray;
 }
 
 .topi-button.--primary {
-    @extend %topi-button;
     background-color: $topi-color-primary;
 }
 
 .topi-button.--secondary {
-    @extend %topi-button;
     background-color: $topi-color-secondary;
 }
 
 .topi-button.--success {
-    @extend %topi-button;
     background-color: $topi-color-success;
 }
 
 .topi-button.--info {
-    @extend %topi-button;
     background-color: $topi-color-info;
 }
 
 .topi-button.--warning {
-    @extend %topi-button;
     background-color: $topi-color-warning;
 }
 
 .topi-button.--danger {
-    @extend %topi-button;
     background-color: $topi-color-danger;
 }
 
 .topi-button.--light {
-    @extend %topi-button;
     background-color: $topi-color-light;
 }
 
 .topi-button.--dark {
-    @extend %topi-button;
     background-color: $topi-color-dark;
 }
