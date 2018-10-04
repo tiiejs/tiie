@@ -198,10 +198,20 @@ class TopiObject {
         params.clone = params.clone === undefined ? 1 : params.clone;
         params.data = params.data === undefined ? 1 : params.data;
 
+        let data = {};
+
+        for (let key in p.data) {
+            if (key[0] == '@') {
+                continue;
+            }
+
+            data[key] = p.data[key];
+        }
+
         if (params.clone) {
-            return clone(p.data, params);
+            return clone(data, params);
         }else{
-            return p.data;
+            return data;
         }
     }
 
