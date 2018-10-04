@@ -205,6 +205,10 @@ class TopiObject {
         }
     }
 
+    state(params = {}) {
+        return this.data(params);
+    }
+
     get(name, value = null, params = {}) {
         let p = this.private(cn),
             pointer = p.data,
