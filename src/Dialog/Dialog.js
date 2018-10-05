@@ -5,9 +5,10 @@ import ViewAlert from 'Topi/Dialog/Views/Alert';
 import ViewModal from 'Topi/Dialog/Views/Modal';
 
 const cn = 'Dialog';
+
 class Dialog extends TopiObject {
     dialog(params = {}) {
-        const app = this.component('@app'),
+        let app = this.component('@app'),
             view = new ViewDialog(params)
         ;
 
@@ -22,7 +23,7 @@ class Dialog extends TopiObject {
      * Display alert.
      */
     alert(params = {}) {
-        const app = this.component('@app'),
+        let app = this.component('@app'),
             view = new ViewAlert(params)
         ;
 
@@ -37,15 +38,14 @@ class Dialog extends TopiObject {
      * Modal
      */
     modal(view, params = {}) {
-        const app = this.component('@app'),
-            modal = new ViewModal(view)
+        let app = this.component('@app'),
+            modal = new ViewModal(view, params)
         ;
 
-        modal
-            .target(app.target())
-        ;
+        modal.target(app.target());
 
         app.target().append(modal.element());
+
         modal.render();
 
         return modal;

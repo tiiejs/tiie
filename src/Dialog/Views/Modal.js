@@ -1,8 +1,8 @@
 import TopiObject from 'Topi/Object';
 import View from "Topi/View";
 
-import templateContent from "Topi/Dialog/Views/Modal.content.html";
-import templateLayout from "Topi/Dialog/Views/Modal.layout.html";
+import templateContent from "./Modal.content.html";
+import templateLayout from "./Modal.layout.html";
 
 const cn = 'Modal';
 
@@ -15,18 +15,45 @@ class Modal extends View {
     constructor(view, params = {}) {
         super(templateLayout);
 
-        const p = this.private(cn, {});
+        const p = this.private(cn, {
+            view,
+        });
 
-        p.view = view;
+        // tiny
+        // small
+        // normal
+        // large
+        // fullscreen
+        this.set('-size', params.size == undefined ? 'normal' : params.size);
+
+        this.element().on('click', (event) => {
+            this.remove();
+
+            event.stopPropagation();
+            event.preventDefault();
+        });
+
+        this.element('content').on('click', (event) => {
+            event.stopPropagation();
+            event.preventDefault();
+        });
+
+        this.on(':change', (event) => {
+            this.reload();
+        });
     }
 
     render() {
         const p = this.private(cn);
 
-        return p.view
+        this.element('content').attr('class', `topi-dialog-modal --${this.get('size')}`);
+
+        p.view
             .target(this.element('content'))
             .render()
         ;
+
+        return this;
     }
 }
 
