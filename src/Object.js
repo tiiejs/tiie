@@ -101,8 +101,18 @@ class TopiObject {
         switch (type) {
             case 'error':
                 return this.error(message);
+            case 'warn':
+                console.warn(message);
+                break;
+            case 'log':
+                console.log(message);
+                break;
+            case 'debug':
+                console.debugger(message);
+                break;
             default:
-                console.warn(type, message);
+                console.log(message);
+                break;
         }
 
         return this;
