@@ -19,6 +19,10 @@
 @import 'topi-vw-pagination.scss';
 
 /** margin **/
+.topi--margin-center {
+    margin: 0 auto;
+}
+
 .topi--margin-none {
     margin: 0px;
 }
@@ -390,4 +394,1310 @@
 
 .--bottom-padding {
     padding-bottom: 10px;
+}
+
+/** background-color **/
+.topi--background-color-indianred {
+    background-color: IndianRed;
+}
+
+.topi--background-color-lightcoral {
+    background-color: LightCoral;
+}
+
+.topi--background-color-salmon {
+    background-color: Salmon;
+}
+
+.topi--background-color-darksalmon {
+    background-color: DarkSalmon;
+}
+
+.topi--background-color-lightsalmon {
+    background-color: LightSalmon;
+}
+
+.topi--background-color-crimson {
+    background-color: Crimson;
+}
+
+.topi--background-color-red {
+    background-color: Red;
+}
+
+.topi--background-color-firebrick {
+    background-color: FireBrick;
+}
+
+.topi--background-color-darkred {
+    background-color: DarkRed;
+}
+
+.topi--background-color-pinks {
+    background-color: Pinks;
+}
+
+.topi--background-color-pink {
+    background-color: Pink;
+}
+
+.topi--background-color-lightpink {
+    background-color: LightPink;
+}
+
+.topi--background-color-hotpink {
+    background-color: HotPink;
+}
+
+.topi--background-color-deeppink {
+    background-color: DeepPink;
+}
+
+.topi--background-color-mediumvioletred {
+    background-color: MediumVioletRed;
+}
+
+.topi--background-color-palevioletred {
+    background-color: PaleVioletRed;
+}
+
+.topi--background-color-oranges {
+    background-color: Oranges;
+}
+
+.topi--background-color-coral {
+    background-color: Coral;
+}
+
+.topi--background-color-tomato {
+    background-color: Tomato;
+}
+
+.topi--background-color-orangered {
+    background-color: OrangeRed;
+}
+
+.topi--background-color-darkorange {
+    background-color: DarkOrange;
+}
+
+.topi--background-color-orange {
+    background-color: Orange;
+}
+
+.topi--background-color-yellows {
+    background-color: Yellows;
+}
+
+.topi--background-color-gold {
+    background-color: Gold;
+}
+
+.topi--background-color-yellow {
+    background-color: Yellow;
+}
+
+.topi--background-color-lightyellow {
+    background-color: LightYellow;
+}
+
+.topi--background-color-lemonchiffon {
+    background-color: LemonChiffon;
+}
+
+.topi--background-color-lightgoldenrodyellow {
+    background-color: LightGoldenrodYellow;
+}
+
+.topi--background-color-papayawhip {
+    background-color: PapayaWhip;
+}
+
+.topi--background-color-moccasin {
+    background-color: Moccasin;
+}
+
+.topi--background-color-peachpuff {
+    background-color: PeachPuff;
+}
+
+.topi--background-color-palegoldenrod {
+    background-color: PaleGoldenrod;
+}
+
+.topi--background-color-khaki {
+    background-color: Khaki;
+}
+
+.topi--background-color-darkkhaki {
+    background-color: DarkKhaki;
+}
+
+.topi--background-color-purples {
+    background-color: Purples;
+}
+
+.topi--background-color-lavender {
+    background-color: Lavender;
+}
+
+.topi--background-color-thistle {
+    background-color: Thistle;
+}
+
+.topi--background-color-plum {
+    background-color: Plum;
+}
+
+.topi--background-color-violet {
+    background-color: Violet;
+}
+
+.topi--background-color-orchid {
+    background-color: Orchid;
+}
+
+.topi--background-color-fuchsia {
+    background-color: Fuchsia;
+}
+
+.topi--background-color-magenta {
+    background-color: Magenta;
+}
+
+.topi--background-color-mediumorchid {
+    background-color: MediumOrchid;
+}
+
+.topi--background-color-mediumpurple {
+    background-color: MediumPurple;
+}
+
+.topi--background-color-blueviolet {
+    background-color: BlueViolet;
+}
+
+.topi--background-color-darkviolet {
+    background-color: DarkViolet;
+}
+
+.topi--background-color-darkorchid {
+    background-color: DarkOrchid;
+}
+
+.topi--background-color-darkmagenta {
+    background-color: DarkMagenta;
+}
+
+.topi--background-color-purple {
+    background-color: Purple;
+}
+
+.topi--background-color-rebeccapurple {
+    background-color: RebeccaPurple;
+}
+
+.topi--background-color-indigo {
+    background-color: Indigo;
+}
+
+.topi--background-color-mediumslateblue {
+    background-color: MediumSlateBlue;
+}
+
+.topi--background-color-slateblue {
+    background-color: SlateBlue;
+}
+
+.topi--background-color-darkslateblue {
+    background-color: DarkSlateBlue;
+}
+
+.topi--background-color-color {
+    background-color: Color;
+}
+
+.topi--background-color-rgb {
+    background-color: RGB;
+}
+
+.topi--background-color-rgb {
+    background-color: RGB;
+}
+
+.topi--background-color-greens {
+    background-color: Greens;
+}
+
+.topi--background-color-greenyellow {
+    background-color: GreenYellow;
+}
+
+.topi--background-color-chartreuse {
+    background-color: Chartreuse;
+}
+
+.topi--background-color-lawngreen {
+    background-color: LawnGreen;
+}
+
+.topi--background-color-lime {
+    background-color: Lime;
+}
+
+.topi--background-color-limegreen {
+    background-color: LimeGreen;
+}
+
+.topi--background-color-palegreen {
+    background-color: PaleGreen;
+}
+
+.topi--background-color-lightgreen {
+    background-color: LightGreen;
+}
+
+.topi--background-color-mediumspringgreen {
+    background-color: MediumSpringGreen;
+}
+
+.topi--background-color-springgreen {
+    background-color: SpringGreen;
+}
+
+.topi--background-color-mediumseagreen {
+    background-color: MediumSeaGreen;
+}
+
+.topi--background-color-seagreen {
+    background-color: SeaGreen;
+}
+
+.topi--background-color-forestgreen {
+    background-color: ForestGreen;
+}
+
+.topi--background-color-green {
+    background-color: Green;
+}
+
+.topi--background-color-darkgreen {
+    background-color: DarkGreen;
+}
+
+.topi--background-color-yellowgreen {
+    background-color: YellowGreen;
+}
+
+.topi--background-color-olivedrab {
+    background-color: OliveDrab;
+}
+
+.topi--background-color-olive {
+    background-color: Olive;
+}
+
+.topi--background-color-darkolivegreen {
+    background-color: DarkOliveGreen;
+}
+
+.topi--background-color-mediumaquamarine {
+    background-color: MediumAquamarine;
+}
+
+.topi--background-color-darkseagreen {
+    background-color: DarkSeaGreen;
+}
+
+.topi--background-color-lightseagreen {
+    background-color: LightSeaGreen;
+}
+
+.topi--background-color-darkcyan {
+    background-color: DarkCyan;
+}
+
+.topi--background-color-teal {
+    background-color: Teal;
+}
+
+.topi--background-color-blues {
+    background-color: Blues;
+}
+
+.topi--background-color-aqua {
+    background-color: Aqua;
+}
+
+.topi--background-color-cyan {
+    background-color: Cyan;
+}
+
+.topi--background-color-lightcyan {
+    background-color: LightCyan;
+}
+
+.topi--background-color-paleturquoise {
+    background-color: PaleTurquoise;
+}
+
+.topi--background-color-aquamarine {
+    background-color: Aquamarine;
+}
+
+.topi--background-color-turquoise {
+    background-color: Turquoise;
+}
+
+.topi--background-color-mediumturquoise {
+    background-color: MediumTurquoise;
+}
+
+.topi--background-color-darkturquoise {
+    background-color: DarkTurquoise;
+}
+
+.topi--background-color-cadetblue {
+    background-color: CadetBlue;
+}
+
+.topi--background-color-steelblue {
+    background-color: SteelBlue;
+}
+
+.topi--background-color-lightsteelblue {
+    background-color: LightSteelBlue;
+}
+
+.topi--background-color-powderblue {
+    background-color: PowderBlue;
+}
+
+.topi--background-color-lightblue {
+    background-color: LightBlue;
+}
+
+.topi--background-color-skyblue {
+    background-color: SkyBlue;
+}
+
+.topi--background-color-lightskyblue {
+    background-color: LightSkyBlue;
+}
+
+.topi--background-color-deepskyblue {
+    background-color: DeepSkyBlue;
+}
+
+.topi--background-color-dodgerblue {
+    background-color: DodgerBlue;
+}
+
+.topi--background-color-cornflowerblue {
+    background-color: CornflowerBlue;
+}
+
+.topi--background-color-royalblue {
+    background-color: RoyalBlue;
+}
+
+.topi--background-color-blue {
+    background-color: Blue;
+}
+
+.topi--background-color-mediumblue {
+    background-color: MediumBlue;
+}
+
+.topi--background-color-darkblue {
+    background-color: DarkBlue;
+}
+
+.topi--background-color-navy {
+    background-color: Navy;
+}
+
+.topi--background-color-midnightblue {
+    background-color: MidnightBlue;
+}
+
+.topi--background-color-color {
+    background-color: Color;
+}
+
+.topi--background-color-rgb {
+    background-color: RGB;
+}
+
+.topi--background-color-rgb {
+    background-color: RGB;
+}
+
+.topi--background-color-browns {
+    background-color: Browns;
+}
+
+.topi--background-color-cornsilk {
+    background-color: Cornsilk;
+}
+
+.topi--background-color-blanchedalmond {
+    background-color: BlanchedAlmond;
+}
+
+.topi--background-color-bisque {
+    background-color: Bisque;
+}
+
+.topi--background-color-navajowhite {
+    background-color: NavajoWhite;
+}
+
+.topi--background-color-wheat {
+    background-color: Wheat;
+}
+
+.topi--background-color-burlywood {
+    background-color: BurlyWood;
+}
+
+.topi--background-color-tan {
+    background-color: Tan;
+}
+
+.topi--background-color-rosybrown {
+    background-color: RosyBrown;
+}
+
+.topi--background-color-sandybrown {
+    background-color: SandyBrown;
+}
+
+.topi--background-color-goldenrod {
+    background-color: Goldenrod;
+}
+
+.topi--background-color-darkgoldenrod {
+    background-color: DarkGoldenrod;
+}
+
+.topi--background-color-peru {
+    background-color: Peru;
+}
+
+.topi--background-color-chocolate {
+    background-color: Chocolate;
+}
+
+.topi--background-color-saddlebrown {
+    background-color: SaddleBrown;
+}
+
+.topi--background-color-sienna {
+    background-color: Sienna;
+}
+
+.topi--background-color-brown {
+    background-color: Brown;
+}
+
+.topi--background-color-maroon {
+    background-color: Maroon;
+}
+
+.topi--background-color-whites {
+    background-color: Whites;
+}
+
+.topi--background-color-white {
+    background-color: White;
+}
+
+.topi--background-color-snow {
+    background-color: Snow;
+}
+
+.topi--background-color-honeydew {
+    background-color: Honeydew;
+}
+
+.topi--background-color-mintcream {
+    background-color: MintCream;
+}
+
+.topi--background-color-azure {
+    background-color: Azure;
+}
+
+.topi--background-color-aliceblue {
+    background-color: AliceBlue;
+}
+
+.topi--background-color-ghostwhite {
+    background-color: GhostWhite;
+}
+
+.topi--background-color-whitesmoke {
+    background-color: WhiteSmoke;
+}
+
+.topi--background-color-seashell {
+    background-color: Seashell;
+}
+
+.topi--background-color-beige {
+    background-color: Beige;
+}
+
+.topi--background-color-oldlace {
+    background-color: OldLace;
+}
+
+.topi--background-color-floralwhite {
+    background-color: FloralWhite;
+}
+
+.topi--background-color-ivory {
+    background-color: Ivory;
+}
+
+.topi--background-color-antiquewhite {
+    background-color: AntiqueWhite;
+}
+
+.topi--background-color-linen {
+    background-color: Linen;
+}
+
+.topi--background-color-lavenderblush {
+    background-color: LavenderBlush;
+}
+
+.topi--background-color-mistyrose {
+    background-color: MistyRose;
+}
+
+.topi--background-color-greys {
+    background-color: Greys;
+}
+
+.topi--background-color-gainsboro {
+    background-color: Gainsboro;
+}
+
+.topi--background-color-lightgray {
+    background-color: LightGray;
+}
+
+.topi--background-color-lightgrey {
+    background-color: LightGrey;
+}
+
+.topi--background-color-silver {
+    background-color: Silver;
+}
+
+.topi--background-color-darkgray {
+    background-color: DarkGray;
+}
+
+.topi--background-color-darkgrey {
+    background-color: DarkGrey;
+}
+
+.topi--background-color-gray {
+    background-color: Gray;
+}
+
+.topi--background-color-grey {
+    background-color: Grey;
+}
+
+.topi--background-color-dimgray {
+    background-color: DimGray;
+}
+
+.topi--background-color-dimgrey {
+    background-color: DimGrey;
+}
+
+.topi--background-color-lightslategray {
+    background-color: LightSlateGray;
+}
+
+.topi--background-color-lightslategrey {
+    background-color: LightSlateGrey;
+}
+
+.topi--background-color-slategray {
+    background-color: SlateGray;
+}
+
+.topi--background-color-slategrey {
+    background-color: SlateGrey;
+}
+
+.topi--background-color-darkslategray {
+    background-color: DarkSlateGray;
+}
+
+.topi--background-color-darkslategrey {
+    background-color: DarkSlateGrey;
+}
+
+.topi--background-color-black {
+    background-color: Black;
+}
+
+/** color **/
+.topi--color-indianred {
+    color: IndianRed;
+}
+
+.topi--color-lightcoral {
+    color: LightCoral;
+}
+
+.topi--color-salmon {
+    color: Salmon;
+}
+
+.topi--color-darksalmon {
+    color: DarkSalmon;
+}
+
+.topi--color-lightsalmon {
+    color: LightSalmon;
+}
+
+.topi--color-crimson {
+    color: Crimson;
+}
+
+.topi--color-red {
+    color: Red;
+}
+
+.topi--color-firebrick {
+    color: FireBrick;
+}
+
+.topi--color-darkred {
+    color: DarkRed;
+}
+
+.topi--color-pinks {
+    color: Pinks;
+}
+
+.topi--color-pink {
+    color: Pink;
+}
+
+.topi--color-lightpink {
+    color: LightPink;
+}
+
+.topi--color-hotpink {
+    color: HotPink;
+}
+
+.topi--color-deeppink {
+    color: DeepPink;
+}
+
+.topi--color-mediumvioletred {
+    color: MediumVioletRed;
+}
+
+.topi--color-palevioletred {
+    color: PaleVioletRed;
+}
+
+.topi--color-oranges {
+    color: Oranges;
+}
+
+.topi--color-coral {
+    color: Coral;
+}
+
+.topi--color-tomato {
+    color: Tomato;
+}
+
+.topi--color-orangered {
+    color: OrangeRed;
+}
+
+.topi--color-darkorange {
+    color: DarkOrange;
+}
+
+.topi--color-orange {
+    color: Orange;
+}
+
+.topi--color-yellows {
+    color: Yellows;
+}
+
+.topi--color-gold {
+    color: Gold;
+}
+
+.topi--color-yellow {
+    color: Yellow;
+}
+
+.topi--color-lightyellow {
+    color: LightYellow;
+}
+
+.topi--color-lemonchiffon {
+    color: LemonChiffon;
+}
+
+.topi--color-lightgoldenrodyellow {
+    color: LightGoldenrodYellow;
+}
+
+.topi--color-papayawhip {
+    color: PapayaWhip;
+}
+
+.topi--color-moccasin {
+    color: Moccasin;
+}
+
+.topi--color-peachpuff {
+    color: PeachPuff;
+}
+
+.topi--color-palegoldenrod {
+    color: PaleGoldenrod;
+}
+
+.topi--color-khaki {
+    color: Khaki;
+}
+
+.topi--color-darkkhaki {
+    color: DarkKhaki;
+}
+
+.topi--color-purples {
+    color: Purples;
+}
+
+.topi--color-lavender {
+    color: Lavender;
+}
+
+.topi--color-thistle {
+    color: Thistle;
+}
+
+.topi--color-plum {
+    color: Plum;
+}
+
+.topi--color-violet {
+    color: Violet;
+}
+
+.topi--color-orchid {
+    color: Orchid;
+}
+
+.topi--color-fuchsia {
+    color: Fuchsia;
+}
+
+.topi--color-magenta {
+    color: Magenta;
+}
+
+.topi--color-mediumorchid {
+    color: MediumOrchid;
+}
+
+.topi--color-mediumpurple {
+    color: MediumPurple;
+}
+
+.topi--color-blueviolet {
+    color: BlueViolet;
+}
+
+.topi--color-darkviolet {
+    color: DarkViolet;
+}
+
+.topi--color-darkorchid {
+    color: DarkOrchid;
+}
+
+.topi--color-darkmagenta {
+    color: DarkMagenta;
+}
+
+.topi--color-purple {
+    color: Purple;
+}
+
+.topi--color-rebeccapurple {
+    color: RebeccaPurple;
+}
+
+.topi--color-indigo {
+    color: Indigo;
+}
+
+.topi--color-mediumslateblue {
+    color: MediumSlateBlue;
+}
+
+.topi--color-slateblue {
+    color: SlateBlue;
+}
+
+.topi--color-darkslateblue {
+    color: DarkSlateBlue;
+}
+
+.topi--color-color {
+    color: Color;
+}
+
+.topi--color-rgb {
+    color: RGB;
+}
+
+.topi--color-rgb {
+    color: RGB;
+}
+
+.topi--color-greens {
+    color: Greens;
+}
+
+.topi--color-greenyellow {
+    color: GreenYellow;
+}
+
+.topi--color-chartreuse {
+    color: Chartreuse;
+}
+
+.topi--color-lawngreen {
+    color: LawnGreen;
+}
+
+.topi--color-lime {
+    color: Lime;
+}
+
+.topi--color-limegreen {
+    color: LimeGreen;
+}
+
+.topi--color-palegreen {
+    color: PaleGreen;
+}
+
+.topi--color-lightgreen {
+    color: LightGreen;
+}
+
+.topi--color-mediumspringgreen {
+    color: MediumSpringGreen;
+}
+
+.topi--color-springgreen {
+    color: SpringGreen;
+}
+
+.topi--color-mediumseagreen {
+    color: MediumSeaGreen;
+}
+
+.topi--color-seagreen {
+    color: SeaGreen;
+}
+
+.topi--color-forestgreen {
+    color: ForestGreen;
+}
+
+.topi--color-green {
+    color: Green;
+}
+
+.topi--color-darkgreen {
+    color: DarkGreen;
+}
+
+.topi--color-yellowgreen {
+    color: YellowGreen;
+}
+
+.topi--color-olivedrab {
+    color: OliveDrab;
+}
+
+.topi--color-olive {
+    color: Olive;
+}
+
+.topi--color-darkolivegreen {
+    color: DarkOliveGreen;
+}
+
+.topi--color-mediumaquamarine {
+    color: MediumAquamarine;
+}
+
+.topi--color-darkseagreen {
+    color: DarkSeaGreen;
+}
+
+.topi--color-lightseagreen {
+    color: LightSeaGreen;
+}
+
+.topi--color-darkcyan {
+    color: DarkCyan;
+}
+
+.topi--color-teal {
+    color: Teal;
+}
+
+.topi--color-blues {
+    color: Blues;
+}
+
+.topi--color-aqua {
+    color: Aqua;
+}
+
+.topi--color-cyan {
+    color: Cyan;
+}
+
+.topi--color-lightcyan {
+    color: LightCyan;
+}
+
+.topi--color-paleturquoise {
+    color: PaleTurquoise;
+}
+
+.topi--color-aquamarine {
+    color: Aquamarine;
+}
+
+.topi--color-turquoise {
+    color: Turquoise;
+}
+
+.topi--color-mediumturquoise {
+    color: MediumTurquoise;
+}
+
+.topi--color-darkturquoise {
+    color: DarkTurquoise;
+}
+
+.topi--color-cadetblue {
+    color: CadetBlue;
+}
+
+.topi--color-steelblue {
+    color: SteelBlue;
+}
+
+.topi--color-lightsteelblue {
+    color: LightSteelBlue;
+}
+
+.topi--color-powderblue {
+    color: PowderBlue;
+}
+
+.topi--color-lightblue {
+    color: LightBlue;
+}
+
+.topi--color-skyblue {
+    color: SkyBlue;
+}
+
+.topi--color-lightskyblue {
+    color: LightSkyBlue;
+}
+
+.topi--color-deepskyblue {
+    color: DeepSkyBlue;
+}
+
+.topi--color-dodgerblue {
+    color: DodgerBlue;
+}
+
+.topi--color-cornflowerblue {
+    color: CornflowerBlue;
+}
+
+.topi--color-royalblue {
+    color: RoyalBlue;
+}
+
+.topi--color-blue {
+    color: Blue;
+}
+
+.topi--color-mediumblue {
+    color: MediumBlue;
+}
+
+.topi--color-darkblue {
+    color: DarkBlue;
+}
+
+.topi--color-navy {
+    color: Navy;
+}
+
+.topi--color-midnightblue {
+    color: MidnightBlue;
+}
+
+.topi--color-color {
+    color: Color;
+}
+
+.topi--color-rgb {
+    color: RGB;
+}
+
+.topi--color-rgb {
+    color: RGB;
+}
+
+.topi--color-browns {
+    color: Browns;
+}
+
+.topi--color-cornsilk {
+    color: Cornsilk;
+}
+
+.topi--color-blanchedalmond {
+    color: BlanchedAlmond;
+}
+
+.topi--color-bisque {
+    color: Bisque;
+}
+
+.topi--color-navajowhite {
+    color: NavajoWhite;
+}
+
+.topi--color-wheat {
+    color: Wheat;
+}
+
+.topi--color-burlywood {
+    color: BurlyWood;
+}
+
+.topi--color-tan {
+    color: Tan;
+}
+
+.topi--color-rosybrown {
+    color: RosyBrown;
+}
+
+.topi--color-sandybrown {
+    color: SandyBrown;
+}
+
+.topi--color-goldenrod {
+    color: Goldenrod;
+}
+
+.topi--color-darkgoldenrod {
+    color: DarkGoldenrod;
+}
+
+.topi--color-peru {
+    color: Peru;
+}
+
+.topi--color-chocolate {
+    color: Chocolate;
+}
+
+.topi--color-saddlebrown {
+    color: SaddleBrown;
+}
+
+.topi--color-sienna {
+    color: Sienna;
+}
+
+.topi--color-brown {
+    color: Brown;
+}
+
+.topi--color-maroon {
+    color: Maroon;
+}
+
+.topi--color-whites {
+    color: Whites;
+}
+
+.topi--color-white {
+    color: White;
+}
+
+.topi--color-snow {
+    color: Snow;
+}
+
+.topi--color-honeydew {
+    color: Honeydew;
+}
+
+.topi--color-mintcream {
+    color: MintCream;
+}
+
+.topi--color-azure {
+    color: Azure;
+}
+
+.topi--color-aliceblue {
+    color: AliceBlue;
+}
+
+.topi--color-ghostwhite {
+    color: GhostWhite;
+}
+
+.topi--color-whitesmoke {
+    color: WhiteSmoke;
+}
+
+.topi--color-seashell {
+    color: Seashell;
+}
+
+.topi--color-beige {
+    color: Beige;
+}
+
+.topi--color-oldlace {
+    color: OldLace;
+}
+
+.topi--color-floralwhite {
+    color: FloralWhite;
+}
+
+.topi--color-ivory {
+    color: Ivory;
+}
+
+.topi--color-antiquewhite {
+    color: AntiqueWhite;
+}
+
+.topi--color-linen {
+    color: Linen;
+}
+
+.topi--color-lavenderblush {
+    color: LavenderBlush;
+}
+
+.topi--color-mistyrose {
+    color: MistyRose;
+}
+
+.topi--color-greys {
+    color: Greys;
+}
+
+.topi--color-gainsboro {
+    color: Gainsboro;
+}
+
+.topi--color-lightgray {
+    color: LightGray;
+}
+
+.topi--color-lightgrey {
+    color: LightGrey;
+}
+
+.topi--color-silver {
+    color: Silver;
+}
+
+.topi--color-darkgray {
+    color: DarkGray;
+}
+
+.topi--color-darkgrey {
+    color: DarkGrey;
+}
+
+.topi--color-gray {
+    color: Gray;
+}
+
+.topi--color-grey {
+    color: Grey;
+}
+
+.topi--color-dimgray {
+    color: DimGray;
+}
+
+.topi--color-dimgrey {
+    color: DimGrey;
+}
+
+.topi--color-lightslategray {
+    color: LightSlateGray;
+}
+
+.topi--color-lightslategrey {
+    color: LightSlateGrey;
+}
+
+.topi--color-slategray {
+    color: SlateGray;
+}
+
+.topi--color-slategrey {
+    color: SlateGrey;
+}
+
+.topi--color-darkslategray {
+    color: DarkSlateGray;
+}
+
+.topi--color-darkslategrey {
+    color: DarkSlateGrey;
+}
+
+.topi--color-black {
+    color: Black;
 }
