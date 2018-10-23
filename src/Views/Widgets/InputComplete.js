@@ -1,6 +1,7 @@
 import Widget from 'Topi/Views/Widgets/Widget';
 
 const cn = 'InputComplete';
+
 class InputComplete extends Widget {
     constructor(params = {}) {
         super(`<input type="text" class="topi-input">`, params);
