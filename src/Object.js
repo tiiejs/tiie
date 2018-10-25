@@ -119,6 +119,31 @@ class TopiObject {
     }
 
     /**
+     * Prepare params and return.
+     *
+     * @param {Array} values
+     * @param {Object} params
+     * @return {object}
+     */
+    params(values =  [], params = {}) {
+        let prepared = {};
+
+        values.forEach((value) => {
+            // value = clone(value);
+
+            for (let i in value) {
+                if (value[i] == null) {
+                    continue;
+                }
+
+                prepared[i] = value[i];
+            }
+        });
+
+        return prepared;
+    }
+
+    /**
      * Set value of attribute for object. Given value is always cloned.
      *
      * @param {string} name Name of attribute. Name can use docs notation. For
