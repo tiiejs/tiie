@@ -58,6 +58,18 @@ class InputComplete extends Widget {
             // }
         });
     }
+
+    render() {
+        const p = this.private(cn);
+
+        if (this.get('value') == null) {
+            this.element().val('');
+        } else {
+            this.element().val(this.get('value'));
+        }
+
+        return this;
+    }
 }
 
 export default InputComplete;
