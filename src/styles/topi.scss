@@ -96,6 +96,163 @@
     padding-right: 10px;
 }
 
+/** cursor **/
+.topi--cursor-alias {
+    cursor: alias;
+}
+
+.topi--cursor-all-scroll {
+    cursor: all-scroll;
+}
+
+.topi--cursor-auto {
+    cursor: auto;
+}
+
+.topi--cursor-cell {
+    cursor: cell;
+}
+
+.topi--cursor-context-menu {
+    cursor: context-menu;
+}
+
+.topi--cursor-col-resize {
+    cursor: col-resize;
+}
+
+.topi--cursor-copy {
+    cursor: copy;
+}
+
+.topi--cursor-crosshair {
+    cursor: crosshair;
+}
+
+.topi--cursor-default {
+    cursor: default;
+}
+
+.topi--cursor-e-resize {
+    cursor: e-resize;
+}
+
+.topi--cursor-ew-resize {
+    cursor: ew-resize;
+}
+
+.topi--cursor-grab {
+    cursor: grab;
+}
+
+.topi--cursor-grabbing {
+    cursor: grabbing;
+}
+
+.topi--cursor-help {
+    cursor: help;
+}
+
+.topi--cursor-move {
+    cursor: move;
+}
+
+.topi--cursor-n-resize {
+    cursor: n-resize;
+}
+
+.topi--cursor-ne-resize {
+    cursor: ne-resize;
+}
+
+.topi--cursor-nesw-resize {
+    cursor: nesw-resize;
+}
+
+.topi--cursor-ns-resize {
+    cursor: ns-resize;
+}
+
+.topi--cursor-nw-resize {
+    cursor: nw-resize;
+}
+
+.topi--cursor-nwse-resize {
+    cursor: nwse-resize;
+}
+
+.topi--cursor-no-drop {
+    cursor: no-drop;
+}
+
+.topi--cursor-none {
+    cursor: none;
+}
+
+.topi--cursor-not-allowed {
+    cursor: not-allowed;
+}
+
+.topi--cursor-pointer {
+    cursor: pointer;
+}
+
+.topi--cursor-progress {
+    cursor: progress;
+}
+
+.topi--cursor-row-resize {
+    cursor: row-resize;
+}
+
+.topi--cursor-s-resize {
+    cursor: s-resize;
+}
+
+.topi--cursor-se-resize {
+    cursor: se-resize;
+}
+
+.topi--cursor-sw-resize {
+    cursor: sw-resize;
+}
+
+.topi--cursor-text {
+    cursor: text;
+}
+
+.topi--cursor-URL {
+    cursor: URL;
+}
+
+.topi--cursor-vertical-text {
+    cursor: vertical-text;
+}
+
+.topi--cursor-w-resize {
+    cursor: w-resize;
+}
+
+.topi--cursor-wait {
+    cursor: wait;
+}
+
+.topi--cursor-zoom-in {
+    cursor: zoom-in;
+}
+
+.topi--cursor-zoom-out {
+    cursor: zoom-out;
+}
+
+.topi--cursor-initial {
+    cursor: initial;
+}
+
+.topi--cursor-inherit {
+    cursor: inherit;
+}
+
 /** space **/
 .topi--space-10 {
     margin: 10px;
@@ -395,10 +552,15 @@ $label : 5;
 /** hover **/
 %topi--hover:hover {
     cursor: pointer;
+    font-size: 120%;
 }
 
 .topi--hover:hover {
     @extend %topi--hover:hover;
+}
+
+.topi--link:hover{
+
 }
 
 .topi--no-resize {
@@ -407,10 +569,6 @@ $label : 5;
 
 /** link **/
 .topi--link {
-
-}
-
-.topi--link:hover{
 
 }
 
