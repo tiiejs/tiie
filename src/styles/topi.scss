@@ -1900,3 +1900,32 @@ $label : 5;
 .topi--color-black {
     color: Black;
 }
+
+/** white-space **/
+.topi--white-space-normal {
+    white-space: normal;
+}
+
+.topi--white-space-nowrap {
+    white-space: nowrap;
+}
+
+.topi--white-space-pre {
+    white-space: pre;
+}
+
+.topi--white-space-pre-line {
+    white-space: pre-line;
+}
+
+.topi--white-space-pre-wrap {
+    white-space: pre-wrap;
+}
+
+.topi--white-space-initial {
+    white-space: initial;
+}
+
+.topi--white-space-inherit {
+    white-space: inherit;
+}
