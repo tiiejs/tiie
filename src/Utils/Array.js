@@ -33,7 +33,14 @@ class UtilsArray {
         return path;
     }
 
-    splitToRows(items, atRow) {
+    /**
+     * Split list to rows with given number of elements.
+     *
+     * @param {Array} items
+     * @param {int} at
+     * @return {Array}
+     */
+    splitToRows(items, at = 4) {
         let rows = [],
             row = []
         ;
@@ -41,7 +48,7 @@ class UtilsArray {
         items.forEach((item) => {
             row.push(item);
 
-            if (row.length == atRow) {
+            if (row.length == at) {
                 rows.push(row);
                 row = [];
             }
