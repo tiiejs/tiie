@@ -5,7 +5,7 @@ class Checkbox extends Widget {
     constructor(params = {}) {
         super(`<input type="checkbox" class="form-control">`, params);
 
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         this.set('-value', params.value == "1" ? 1 : 0);
 
@@ -25,7 +25,7 @@ class Checkbox extends Widget {
     render() {
         super.render();
 
-        let p = this.private(cn),
+        let p = this.__private(cn),
             data = {
                 value : this.get('value'),
             }

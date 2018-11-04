@@ -5,7 +5,7 @@ class Select extends Widget {
     constructor(params = {}) {
         super(`<select class="topi-input-select" style='width : 100%'></select>`);
 
-        let p = this.private(cn, {
+        let p = this.__private(cn, {
             inited : 0
         });
 
@@ -51,7 +51,7 @@ class Select extends Widget {
     }
 
     __setValue(target, name, value, emitparams = {}) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             keyValue = this.get('keyValue'),
             multiple = this.get('multiple'),
             items = this.get('&items')
@@ -127,7 +127,7 @@ class Select extends Widget {
     render() {
         super.render();
 
-        let p = this.private(cn),
+        let p = this.__private(cn),
             value = this.get("value"),
             multiple = this.get('multiple'),
             keyValue = this.get('keyValue')
@@ -165,7 +165,7 @@ class Select extends Widget {
 
     _reloadState() {
         return;
-        let p = this.private(cn),
+        let p = this.__private(cn),
             state = this.get("&state")
         ;
 
@@ -185,7 +185,7 @@ class Select extends Widget {
     }
 
     _initSelect() {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             multiple = this.get("multiple"),
             items = this.get("&items"),
             keyValue = this.get("keyValue"),

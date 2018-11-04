@@ -15,7 +15,7 @@ class Modal extends View {
     constructor(view, params = {}) {
         super(templateLayout);
 
-        const p = this.private(cn, {
+        const p = this.__private(cn, {
             view,
         });
 
@@ -44,7 +44,7 @@ class Modal extends View {
     }
 
     render() {
-        const p = this.private(cn);
+        const p = this.__private(cn);
 
         this.element('content').attr('class', `topi-dialog-modal --${this.get('size')}`);
 

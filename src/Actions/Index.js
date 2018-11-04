@@ -7,7 +7,7 @@ const cn = 'Index';
 class Index extends Action {
     async run(params, controller) {
         return super.run(params, controller).then(() => {
-            let p = this.private(cn),
+            let p = this.__private(cn),
                 router = this.component('@router'),
                 view = {}
             ;

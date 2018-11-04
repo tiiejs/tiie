@@ -7,7 +7,7 @@ class Pagination extends Widget {
     constructor(state = {}) {
         super(templateLayout);
 
-        let p = this.private(cn, {
+        let p = this.__private(cn, {
             previousValue : null,
         });
 
@@ -88,7 +88,7 @@ class Pagination extends Widget {
     }
 
     _checkValue(value) {
-        const p = this.private(cn),
+        const p = this.__private(cn),
             pages = this.get("pages"),
             valueInt = parseInt(value)
         ;
@@ -109,7 +109,7 @@ class Pagination extends Widget {
     }
 
     __setValue(target, name, value, emitparams = {}) {
-        const p = this.private(cn);
+        const p = this.__private(cn);
 
         if (name == "pages") {
             const valueInt = parseInt(value);
@@ -131,7 +131,7 @@ class Pagination extends Widget {
     render() {
         super.render();
 
-        let p = this.private(cn),
+        let p = this.__private(cn),
             pages = parseInt(this.get("pages")),
             value = parseInt(this.get("value"))
         ;

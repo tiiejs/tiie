@@ -5,7 +5,7 @@ class Controller extends TopiObject {
     constructor(target) {
         super();
 
-        let p = this.private(cn, {
+        let p = this.__private(cn, {
             target,
         });
     }
@@ -16,7 +16,7 @@ class Controller extends TopiObject {
      * @return {jQuery}
      */
     target() {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         return p.target;
     }

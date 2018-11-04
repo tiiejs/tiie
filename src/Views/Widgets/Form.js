@@ -21,7 +21,7 @@ class Form extends Widget {
             }
         }, params);
 
-        let p = this.private(cn, {
+        let p = this.__private(cn, {
             id : 0,
             // Lista przycisków
             buttons : [],
@@ -97,7 +97,7 @@ class Form extends Widget {
      * @return {this|Widget}
      */
     widget(id, widget) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         if (widget === undefined) {
             if (p.widgets[id] === undefined) {
@@ -167,7 +167,7 @@ class Form extends Widget {
      * @return {int} 0 lub 1
      */
     atStructure(id) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             found = 0,
             structure = this.get("&structure")
         ;
@@ -191,7 +191,7 @@ class Form extends Widget {
      * @return $this
      */
     button(button = {}) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             buttons = this.get("buttons")
         ;
 
@@ -210,7 +210,7 @@ class Form extends Widget {
      * @return $this
      */
     submit() {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         this.emit("form:submit");
 
@@ -223,7 +223,7 @@ class Form extends Widget {
     render() {
         super.render();
 
-        let p = this.private(cn),
+        let p = this.__private(cn),
             i,
             target,
             html = [],
@@ -330,7 +330,7 @@ class Form extends Widget {
     }
 
     _reloadValue() {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             value = this.get("&value"),
             i
         ;
@@ -347,7 +347,7 @@ class Form extends Widget {
      * processing etc.
      */
     _reloadState() {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             state = this.get("&state"),
             i
         ;
@@ -409,7 +409,7 @@ class Form extends Widget {
     }
 
     __setValue(target, name, value, emitparams = {}) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         if (name == "buttons") {
             if (!Array.isArray(value)) {
@@ -467,7 +467,7 @@ class Form extends Widget {
      * Reload buttons html.
      */
     _reloadButtons() {
-        let p = this.private();
+        let p = this.__private();
 
         let buttons = {};
 

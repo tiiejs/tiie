@@ -5,7 +5,7 @@ class Responses extends TopiObject {
     constructor(responses){
         super();
 
-        let p = this.private(cn, {
+        let p = this.__private(cn, {
             responses,
         });
     }
@@ -15,13 +15,13 @@ class Responses extends TopiObject {
     }
 
     get(name) {
-        return this.private(cn, 'responses').find((response) => {
+        return this.__private(cn, 'responses').find((response) => {
             return response.name() == name;
         });
     }
 
     error() {
-        return undefined != this.private(cn, 'responses').find((response) => {
+        return undefined != this.__private(cn, 'responses').find((response) => {
             return response.error();
         });
     }

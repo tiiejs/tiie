@@ -53,7 +53,7 @@ class Api extends TopiObject {
     constructor(url = "") {
         super();
 
-        let p = this.private(cn, {
+        let p = this.__private(cn, {
             binds : {},
             url,
             headers : {
@@ -68,7 +68,7 @@ class Api extends TopiObject {
      * @return {string}
      */
     url() {
-        return this.private(cn).url;
+        return this.__private(cn).url;
     }
 
     /**
@@ -78,7 +78,7 @@ class Api extends TopiObject {
      * @return Endpoint
      */
     endpoint(urn) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         return new Endpoint(this, urn);
     }
@@ -91,7 +91,7 @@ class Api extends TopiObject {
      * @return this
      */
     bind(name, value) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         p.binds[name] = value;
 
@@ -99,7 +99,7 @@ class Api extends TopiObject {
     }
 
     binds(binds) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         p.binds = binds;
 
@@ -107,7 +107,7 @@ class Api extends TopiObject {
     }
 
     header(name, value) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         if (arguments.length === 1) {
             return p.headers[name];
@@ -119,7 +119,7 @@ class Api extends TopiObject {
     }
 
     headers(headers) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         if (arguments.length == 1) {
             return p.headers = headers;
@@ -129,7 +129,7 @@ class Api extends TopiObject {
     }
 
     bind(name, value) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         switch (arguments.length) {
             case 1:
@@ -144,7 +144,7 @@ class Api extends TopiObject {
     }
 
     binds(binds) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         switch (arguments.length) {
             case 0:
@@ -176,7 +176,7 @@ class Api extends TopiObject {
      * @return Request
      */
     request(creator) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             request = new Request(this)
         ;
 

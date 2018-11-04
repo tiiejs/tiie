@@ -2,58 +2,58 @@
     border: 1px silver dotted;
     background-color: white;
 
-    .__head {
+    .topi-portlet__head {
         border-bottom: 1px solid #ebedf2;
         padding: 10px;
         background-color: white;
 
-        .__icon {
+        .topi-portlet__icon {
             display: inline-block;
         }
 
-        .__icon:first-child {
+        .topi-portlet__icon:first-child {
             margin-right: 10px;
         }
 
-        .__title {
+        .topi-portlet__title {
             font-size: 16px;
             display: inline-block;
             // font-weight: bold;
         }
     }
 
-    .__head.--center {
+    .topi-portlet__head.--center {
         text-align: center;
     }
 
-    .__head.--bold {
+    .topi-portlet__head.--bold {
         font-weight: bold;
     }
 
-    .__body {
+    .topi-portlet__body {
         padding: 10px;
     }
 
-    .__body.--no-padding {
+    .topi-portlet__body.--no-padding {
         padding: 0px;
     }
 
-    .__body.--top-padding {
+    .topi-portlet__body.--top-padding {
         padding-top: 10px;
     }
 
-    .__body.--bottom-padding {
+    .topi-portlet__body.--bottom-padding {
         padding-bottom: 10px;
     }
 
-    .__foot {
+    .topi-portlet__foot {
         padding: 10px;
         border-top: 1px silver dotted;
     }
 }
 
 .topi-portlet.--form {
-    .__body {
+    .topi-portlet__body {
         background-color: #fafafa;
     }
 }

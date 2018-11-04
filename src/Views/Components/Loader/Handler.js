@@ -9,7 +9,7 @@ class Handler extends TopiObject {
     constructor(view, manager, params = {}) {
         super();
 
-        const p = this.private(cn);
+        const p = this.__private(cn);
 
         p.view = view;
         p.manager = manager;
@@ -17,7 +17,7 @@ class Handler extends TopiObject {
     }
 
     remove() {
-        const p = this.private(cn);
+        const p = this.__private(cn);
 
         p.view.remove();
     }

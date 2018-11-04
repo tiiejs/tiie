@@ -19,7 +19,7 @@ class Dialog extends View {
     constructor(params = {}) {
         super(templateLayout);
 
-        const p = this.private(cn, {});
+        const p = this.__private(cn, {});
 
         this.set('-title', params.title === undefined ? null : params.title);
         this.set('-content', params.content === undefined ? null : params.content);
@@ -69,7 +69,7 @@ class Dialog extends View {
     }
 
     render() {
-        const p = this.private(cn);
+        const p = this.__private(cn);
 
         this.element().html(this.template(templateDialog)(this.data()));
 

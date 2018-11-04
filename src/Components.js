@@ -5,14 +5,15 @@ class Components extends TopiObject {
     constructor(components = {}) {
         super();
 
-        let p = this.private(cn, {
+        let p = this.__private(cn, {
             components,
-            inited : {}
+            inited : {},
+            register : {},
         });
     }
 
     get(name, params = {}) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         if (name[0] == '@') {
             if (p.inited[name] === undefined) {
@@ -21,6 +22,14 @@ class Components extends TopiObject {
                 }
 
                 p.inited[name] = p.components[name](this, params);
+            }
+
+            return p.inited[name];
+        } else if (name[0] == '#') {
+            if (p.inited[name] === undefined) {
+                this.log(`Component ${name} does not exists.`, 'warn', 'topi.components');
+
+                return null;
             }
 
             return p.inited[name];
@@ -33,12 +42,56 @@ class Components extends TopiObject {
         }
     }
 
+    list() {
+        let p = this.__private(cn);
+
+        console.log('Inited');
+        console.log('------------------------');
+        for (let key in p.inited) {
+            let color = 'color : black;';
+
+            if (key[0] == '#') {
+                color = 'color : blue;';
+            }
+
+            if (p.inited[key].data != undefined) {
+                console.log(`%c${key} -> %O, state %O`, color, p.inited[key], p.inited[key].data());
+            } else {
+                console.log(`%c${key} -> %O`, color, p.inited[key], p.inited[key].data());
+            }
+        }
+
+        console.log('Components');
+        console.log('------------------------');
+        for (let key in p.components) {
+            if (!p.inited.hasOwnProperty(key)) {
+                console.log(key);
+            }
+        }
+    }
+
     set(name, service) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         p.inited[name] = service;
 
         return this;
+    }
+
+    dump() {
+        let p = this.__private(cn);
+
+        if (window.dump == undefined) {
+            window.dump = {};
+        };
+
+        for (let key in p.inited) {
+            if (key[0] == '#') {
+                window[`dump_register_${key.substring(1).replace(/\./g, '_')}`] = p.inited[key];
+            } else if(key[0] == '@') {
+                window[`dump_service_${key.substring(1).replace(/\./g, '_')}`] = p.inited[key];
+            }
+        }
     }
 }
 

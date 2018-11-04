@@ -7,7 +7,7 @@ class Photoswipe extends Widget {
     constructor(params) {
         super(template);
 
-        let p = this.private(cn, {
+        let p = this.__private(cn, {
             value : [],
         });
     }
@@ -15,7 +15,7 @@ class Photoswipe extends Widget {
     render() {
         super.render();
 
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         // build items array
         // var items = [

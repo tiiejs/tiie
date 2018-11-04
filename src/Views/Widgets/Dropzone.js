@@ -6,7 +6,7 @@ class Dropzone extends Widget {
     constructor(params = {}) {
         super(`<form class="dropzone"></form>`);
 
-        let p = this.private(cn, {
+        let p = this.__private(cn, {
             dropzone : null
         });
 
@@ -38,7 +38,7 @@ class Dropzone extends Widget {
     render() {
         super.render();
 
-        let p = this.private(cn),
+        let p = this.__private(cn),
             value = this.get('&value')
         ;
 

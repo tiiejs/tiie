@@ -9,7 +9,7 @@ class View extends TopiObject {
     constructor(template = "<div></div>") {
         super();
 
-        let p = this.private(cn, {
+        let p = this.__private(cn, {
             target : null,
             // element : this.create(template),
             // elements : this._createElements(template),
@@ -34,7 +34,7 @@ class View extends TopiObject {
     }
 
     _attachEventsListener(element) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         this.element().on('click', '[event-click]', (event) => {
             let target = this.$(event.currentTarget);
@@ -52,7 +52,7 @@ class View extends TopiObject {
     }
 
     _createElements(html) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             elements = [],
             div,
             i
@@ -82,7 +82,7 @@ class View extends TopiObject {
      * @return {Object}
      */
     create(html) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         let wrapper = document.createElement("div");
         wrapper.innerHTML = html;
@@ -97,7 +97,7 @@ class View extends TopiObject {
      * @return this
      */
     reload() {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         if (p.timeout.reload != null) {
             clearTimeout(p.timeout.reload);
@@ -118,7 +118,7 @@ class View extends TopiObject {
      * @return this
      */
     render() {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         p.rendered = 1;
 
@@ -139,7 +139,7 @@ class View extends TopiObject {
     }
 
     is(name) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         switch (name) {
             case 'rendered':
@@ -156,7 +156,7 @@ class View extends TopiObject {
      * @return {Object}
      */
     target(target) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         switch (arguments.length) {
             case 0:
@@ -183,7 +183,7 @@ class View extends TopiObject {
      * @return jQuery
      */
     element(name) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         if (name === undefined) {
             return p.elements[0];
@@ -205,7 +205,7 @@ class View extends TopiObject {
     }
 
     remove() {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         p.elements.forEach((element) => {
             element.remove();
@@ -215,13 +215,13 @@ class View extends TopiObject {
     }
 
     find(selector) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         return p.elements[0].find(selector);
     }
 
     html(html) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         if (html == undefined) {
             return p.elements[0].html();

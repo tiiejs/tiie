@@ -2,15 +2,24 @@ import Widget from "Topi/Views/Widgets/Widget";
 
 const cn = "Input";
 class Input extends Widget {
-    constructor(params = {}) {
-        super(`<input type="text" class="topi-input">`, params);
+    constructor(state = {}, params = {}) {
+        super(`<input type="text" class="topi-input">`, state);
 
-        const p = this.private(cn);
+        const p = this.__private(cn);
 
-        this.set("-value", params.value === undefined ? null : params.value);
-        this.set("-placeholder", params.placeholder === undefined ? null : params.placeholder);
-        this.set("-type", params.type === undefined ? null : params.type);
-        this.set("-state", params.state === undefined ? {type : "default"} : params.state);
+        this.set("-value", state.value === undefined ? null : state.value);
+        this.set("-placeholder", state.placeholder === undefined ? null : state.placeholder);
+        this.set("-type", state.type === undefined ? null : state.type);
+        this.set("-state", state.state === undefined ? {type : "default"} : state.state);
+
+        params.mode = params.mode == undefined ? Input.MODE_FOCUS : params.mode;
+
+        // Check mode
+        if (![Input.MODE_ACTIVE, Input.MODE_FOCUS].includes(params.mode)) {
+            this.log(`Unknown type of mode for input ${params.mode}.`, "warn", "topi.view.widgets.input");
+
+            params.mode = Input.MODE_FOCUS;
+        }
 
         this.on([
             "value",
@@ -26,39 +35,102 @@ class Input extends Widget {
             this._reloadState();
         }, this.id());
 
-        this.element().on("focusin", () => {
-            let state = this.get("&state");
+        if (params.mode == Input.MODE_FOCUS) {
+            this.element().on("focusin", (event) => {
+                let state = this.get("&state");
 
-            if (state.type == "error") {
-                this.element().removeClass("--error");
-            }
+                if (state.type == "error") {
+                    this.element().removeClass("--error");
+                }
 
-            this.element().val(this.get("value"));
-        });
+                this.element().val(this.get("value"));
 
-        this.element().on("focusout", () => {
-            let input = this.element().get(0);
-            let value;
+                event.stopPropagation();
+                event.preventDefault();
+            });
 
-            let state = this.get("&state");
+            this.element().on("focusout", (event) => {
+                let input = this.element().get(0);
+                let value;
 
-            if (state.type == "error") {
-                this.element().addClass("--error");
-            }
+                let state = this.get("&state");
 
-            if (input.inputmask) {
-                value = input.inputmask.unmaskedvalue();
-            }else{
-                value = this.element().val();
-            }
+                if (state.type == "error") {
+                    this.element().addClass("--error");
+                }
 
-            if (value === undefined) {
-                this.log("Value of input can not be get.", "warn");
-                value = null;
-            }
+                if (input.inputmask) {
+                    value = input.inputmask.unmaskedvalue();
+                }else{
+                    value = this.element().val();
+                }
 
-            this.set("value", value === "" ? null : value);
-        });
+                if (value === undefined) {
+                    this.log("Value of input can not be get.", "warn");
+                    value = null;
+                }
+
+                this.set("value", value === "" ? null : value);
+
+                event.stopPropagation();
+                event.preventDefault();
+            });
+        } else if(params.mode == Input.MODE_ACTIVE) {
+            this.element().on("focusin", (event) => {
+                let state = this.get("&state");
+
+                if (state.type == "error") {
+                    this.element().removeClass("--error");
+                }
+
+                event.stopPropagation();
+                event.preventDefault();
+            });
+
+            this.element().on("keyup", (event) => {
+                let state = this.get("&state");
+
+                if (state.type == "error") {
+                    this.element().addClass("--error");
+                } else {
+                    this.element().removeClass("--error");
+                }
+
+                let value = this.element().val() == '' ? null : this.element().val();
+
+                this.set('value', value, {ommit : this.id()});
+
+                event.stopPropagation();
+                event.preventDefault();
+            });
+
+            // this.element().on("focusout", (event) => {
+            //     let input = this.element().get(0);
+            //     let value;
+
+            //     let state = this.get("&state");
+
+            //     if (state.type == "error") {
+            //         this.element().addClass("--error");
+            //     }
+
+            //     if (input.inputmask) {
+            //         value = input.inputmask.unmaskedvalue();
+            //     }else{
+            //         value = this.element().val();
+            //     }
+
+            //     if (value === undefined) {
+            //         this.log("Value of input can not be get.", "warn");
+            //         value = null;
+            //     }
+
+            //     this.set("value", value === "" ? null : value);
+
+            //     event.stopPropagation();
+            //     event.preventDefault();
+            // });
+        }
     }
 
     /**
@@ -67,7 +139,7 @@ class Input extends Widget {
     render() {
         super.render();
 
-        const p = this.private(cn),
+        const p = this.__private(cn),
             value = this.get("&value"),
             placeholder = this.get("&placeholder")
         ;
@@ -95,7 +167,7 @@ class Input extends Widget {
      * Set mask to input. Mask is dependent from type of input.
      */
     _mask() {
-        const p = this.private(),
+        const p = this.__private(),
             type = this.get("type")
         ;
 
@@ -162,7 +234,7 @@ class Input extends Widget {
     }
 
     _reloadState() {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             state = this.get("&state")
         ;
 
@@ -174,5 +246,8 @@ class Input extends Widget {
         }
     }
 }
+
+Input.MODE_ACTIVE = 'active';
+Input.MODE_FOCUS = 'focus';
 
 export default Input;

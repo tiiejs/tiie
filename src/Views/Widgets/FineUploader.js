@@ -6,7 +6,7 @@ class FineUploader extends Widget {
     constructor(params = {}) {
         super(`<form></form>`);
 
-        let p = this.private(cn, {
+        let p = this.__private(cn, {
             uploader : null
         });
 
@@ -63,7 +63,7 @@ class FineUploader extends Widget {
     render() {
         super.render();
 
-        let p = this.private(cn),
+        let p = this.__private(cn),
             value = this.get('&value')
         ;
     }

@@ -3,11 +3,12 @@ import TopiObject from 'Topi/Object';
 import clone from 'Topi/Utils/merge';
 
 const cn = 'Router';
+
 class Router extends TopiObject {
     constructor() {
         super();
 
-        let p = this.private(cn, {
+        let p = this.__private(cn, {
             routes : [],
             silently : 0,
             dispatch : 1,
@@ -15,7 +16,7 @@ class Router extends TopiObject {
     }
 
     run() {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         if ("onhashchange" in window) {
             window.onhashchange = () => {
@@ -32,6 +33,18 @@ class Router extends TopiObject {
         this._dispatch(this.urn());
     }
 
+    title(title) {
+        const p = this.__private(cn);
+
+        if (title == undefined) {
+            return document.title;
+        } else {
+            document.title = title;
+
+            return this;
+        }
+    }
+
     /**
      * Add new route.
      *
@@ -39,7 +52,7 @@ class Router extends TopiObject {
      * @return this
      */
     route(route) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         route = clone(route);
 
@@ -63,7 +76,7 @@ class Router extends TopiObject {
     }
 
     routes(routes) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         routes.forEach((route) => {
             this.route(route);
@@ -78,7 +91,7 @@ class Router extends TopiObject {
      * this.newTab('')
      */
     newTab(action, params = {}, focus = 0) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             serializedParams = this._serializeParams(params),
             taction
         ;
@@ -128,7 +141,7 @@ class Router extends TopiObject {
      * @return {string|this}
      */
     action(action, paramsin = {}) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             t
         ;
 
@@ -153,7 +166,7 @@ class Router extends TopiObject {
      * @return {this|string|null}
      */
     param(name, value, paramsin = {}) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             parsed = this._parseUrn().params
         ;
 
@@ -178,7 +191,7 @@ class Router extends TopiObject {
      * @return this|{object}
      */
     params(params, paramsin = {}) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         paramsin.route = paramsin.route || 0;
         paramsin.clean = paramsin.clean || 0;
@@ -205,7 +218,7 @@ class Router extends TopiObject {
     }
 
     _parseUrn(urn) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             read = {},
             splited
         ;
@@ -245,7 +258,7 @@ class Router extends TopiObject {
      * @return {object} Trasa pasująca do podanego URN
      */
     _findRoute(action) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             route
         ;
 
@@ -293,7 +306,7 @@ class Router extends TopiObject {
      * @return this
      */
     forward(action, params) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             route = this._findRoute(action)
         ;
 
@@ -303,7 +316,7 @@ class Router extends TopiObject {
     }
 
     urn(action, params, paramsin = {}) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             t
         ;
 
@@ -345,7 +358,7 @@ class Router extends TopiObject {
     }
 
     _dispatch(urn) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             parsed = this._parseUrn(urn)
         ;
 
@@ -361,60 +374,59 @@ class Router extends TopiObject {
             return null;
         }
 
-        return btoa(unescape(encodeURIComponent(JSON.stringify(params))));
+        return encodeURI(JSON.stringify(params));
 
-        let p = this.private(cn);
-        let serialized = "";
+        // let p = this.__private(cn);
+        // let serialized = "";
 
-        for (let name in params) {
-            if (params[name] == null || params[name] === undefined) {
-                continue;
-            }
+        // for (let name in params) {
+        //     if (params[name] == null || params[name] === undefined) {
+        //         continue;
+        //     }
 
-            if (Array.isArray(params[name])) {
-                if (params[name].length == 0) {
-                    continue;
-                }
-            }
+        //     if (Array.isArray(params[name])) {
+        //         if (params[name].length == 0) {
+        //             continue;
+        //         }
+        //     }
 
-            serialized = serialized + "&" + name + "=" + encodeURIComponent(params[name]);
-        }
+        //     serialized = serialized + "&" + name + "=" + encodeURIComponent(params[name]);
+        // }
 
-        if (serialized == "") {
-            return null;
-        }else{
-            return serialized;
-            // return encodeURIComponent(serialized.substr(1));
-        }
+        // if (serialized == "") {
+        //     return null;
+        // }else{
+        //     return serialized;
+        //     // return encodeURIComponent(serialized.substr(1));
+        // }
     }
 
-    _deserializeParams(serializedParams) {
-        // return JSON.parse(decodeURIComponent(escape(atob(serializedParams))));
-        return JSON.parse(decodeURIComponent(atob(serializedParams)));
+    _deserializeParams(serialized) {
+        return JSON.parse(decodeURI(serialized));
 
-        let p = this.private(cn);
-        serializedParams = serializedParams.trim();
+        // let p = this.__private(cn);
+        // serialized = serialized.trim();
 
-        if (serializedParams == "") {
-            return {};
-        }
+        // if (serialized == "") {
+        //     return {};
+        // }
 
-        serializedParams = decodeURIComponent(serializedParams);
+        // serialized = decodeURIComponent(serialized);
 
-        let params = {},
-            temp,
-            i,
-            l
-        ;
+        // let params = {},
+        //     temp,
+        //     i,
+        //     l
+        // ;
 
-        let elements = serializedParams.split("&");
+        // let elements = serialized.split("&");
 
-        for (i = 0, l = elements.length; i < l; i++ ) {
-            temp = elements[i].split('=');
-            params[temp[0]] = temp[1];
-        }
+        // for (i = 0, l = elements.length; i < l; i++ ) {
+        //     temp = elements[i].split('=');
+        //     params[temp[0]] = temp[1];
+        // }
 
-        return params;
+        // return params;
     }
 }
 

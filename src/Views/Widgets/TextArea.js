@@ -25,7 +25,7 @@ class Textarea extends Widget {
     }
 
     _autogrow() {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         let element = this.element().get(0);
 
@@ -36,7 +36,7 @@ class Textarea extends Widget {
     render() {
         super.render();
 
-        let p = this.private(cn),
+        let p = this.__private(cn),
             value = this.get('value')
         ;
 

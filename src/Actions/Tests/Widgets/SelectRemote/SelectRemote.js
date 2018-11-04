@@ -6,7 +6,7 @@ const cn = 'New';
 class New extends Action {
     async run(params, controller) {
         return super.run(params, controller).then(() => {
-            let p = this.private(cn),
+            let p = this.__private(cn),
                 api = this.component("@api"),
                 router = this.component('@router'),
                 view = {}

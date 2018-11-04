@@ -23,7 +23,7 @@ class CheckboxList extends Widget {
     constructor(params = {}) {
         super(templateLayout, params);
 
-        const p = this.private(cn);
+        const p = this.__private(cn);
 
         this.set("-items", params.items === undefined ? [] : params.items);
         this.set("-keyValue", params.keyValue === undefined ? "id" : params.keyValue);
@@ -122,7 +122,7 @@ class CheckboxList extends Widget {
     }
 
     __setValue(target, name, value, emitparams = {}) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             keyValue = this.get("keyValue"),
             multiple = this.get("multiple"),
             items = this.get("&items")
@@ -199,7 +199,7 @@ class CheckboxList extends Widget {
     render() {
         super.render();
 
-        let p = this.private(cn),
+        let p = this.__private(cn),
             multiple = this.get("multiple"),
             items = this.get("&items"),
             keyValue = this.get("keyValue"),
@@ -243,7 +243,7 @@ class CheckboxList extends Widget {
     }
 
     _reloadValue() {
-        const p = this.private(cn),
+        const p = this.__private(cn),
             multiple = this.get("multiple"),
             value = this.get("value"),
             keyValue = this.get("keyValue")
@@ -281,11 +281,11 @@ class CheckboxList extends Widget {
     }
 
     _reloadSearch() {
-        let p = this.private(cn);
+        let p = this.__private(cn);
     }
 
     _reloadAll() {
-        const p = this.private(cn),
+        const p = this.__private(cn),
             all = this.get("all")
         ;
 
@@ -313,7 +313,7 @@ class CheckboxList extends Widget {
     }
 
     _reloadState() {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             state = this.get("&state")
         ;
 

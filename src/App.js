@@ -42,11 +42,12 @@ let components = {
 };
 
 const cn = 'App';
+
 class App extends TopiObject {
     constructor(target, config = {}) {
         super();
 
-        let p = this.private(cn, {
+        let p = this.__private(cn, {
             config : new Config(config),
             controller : null,
             action : null,
@@ -70,13 +71,13 @@ class App extends TopiObject {
     }
 
     run() {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         this.component('@router').run();
     }
 
     target() {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         return p.target;
     }
@@ -85,7 +86,7 @@ class App extends TopiObject {
      * Run action
      */
     action(action, params, controller) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         // Czy controller powinien decytowac o sposobie uruchomienia akcji
         if (p.controller === null) {

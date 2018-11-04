@@ -11,14 +11,14 @@ class Manager extends TopiObject {
     constructor(target, params = {}) {
         super();
 
-        const p = this.private(cn);
+        const p = this.__private(cn);
 
         p.target = target;
         // p.params = params;
     }
 
     show(target = null, params = {}) {
-        const p = this.private(cn);
+        const p = this.__private(cn);
 
         let loaderView = new LoaderView();
         let loaderHandler = new LoaderHandler(loaderView, this, params);

@@ -11,7 +11,7 @@ class Request extends TopiObject {
     constructor(api){
         super();
 
-        let p = this.private(cn, {
+        let p = this.__private(cn, {
             api,
             name : null,
             title : null,
@@ -43,27 +43,27 @@ class Request extends TopiObject {
     }
 
     title(title) {
-        return this.private(cn, 'title', title);
+        return this.__private(cn, 'title', title);
     }
 
     name(name) {
-        return this.private(cn, 'name', name);
+        return this.__private(cn, 'name', name);
     }
 
     resourceId(resourceId) {
-        return this.private(cn, 'resourceId', resourceId);
+        return this.__private(cn, 'resourceId', resourceId);
     }
 
     description(description) {
-        return this.private(cn, 'description', description);
+        return this.__private(cn, 'description', description);
     }
 
     timeout(timeout) {
-        return this.private(cn, 'timeout', timeout);
+        return this.__private(cn, 'timeout', timeout);
     }
 
     urn(urn) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         if (urn === undefined) {
             return p.urn === undefined ? null : p.urn;
@@ -77,19 +77,19 @@ class Request extends TopiObject {
     }
 
     method(method) {
-        return this.private(cn, 'method', method);
+        return this.__private(cn, 'method', method);
     }
 
     control(control) {
-        return this.private(cn, 'control', control);
+        return this.__private(cn, 'control', control);
     }
 
     prepare(prepare) {
-        return this.private(cn, 'prepare', prepare);
+        return this.__private(cn, 'prepare', prepare);
     }
 
     header(name, value) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         if (arguments.length === 1) {
             return p.headers[name];
@@ -101,7 +101,7 @@ class Request extends TopiObject {
     }
 
     headers(headers) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         if (arguments.length == 1) {
             return p.headers = headers;
@@ -111,7 +111,7 @@ class Request extends TopiObject {
     }
 
     data(name, value) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         switch (arguments.length) {
             case 0:
@@ -135,7 +135,7 @@ class Request extends TopiObject {
     }
 
     param(name, value) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         switch (arguments.length) {
             case 1:
@@ -150,7 +150,7 @@ class Request extends TopiObject {
     }
 
     params(params) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         switch (arguments.length) {
             case 0:
@@ -165,7 +165,7 @@ class Request extends TopiObject {
     }
 
     bind(name, value) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         switch (arguments.length) {
             case 1:
@@ -180,7 +180,7 @@ class Request extends TopiObject {
     }
 
     binds(binds) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         switch (arguments.length) {
             case 0:
@@ -195,7 +195,7 @@ class Request extends TopiObject {
     }
 
     request(creator) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             request = p.api.request(creator)
         ;
 
@@ -220,7 +220,7 @@ class Request extends TopiObject {
     }
 
     exec(complete) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             count = p.requests.length,
             responses = [],
             i
@@ -258,7 +258,7 @@ class Request extends TopiObject {
     }
 
     _xhr(complete) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             type = this.header('Content-Type'),
             ended = false,
             timeout = this.timeout(),

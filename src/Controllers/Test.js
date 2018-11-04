@@ -8,7 +8,7 @@ class Test extends Controller {
     constructor(target) {
         super(target);
 
-        const p = this.private(cn, {
+        const p = this.__private(cn, {
             target,
             action : null,
             view : {
@@ -25,13 +25,13 @@ class Test extends Controller {
      * @return {jQuery}
      */
     element(name) {
-        const p = this.private(cn);
+        const p = this.__private(cn);
 
         return p.view.layout.element('container');
     }
 
     async action(action, params = {}) {
-        const p = this.private(cn);
+        const p = this.__private(cn);
 
         return new Promise((resolve, reject) => {
             if (p.action != null) {
@@ -59,7 +59,7 @@ class Test extends Controller {
     }
 
     async run() {
-        const p = this.private(cn);
+        const p = this.__private(cn);
 
         return new Promise((resolve, reject) => {
             p.view.layout

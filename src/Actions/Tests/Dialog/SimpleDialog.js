@@ -5,7 +5,7 @@ import templateLayout from 'Topi/Actions/Tests/Dialog/SimpleDialog.layout.html'
 const cn = 'Dialog';
 class Dialog extends Action {
     async run(params, controller) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             router = this.component('@router'),
             dialog = this.component('@dialog'),
             view = {}

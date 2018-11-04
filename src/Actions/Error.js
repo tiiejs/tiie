@@ -7,7 +7,7 @@ import templateLayout from 'Topi/Actions/Error.layout.html';
 const cn = 'Error';
 class Error extends Action {
     async run(params, controller) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             api = this.component('@api'),
             view = {}
         ;

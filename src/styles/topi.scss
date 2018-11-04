@@ -552,15 +552,71 @@ $label : 5;
 /** hover **/
 %topi--hover:hover {
     cursor: pointer;
-    font-size: 120%;
+    font-size: 110%;
+    color: #007bff;
 }
 
 .topi--hover:hover {
     @extend %topi--hover:hover;
 }
 
-.topi--link:hover{
+/** flex-wrap **/
+.topi--flex-wrap-nowrap {
+    flex-wrap: nowrap;
+}
 
+.topi--flex-wrap-wrap {
+    flex-wrap: wrap;
+}
+
+.topi--flex-wrap-wrap-reverse {
+    flex-wrap: wrap-reverse;
+}
+
+.topi--flex-wrap-initial {
+    flex-wrap: initial;
+}
+
+.topi--flex-wrap-inherit {
+    flex-wrap: inherit;
+}
+
+/** .flex-direction **/
+.flex-direction
+.topi--flex-direction-row {
+    flex-direction: row;
+}
+
+.topi--flex-direction-row-reverse {
+    flex-direction: row-reverse;
+}
+
+.topi--flex-direction-column {
+    flex-direction: column;
+}
+
+.topi--flex-direction-column-reverse {
+    flex-direction: column-reverse;
+}
+
+.topi--flex-direction-initial {
+    flex-direction: initial;
+}
+
+.topi--flex-direction-inherit {
+    flex-direction: inherit;
+}
+
+/** topi--link */
+
+.topi--link {
+    font-size: 100%;
+    color: #007bff;
+}
+
+.topi--link:hover{
+    cursor: pointer;
+    font-weight: bold;
 }
 
 .topi--no-resize {

@@ -6,7 +6,7 @@ class InputComplete extends Widget {
     constructor(params = {}) {
         super(`<input type="text" class="topi-input">`, params);
 
-        const p = this.private(cn, {
+        const p = this.__private(cn, {
             urn : params.urn === undefined ? null : params.urn,
             source : params.source === undefined ? null : params.source,
             api : params.api === undefined ? null : params.api,
@@ -60,7 +60,7 @@ class InputComplete extends Widget {
     }
 
     render() {
-        const p = this.private(cn);
+        const p = this.__private(cn);
 
         if (this.get('value') == null) {
             this.element().val('');

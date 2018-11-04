@@ -6,7 +6,7 @@ class Tree extends TopiObject {
     constructor(data = [], params = {}) {
         super();
 
-        const p = this.private(cn, {
+        const p = this.__private(cn, {
             data,
             keyValue : params.keyValue == undefined ? 'id' : params.keyValue,
             keyParent : params.keyParent == undefined ? 'parentId' : params.keyParent,
@@ -14,7 +14,7 @@ class Tree extends TopiObject {
     }
 
     childs(from, params = {}) {
-        const p = this.private(cn);
+        const p = this.__private(cn);
 
         let keyParent = p.keyParent,
             childs = [],
@@ -30,6 +30,10 @@ class Tree extends TopiObject {
         while(stack.length > 0) {
             pointer = stack.pop();
 
+            // if (pointer.id == 3347) {
+            //     debugger;
+            // }
+
             if (params.deep != undefined) {
                 if (level > params.deep) {
                     continue;
@@ -37,7 +41,7 @@ class Tree extends TopiObject {
             }
 
             if (typeof pointer == 'number') {
-                level = pointer;
+                level = pointer - 1;
 
                 continue;
             } else {
@@ -57,7 +61,7 @@ class Tree extends TopiObject {
     }
 
     path(from) {
-        const p = this.private(cn);
+        const p = this.__private(cn);
 
         let pointer = this.findById(from);
 
@@ -81,15 +85,34 @@ class Tree extends TopiObject {
     }
 
     findAtPath(from, params) {
-        const p = this.private(cn);
+        const p = this.__private(cn);
     }
 
     findById(id) {
-        const p = this.private(cn);
+        const p = this.__private(cn);
 
         let found = p.data.find(e => e[p.keyValue] == id);
 
         return found == undefined ? null : found;
+    }
+
+    roots() {
+        const p = this.__private(cn);
+
+        return p.data.filter(e => e[p.keyParent] == null);
+    }
+
+    firstRoot() {
+        const p = this.__private(cn);
+
+        let roots = this.roots();
+
+        console.log('roots', roots);
+        if (roots.length > 0) {
+            return roots[0];
+        } else {
+            return null;
+        }
     }
 }
 

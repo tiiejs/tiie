@@ -10,7 +10,7 @@ class Range extends Widget {
             </div>
         `);
 
-        let p = this.private(cn, {
+        let p = this.__private(cn, {
             widgets : [],
         });
 
@@ -27,7 +27,7 @@ class Range extends Widget {
     }
 
     widget(id, widget) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             tmp,
             i
         ;
@@ -88,7 +88,7 @@ class Range extends Widget {
     }
 
     _reloadValue() {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             value = this.get('&value'),
             i
         ;
@@ -105,7 +105,7 @@ class Range extends Widget {
     render() {
         super.render();
 
-        let p = this.private(cn),
+        let p = this.__private(cn),
             i,
             target
         ;

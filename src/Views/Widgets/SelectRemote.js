@@ -9,7 +9,7 @@ class SelectRemote extends Widget {
             throw ("SelectRemote needs defined endpoint.");
         }
 
-        let p = this.private(cn, {
+        let p = this.__private(cn, {
             inited : 0,
             endpoint : params.endpoint,
             items : [],
@@ -61,7 +61,7 @@ class SelectRemote extends Widget {
     }
 
     __setValue(target, name, value, emitparams = {}) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             keyValue = this.get("keyValue"),
             multiple = this.get("multiple")
         ;
@@ -175,7 +175,7 @@ class SelectRemote extends Widget {
     }
 
     _setValues(values, resolve, reject, context) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             keyValue = this.get("keyValue"),
             multiple = this.get("multiple")
         ;
@@ -263,7 +263,7 @@ class SelectRemote extends Widget {
     }
 
     _renderReady(resolve, reject) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             multiple = this.get("multiple"),
             keyValue = this.get("keyValue"),
             keyLabel = this.get("keyLabel"),
@@ -338,7 +338,7 @@ class SelectRemote extends Widget {
     }
 
     _addItems(values) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             keyValue = this.get("keyValue")
         ;
 

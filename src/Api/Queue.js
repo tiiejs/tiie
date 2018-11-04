@@ -6,14 +6,14 @@ class Queue extends TopiObject {
     constructor(api) {
         super();
 
-        let p = this.private(cn, {
+        let p = this.__private(cn, {
             api,
             requets : []
         });
     }
 
     request(creator) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         p.requets.push(p.api.request(creator));
 
@@ -33,7 +33,7 @@ class Queue extends TopiObject {
     }
 
     exec(complete) {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             count = p.requets.length,
             responses = [],
             i

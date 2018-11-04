@@ -15,7 +15,7 @@ class Date extends Widget {
     constructor(params = {}) {
         super(`<input class="topi-input">`, params);
 
-        const p = this.private(cn);
+        const p = this.__private(cn);
 
         this.set("-value", params.value === undefined ? null : params.value);
         this.set("-placeholder", params.placeholder === undefined ? null : params.placeholder);
@@ -100,7 +100,7 @@ class Date extends Widget {
     render() {
         super.render();
 
-        const p = this.private(cn),
+        const p = this.__private(cn),
             value = this.get("&value"),
             placeholder = this.get("&placeholder")
         ;
@@ -123,7 +123,7 @@ class Date extends Widget {
     }
 
     _reloadState() {
-        let p = this.private(cn),
+        let p = this.__private(cn),
             state = this.get("&state")
         ;
 

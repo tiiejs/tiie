@@ -5,7 +5,7 @@ import WCheckboxList from 'Topi/Views/Widgets/CheckboxList';
 const cn = 'CheckboxListState';
 class CheckboxListState extends Action {
     async run(params, controller) {
-        const p = this.private(cn),
+        const p = this.__private(cn),
             view = {}
         ;
 

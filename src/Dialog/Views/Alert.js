@@ -19,7 +19,7 @@ class Alert extends View {
     constructor(params = {}) {
         super(templateLayout);
 
-        const p = this.private(cn, {});
+        const p = this.__private(cn, {});
 
         this.set('-type', params.type === undefined ? 'default' : params.type);
         this.set('-title', params.title === undefined ? null : params.title);
@@ -71,7 +71,7 @@ class Alert extends View {
     }
 
     render() {
-        const p = this.private(cn);
+        const p = this.__private(cn);
 
         this.element('content').html(this.template(templateContent)(this.data()));
 

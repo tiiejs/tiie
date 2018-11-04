@@ -5,7 +5,7 @@ class Response extends TopiObject {
     constructor(xhr, request, params = {}) {
         super();
 
-        let p = this.private(cn, {
+        let p = this.__private(cn, {
             successHttpCodes : params.successHttpCodes === undefined ? [200, 201] : params.successHttpCodes,
             status : params.status === undefined ? null : params.status,
             data : params.data === undefined ? {} : params.data,
@@ -15,7 +15,7 @@ class Response extends TopiObject {
     }
 
     error() {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         if (p.successHttpCodes.indexOf(this.status()) === -1) {
             return true;
@@ -25,11 +25,11 @@ class Response extends TopiObject {
     }
 
     status(status) {
-        return this.private(cn, 'status', status);
+        return this.__private(cn, 'status', status);
     }
 
     data(name) {
-        let p = this.private(cn);
+        let p = this.__private(cn);
 
         switch (arguments.length) {
             case 0:
@@ -42,19 +42,19 @@ class Response extends TopiObject {
     }
 
     name() {
-        return this.private(cn, 'request').name();
+        return this.__private(cn, 'request').name();
     }
 
     xhr() {
-        return this.private(cn, 'xhr');
+        return this.__private(cn, 'xhr');
     }
 
     header(name) {
-        return this.private(cn, 'xhr').getResponseHeader(name);
+        return this.__private(cn, 'xhr').getResponseHeader(name);
     }
 
     name() {
-        return this.private(cn, 'request').name();
+        return this.__private(cn, 'request').name();
     }
 }
 
