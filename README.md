@@ -1,11 +1,14 @@
-# topijs
+# Tiie
 
-It is a Javascript framework for building Single Page Application. 
+**The current documentation is created. Below is the part of the previous
+introduction presenting general ideas.**
+
+It is a Javascript framework for building Single Page Application.
 
 Framework contains a set of components for helping in building this kind of application. These components are:
 - Router,
 - Events managing,
-- View Layer, 
+- View Layer,
 - Request manager
 - Controller,
 - Action,
@@ -29,7 +32,7 @@ The third reason was to create it, create your own tool, check your ideas, gain 
 
 The framework is at the **development stage**. If you like my ideas - I will gladly accept your help.
 
-For now, I created simple skeleton. So first, clone repositiory https://github.com/ttmdear/topijs.skeleton.
+For now, I created simple skeleton. So first, clone repositiory https://github.com/ttmdear/js.skeleton.
 
 ```git clone https://github.com/ttmdear/topijs.skeleton```
 
@@ -377,7 +380,7 @@ Each component should extends from `View`. View has some methods which help us t
 </div>
 ```
 
-This html does not change at rerender. This should be more static skeleton of view. At html we can use `name` atttribute to save references to this elements. 
+This html does not change at rerender. This should be more static skeleton of view. At html we can use `name` atttribute to save references to this elements.
 
 Then at `constructor` we set items list. Each object at Topi extends from `Topi/Object`. This class implements common mechanisms, such as data or event management. So we can use method `set(name, value, params = {})` to set data, and `get(name, params = {})` to get data. We can also use `emit(name, params = {}, emitparams = {})` to emit event, and `on(name, callback, group)` to attach to event. Object data management and combined with events. If any of the data changes, the corresponding event is emitted. At `this.set("-items", params.items == undefined ? [] : params.items);` we set values of items. `-` at begining means that event is not emit `silienty mode`.
 
@@ -436,4 +439,4 @@ Now, let's look at `render()` method. Here I used two way of creating html. Fris
 </table>
 ```
 
-Topis using dot.js library as template engine. Please look at http://olado.github.io/doT/index.html. 
+Topis using dot.js library as template engine. Please look at http://olado.github.io/doT/index.html.
