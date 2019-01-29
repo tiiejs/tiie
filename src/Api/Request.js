@@ -1,13 +1,13 @@
-import TopiObject from 'Topi/Object';
-import Response from 'Topi/Api/Response';
-import Responses from 'Topi/Api/Responses';
+import TiieObject from 'Tiie/Object';
+import Response from 'Tiie/Api/Response';
+import Responses from 'Tiie/Api/Responses';
 
-import encode from 'Topi/Api/Common/encode';
-import decode from 'Topi/Api/Common/decode';
-import urnencoder from 'Topi/Api/Common/urn';
+import encode from 'Tiie/Api/Common/encode';
+import decode from 'Tiie/Api/Common/decode';
+import urnencoder from 'Tiie/Api/Common/urn';
 
 const cn = 'Request';
-class Request extends TopiObject {
+class Request extends TiieObject {
     constructor(api){
         super();
 

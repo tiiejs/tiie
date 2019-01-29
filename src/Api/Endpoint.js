@@ -1,7 +1,7 @@
-import TopiObject from 'Topi/Object';
+import TiieObject from 'Tiie/Object';
 
 const cn = 'Endpoint';
-class Endpoint extends TopiObject {
+class Endpoint extends TiieObject {
     constructor(api, urn) {
         super();
 

@@ -1,8 +1,8 @@
-import TopiObject from 'Topi/Object';
+import TiieObject from 'Tiie/Object';
 
 const cn = 'Tree';
 
-class Tree extends TopiObject {
+class Tree extends TiieObject {
     constructor(data = [], params = {}) {
         super();
 
@@ -88,6 +88,9 @@ class Tree extends TopiObject {
         const p = this.__private(cn);
     }
 
+    find(params = {}) {
+    }
+
     findById(id) {
         const p = this.__private(cn);
 
@@ -96,10 +99,10 @@ class Tree extends TopiObject {
         return found == undefined ? null : found;
     }
 
-    roots() {
+    roots(value = null) {
         const p = this.__private(cn);
 
-        return p.data.filter(e => e[p.keyParent] == null);
+        return p.data.filter(e => e[p.keyParent] == value);
     }
 
     firstRoot() {
@@ -107,7 +110,6 @@ class Tree extends TopiObject {
 
         let roots = this.roots();
 
-        console.log('roots', roots);
         if (roots.length > 0) {
             return roots[0];
         } else {

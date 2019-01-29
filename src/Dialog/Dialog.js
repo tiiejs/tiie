@@ -1,12 +1,12 @@
-import TopiObject from 'Topi/Object';
+import TiieObject from 'Tiie/Object';
 
-import ViewDialog from 'Topi/Dialog/Views/Dialog';
-import ViewAlert from 'Topi/Dialog/Views/Alert';
-import ViewModal from 'Topi/Dialog/Views/Modal';
+import ViewDialog from 'Tiie/Dialog/Views/Dialog';
+import ViewAlert from 'Tiie/Dialog/Views/Alert';
+import ViewModal from 'Tiie/Dialog/Views/Modal';
 
 const cn = 'Dialog';
 
-class Dialog extends TopiObject {
+class Dialog extends TiieObject {
     dialog(params = {}) {
         let app = this.component('@app'),
             view = new ViewDialog(params)

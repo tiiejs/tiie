@@ -1,6 +1,6 @@
-import Action from 'Topi/Action';
-import View from 'Topi/View';
-import template from 'Topi/Actions/NotFound.html';
+import Action from 'Tiie/Action';
+import View from 'Tiie/View';
+import template from 'Tiie/Actions/NotFound.html';
 
 class NotFound extends Action {
     async run(params, controller) {

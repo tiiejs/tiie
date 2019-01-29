@@ -1,0 +1,1993 @@
+@import 'tiie-blank-photo.scss';
+@import 'tiie-button.scss';
+@import 'tiie-dialog.scss';
+@import 'tiie-groups.scss';
+@import 'tiie-input.scss';
+@import 'tiie-portlet-light.scss';
+@import 'tiie-portlet.scss';
+@import 'tiie-section.scss';
+@import 'tiie-table.scss';
+@import 'tiie-textarea.scss';
+@import 'tiie-toolbar.scss';
+@import 'tiie-topbar.scss';
+@import 'tiie-vc-loader.scss';
+@import 'tiie-vw-pagination.scss';
+
+@import 'tiie-variables.scss';
+
+* {
+    box-sizing: border-box;
+    scroll-behavior: smooth;
+}
+
+/** margin **/
+.tiie--margin-center {
+    margin: 0 auto;
+}
+
+.tiie--margin-none {
+    margin: 0px;
+}
+
+.tiie--margin-10 {
+    margin: 10px;
+}
+
+.tiie--margin-top-10 {
+    margin-top : 10px;
+}
+
+.tiie--margin-bottom-10 {
+    margin-bottom : 10px;
+}
+
+.tiie--margin-left-10 {
+    margin-left : 10px;
+}
+
+.tiie--margin-right-10 {
+    margin-right : 10px;
+}
+
+.tiie--margin-vertical-10 {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.tiie--margin-horizontal-10 {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+/** padding **/
+.tiie--padding-none {
+    padding: 0px;
+}
+
+.tiie--padding-10 {
+    padding: 10px;
+}
+
+.tiie--padding-bottom-10 {
+    padding-bottom: 10px;
+}
+
+.tiie--padding-top-10 {
+    padding-top: 10px;
+}
+
+.tiie--padding-left-10 {
+    padding-left: 10px;
+}
+
+.tiie--padding-right-10 {
+    padding-right: 10px;
+}
+
+.tiie--padding-vertical-10 {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.tiie--padding-horizontal-10 {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+/** cursor **/
+.tiie--cursor-alias {
+    cursor: alias;
+}
+
+.tiie--cursor-all-scroll {
+    cursor: all-scroll;
+}
+
+.tiie--cursor-auto {
+    cursor: auto;
+}
+
+.tiie--cursor-cell {
+    cursor: cell;
+}
+
+.tiie--cursor-context-menu {
+    cursor: context-menu;
+}
+
+.tiie--cursor-col-resize {
+    cursor: col-resize;
+}
+
+.tiie--cursor-copy {
+    cursor: copy;
+}
+
+.tiie--cursor-crosshair {
+    cursor: crosshair;
+}
+
+.tiie--cursor-default {
+    cursor: default;
+}
+
+.tiie--cursor-e-resize {
+    cursor: e-resize;
+}
+
+.tiie--cursor-ew-resize {
+    cursor: ew-resize;
+}
+
+.tiie--cursor-grab {
+    cursor: grab;
+}
+
+.tiie--cursor-grabbing {
+    cursor: grabbing;
+}
+
+.tiie--cursor-help {
+    cursor: help;
+}
+
+.tiie--cursor-move {
+    cursor: move;
+}
+
+.tiie--cursor-n-resize {
+    cursor: n-resize;
+}
+
+.tiie--cursor-ne-resize {
+    cursor: ne-resize;
+}
+
+.tiie--cursor-nesw-resize {
+    cursor: nesw-resize;
+}
+
+.tiie--cursor-ns-resize {
+    cursor: ns-resize;
+}
+
+.tiie--cursor-nw-resize {
+    cursor: nw-resize;
+}
+
+.tiie--cursor-nwse-resize {
+    cursor: nwse-resize;
+}
+
+.tiie--cursor-no-drop {
+    cursor: no-drop;
+}
+
+.tiie--cursor-none {
+    cursor: none;
+}
+
+.tiie--cursor-not-allowed {
+    cursor: not-allowed;
+}
+
+.tiie--cursor-pointer {
+    cursor: pointer;
+}
+
+.tiie--cursor-progress {
+    cursor: progress;
+}
+
+.tiie--cursor-row-resize {
+    cursor: row-resize;
+}
+
+.tiie--cursor-s-resize {
+    cursor: s-resize;
+}
+
+.tiie--cursor-se-resize {
+    cursor: se-resize;
+}
+
+.tiie--cursor-sw-resize {
+    cursor: sw-resize;
+}
+
+.tiie--cursor-text {
+    cursor: text;
+}
+
+.tiie--cursor-URL {
+    cursor: URL;
+}
+
+.tiie--cursor-vertical-text {
+    cursor: vertical-text;
+}
+
+.tiie--cursor-w-resize {
+    cursor: w-resize;
+}
+
+.tiie--cursor-wait {
+    cursor: wait;
+}
+
+.tiie--cursor-zoom-in {
+    cursor: zoom-in;
+}
+
+.tiie--cursor-zoom-out {
+    cursor: zoom-out;
+}
+
+.tiie--cursor-initial {
+    cursor: initial;
+}
+
+.tiie--cursor-inherit {
+    cursor: inherit;
+}
+
+/** space **/
+.tiie--space-10 {
+    margin: 10px;
+    padding: 10px;
+}
+
+.tiie--space-horizontally-10 {
+    padding-left: 10px;
+    padding-right: 10px;
+
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.tiie--space-vertical-10 {
+    padding-top: 10px;
+    padding-bottom: 10px;
+
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.tiie--space-bottom-10 {
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.tiie--space-right-10 {
+    padding-right: 10px;
+    margin-right: 10px;
+}
+
+.tiie--space-left-10 {
+    padding-left: 10px;
+    margin-left: 10px;
+}
+
+.tiie--space-top-10 {
+    padding-top: 10px;
+    margin-top: 10px;
+}
+
+.tiie--display-inline {
+    display: inline;
+}
+
+.tiie--display-block {
+    display: block;
+}
+
+.tiie--display-contents {
+    display: contents;
+}
+
+.tiie--display-flex {
+    display: flex;
+}
+
+.tiie--display-grid {
+    display: grid;
+}
+
+.tiie--display-inline-block {
+    display: inline-block;
+}
+
+.tiie--display-inline-flex {
+    display: inline-flex;
+}
+
+.tiie--display-inline-grid {
+    display: inline-grid;
+}
+
+.tiie--display-inline-table {
+    display: inline-table;
+}
+
+.tiie--display-list-item {
+    display: list-item;
+}
+
+.tiie--display-run-in {
+    display: run-in;
+}
+
+.tiie--display-table {
+    display: table;
+}
+
+.tiie--display-table-caption {
+    display: table-caption;
+}
+
+.tiie--display-table-column-group {
+    display: table-column-group;
+}
+
+.tiie--display-table-header-group {
+    display: table-header-group;
+}
+
+.tiie--display-table-footer-group {
+    display: table-footer-group;
+}
+
+.tiie--display-table-row-group {
+    display: table-row-group;
+}
+
+.tiie--display-table-cell {
+    display: table-cell;
+}
+
+.tiie--display-table-column {
+    display: table-column;
+}
+
+.tiie--display-table-row {
+    display: table-row;
+}
+
+.tiie--display-none {
+    display: none;
+}
+
+.tiie--display-initial {
+    display: initial;
+}
+
+.tiie--display-inherit {
+    display: inherit;
+}
+
+/** border **/
+.tiie--border-top-1--primary {
+    border-top: 1px $tiie-color-primary solid;
+}
+
+.tiie--border-top-2--primary {
+    border-top: 2px $tiie-color-primary solid;
+}
+
+.tiie--border-top-3--primary {
+    border-top: 3px $tiie-color-primary solid;
+}
+
+.tiie--border-1 {
+    border : 1px #ededed solid;
+}
+
+.tiie--border-top-1 {
+    border-top: 1px #cacaca solid;
+}
+
+.tiie--border-bottom-1 {
+    border-bottom: 1px #cacaca solid;
+}
+
+.tiie--border-left-1 {
+    border-left: 1px #cacaca solid;
+}
+
+.tiie--border-right-1 {
+    border-right: 1px #cacaca solid;
+}
+
+.tiie--border-bottom-dotted-1 {
+    border-bottom: 1px #cacaca dotted;
+}
+
+.tiie--border-left-dotted-1 {
+    border-left: 1px #cacaca dotted;
+}
+
+.tiie--border-right-dotted-1 {
+    border-right: 1px #cacaca dotted;
+}
+
+/** text-align */
+.tiie--text-align-left {
+    text-align: left;
+}
+
+.tiie--text-align-right {
+    text-align: right;
+}
+
+.tiie--text-align-center {
+    text-align: center;
+}
+
+.tiie--text-align-justify {
+    text-align: justify;
+}
+
+.tiie--text-align-initial {
+    text-align: initial;
+}
+
+.tiie--text-align-inherit {
+    text-align: inherit;
+}
+
+/** align-items */
+.tiie--align-items-stretch {
+    align-items: stretch;
+}
+
+.tiie--align-items-center {
+    align-items: center;
+}
+
+.tiie--align-items-flex-start {
+    align-items: flex-start;
+}
+
+.tiie--align-items-flex-end {
+    align-items: flex-end;
+}
+
+.tiie--align-items-baseline {
+    align-items: baseline;
+}
+
+.tiie--align-items-initial {
+    align-items: initial;
+}
+
+.tiie--align-items-inherit {
+    align-items: inherit;
+}
+
+/** justify-content **/
+
+// justify-content
+.tiie--justify-content-flex-start {
+    justify-content: flex-start;
+}
+
+.tiie--justify-content-flex-end {
+    justify-content: flex-end;
+}
+
+.tiie--justify-content-center {
+    justify-content: center;
+}
+
+.tiie--justify-content-space-between {
+    justify-content: space-between;
+}
+
+.tiie--justify-content-space-around {
+    justify-content: space-around;
+}
+
+.tiie--justify-content-initial {
+    justify-content: initial;
+}
+
+.tiie--justify-content-inherit {
+    justify-content: inherit;
+}
+
+/** width **/
+/** test123 **/
+$init: 5%;
+$label : 5;
+
+@for $var from 1 through 20 {
+    .tiie--width-#{$label*$var} {
+        width: $init * $var;
+    }
+}
+
+.tiie--height-100 {
+    height: 100%;
+}
+
+.tiie--height-75 {
+    height: 75%;
+}
+
+.tiie--height-50 {
+    height: 50%;
+}
+
+.tiie--height-25 {
+    height: 25%;
+}
+
+.tiie--height-10 {
+    height: 10%;
+}
+
+/** background **/
+.tiie--background-color-second {
+    background-color: white;
+}
+
+.tiie--border-top--primary {
+    border-top: 1px;
+}
+
+/** hover **/
+%tiie--hover:hover {
+    cursor: pointer;
+    font-size: 110%;
+    color: #007bff;
+}
+
+.tiie--hover:hover {
+    @extend %tiie--hover:hover;
+}
+
+/** flex-wrap **/
+.tiie--flex-wrap-nowrap {
+    flex-wrap: nowrap;
+}
+
+.tiie--flex-wrap-wrap {
+    flex-wrap: wrap;
+}
+
+.tiie--flex-wrap-wrap-reverse {
+    flex-wrap: wrap-reverse;
+}
+
+.tiie--flex-wrap-initial {
+    flex-wrap: initial;
+}
+
+.tiie--flex-wrap-inherit {
+    flex-wrap: inherit;
+}
+
+/** .flex-direction **/
+.flex-direction
+.tiie--flex-direction-row {
+    flex-direction: row;
+}
+
+.tiie--flex-direction-row-reverse {
+    flex-direction: row-reverse;
+}
+
+.tiie--flex-direction-column {
+    flex-direction: column;
+}
+
+.tiie--flex-direction-column-reverse {
+    flex-direction: column-reverse;
+}
+
+.tiie--flex-direction-initial {
+    flex-direction: initial;
+}
+
+.tiie--flex-direction-inherit {
+    flex-direction: inherit;
+}
+
+/** tiie--link */
+
+.tiie--link {
+    font-size: 100%;
+    color: #007bff;
+}
+
+.tiie--link:hover{
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.tiie--no-resize {
+    resize: none;
+}
+
+/** link **/
+.tiie--link {
+
+}
+
+/** selected **/
+.tiie--selected {
+    font-weight: bold;
+}
+
+/** modyficators **/
+.--hover {
+    cursor: pointer;
+    color: #007bff;
+}
+
+.--no-padding {
+    padding: 0px;
+}
+
+.--top-padding {
+    padding-top: 10px;
+}
+
+.--bottom-padding {
+    padding-bottom: 10px;
+}
+
+/** background-color **/
+.tiie--background-color-indianred {
+    background-color: IndianRed;
+}
+
+.tiie--background-color-lightcoral {
+    background-color: LightCoral;
+}
+
+.tiie--background-color-salmon {
+    background-color: Salmon;
+}
+
+.tiie--background-color-darksalmon {
+    background-color: DarkSalmon;
+}
+
+.tiie--background-color-lightsalmon {
+    background-color: LightSalmon;
+}
+
+.tiie--background-color-crimson {
+    background-color: Crimson;
+}
+
+.tiie--background-color-red {
+    background-color: Red;
+}
+
+.tiie--background-color-firebrick {
+    background-color: FireBrick;
+}
+
+.tiie--background-color-darkred {
+    background-color: DarkRed;
+}
+
+.tiie--background-color-pinks {
+    background-color: Pinks;
+}
+
+.tiie--background-color-pink {
+    background-color: Pink;
+}
+
+.tiie--background-color-lightpink {
+    background-color: LightPink;
+}
+
+.tiie--background-color-hotpink {
+    background-color: HotPink;
+}
+
+.tiie--background-color-deeppink {
+    background-color: DeepPink;
+}
+
+.tiie--background-color-mediumvioletred {
+    background-color: MediumVioletRed;
+}
+
+.tiie--background-color-palevioletred {
+    background-color: PaleVioletRed;
+}
+
+.tiie--background-color-oranges {
+    background-color: Oranges;
+}
+
+.tiie--background-color-coral {
+    background-color: Coral;
+}
+
+.tiie--background-color-tomato {
+    background-color: Tomato;
+}
+
+.tiie--background-color-orangered {
+    background-color: OrangeRed;
+}
+
+.tiie--background-color-darkorange {
+    background-color: DarkOrange;
+}
+
+.tiie--background-color-orange {
+    background-color: Orange;
+}
+
+.tiie--background-color-yellows {
+    background-color: Yellows;
+}
+
+.tiie--background-color-gold {
+    background-color: Gold;
+}
+
+.tiie--background-color-yellow {
+    background-color: Yellow;
+}
+
+.tiie--background-color-lightyellow {
+    background-color: LightYellow;
+}
+
+.tiie--background-color-lemonchiffon {
+    background-color: LemonChiffon;
+}
+
+.tiie--background-color-lightgoldenrodyellow {
+    background-color: LightGoldenrodYellow;
+}
+
+.tiie--background-color-papayawhip {
+    background-color: PapayaWhip;
+}
+
+.tiie--background-color-moccasin {
+    background-color: Moccasin;
+}
+
+.tiie--background-color-peachpuff {
+    background-color: PeachPuff;
+}
+
+.tiie--background-color-palegoldenrod {
+    background-color: PaleGoldenrod;
+}
+
+.tiie--background-color-khaki {
+    background-color: Khaki;
+}
+
+.tiie--background-color-darkkhaki {
+    background-color: DarkKhaki;
+}
+
+.tiie--background-color-purples {
+    background-color: Purples;
+}
+
+.tiie--background-color-lavender {
+    background-color: Lavender;
+}
+
+.tiie--background-color-thistle {
+    background-color: Thistle;
+}
+
+.tiie--background-color-plum {
+    background-color: Plum;
+}
+
+.tiie--background-color-violet {
+    background-color: Violet;
+}
+
+.tiie--background-color-orchid {
+    background-color: Orchid;
+}
+
+.tiie--background-color-fuchsia {
+    background-color: Fuchsia;
+}
+
+.tiie--background-color-magenta {
+    background-color: Magenta;
+}
+
+.tiie--background-color-mediumorchid {
+    background-color: MediumOrchid;
+}
+
+.tiie--background-color-mediumpurple {
+    background-color: MediumPurple;
+}
+
+.tiie--background-color-blueviolet {
+    background-color: BlueViolet;
+}
+
+.tiie--background-color-darkviolet {
+    background-color: DarkViolet;
+}
+
+.tiie--background-color-darkorchid {
+    background-color: DarkOrchid;
+}
+
+.tiie--background-color-darkmagenta {
+    background-color: DarkMagenta;
+}
+
+.tiie--background-color-purple {
+    background-color: Purple;
+}
+
+.tiie--background-color-rebeccapurple {
+    background-color: RebeccaPurple;
+}
+
+.tiie--background-color-indigo {
+    background-color: Indigo;
+}
+
+.tiie--background-color-mediumslateblue {
+    background-color: MediumSlateBlue;
+}
+
+.tiie--background-color-slateblue {
+    background-color: SlateBlue;
+}
+
+.tiie--background-color-darkslateblue {
+    background-color: DarkSlateBlue;
+}
+
+.tiie--background-color-color {
+    background-color: Color;
+}
+
+.tiie--background-color-rgb {
+    background-color: RGB;
+}
+
+.tiie--background-color-rgb {
+    background-color: RGB;
+}
+
+.tiie--background-color-greens {
+    background-color: Greens;
+}
+
+.tiie--background-color-greenyellow {
+    background-color: GreenYellow;
+}
+
+.tiie--background-color-chartreuse {
+    background-color: Chartreuse;
+}
+
+.tiie--background-color-lawngreen {
+    background-color: LawnGreen;
+}
+
+.tiie--background-color-lime {
+    background-color: Lime;
+}
+
+.tiie--background-color-limegreen {
+    background-color: LimeGreen;
+}
+
+.tiie--background-color-palegreen {
+    background-color: PaleGreen;
+}
+
+.tiie--background-color-lightgreen {
+    background-color: LightGreen;
+}
+
+.tiie--background-color-mediumspringgreen {
+    background-color: MediumSpringGreen;
+}
+
+.tiie--background-color-springgreen {
+    background-color: SpringGreen;
+}
+
+.tiie--background-color-mediumseagreen {
+    background-color: MediumSeaGreen;
+}
+
+.tiie--background-color-seagreen {
+    background-color: SeaGreen;
+}
+
+.tiie--background-color-forestgreen {
+    background-color: ForestGreen;
+}
+
+.tiie--background-color-green {
+    background-color: Green;
+}
+
+.tiie--background-color-darkgreen {
+    background-color: DarkGreen;
+}
+
+.tiie--background-color-yellowgreen {
+    background-color: YellowGreen;
+}
+
+.tiie--background-color-olivedrab {
+    background-color: OliveDrab;
+}
+
+.tiie--background-color-olive {
+    background-color: Olive;
+}
+
+.tiie--background-color-darkolivegreen {
+    background-color: DarkOliveGreen;
+}
+
+.tiie--background-color-mediumaquamarine {
+    background-color: MediumAquamarine;
+}
+
+.tiie--background-color-darkseagreen {
+    background-color: DarkSeaGreen;
+}
+
+.tiie--background-color-lightseagreen {
+    background-color: LightSeaGreen;
+}
+
+.tiie--background-color-darkcyan {
+    background-color: DarkCyan;
+}
+
+.tiie--background-color-teal {
+    background-color: Teal;
+}
+
+.tiie--background-color-blues {
+    background-color: Blues;
+}
+
+.tiie--background-color-aqua {
+    background-color: Aqua;
+}
+
+.tiie--background-color-cyan {
+    background-color: Cyan;
+}
+
+.tiie--background-color-lightcyan {
+    background-color: LightCyan;
+}
+
+.tiie--background-color-paleturquoise {
+    background-color: PaleTurquoise;
+}
+
+.tiie--background-color-aquamarine {
+    background-color: Aquamarine;
+}
+
+.tiie--background-color-turquoise {
+    background-color: Turquoise;
+}
+
+.tiie--background-color-mediumturquoise {
+    background-color: MediumTurquoise;
+}
+
+.tiie--background-color-darkturquoise {
+    background-color: DarkTurquoise;
+}
+
+.tiie--background-color-cadetblue {
+    background-color: CadetBlue;
+}
+
+.tiie--background-color-steelblue {
+    background-color: SteelBlue;
+}
+
+.tiie--background-color-lightsteelblue {
+    background-color: LightSteelBlue;
+}
+
+.tiie--background-color-powderblue {
+    background-color: PowderBlue;
+}
+
+.tiie--background-color-lightblue {
+    background-color: LightBlue;
+}
+
+.tiie--background-color-skyblue {
+    background-color: SkyBlue;
+}
+
+.tiie--background-color-lightskyblue {
+    background-color: LightSkyBlue;
+}
+
+.tiie--background-color-deepskyblue {
+    background-color: DeepSkyBlue;
+}
+
+.tiie--background-color-dodgerblue {
+    background-color: DodgerBlue;
+}
+
+.tiie--background-color-cornflowerblue {
+    background-color: CornflowerBlue;
+}
+
+.tiie--background-color-royalblue {
+    background-color: RoyalBlue;
+}
+
+.tiie--background-color-blue {
+    background-color: Blue;
+}
+
+.tiie--background-color-mediumblue {
+    background-color: MediumBlue;
+}
+
+.tiie--background-color-darkblue {
+    background-color: DarkBlue;
+}
+
+.tiie--background-color-navy {
+    background-color: Navy;
+}
+
+.tiie--background-color-midnightblue {
+    background-color: MidnightBlue;
+}
+
+.tiie--background-color-color {
+    background-color: Color;
+}
+
+.tiie--background-color-rgb {
+    background-color: RGB;
+}
+
+.tiie--background-color-rgb {
+    background-color: RGB;
+}
+
+.tiie--background-color-browns {
+    background-color: Browns;
+}
+
+.tiie--background-color-cornsilk {
+    background-color: Cornsilk;
+}
+
+.tiie--background-color-blanchedalmond {
+    background-color: BlanchedAlmond;
+}
+
+.tiie--background-color-bisque {
+    background-color: Bisque;
+}
+
+.tiie--background-color-navajowhite {
+    background-color: NavajoWhite;
+}
+
+.tiie--background-color-wheat {
+    background-color: Wheat;
+}
+
+.tiie--background-color-burlywood {
+    background-color: BurlyWood;
+}
+
+.tiie--background-color-tan {
+    background-color: Tan;
+}
+
+.tiie--background-color-rosybrown {
+    background-color: RosyBrown;
+}
+
+.tiie--background-color-sandybrown {
+    background-color: SandyBrown;
+}
+
+.tiie--background-color-goldenrod {
+    background-color: Goldenrod;
+}
+
+.tiie--background-color-darkgoldenrod {
+    background-color: DarkGoldenrod;
+}
+
+.tiie--background-color-peru {
+    background-color: Peru;
+}
+
+.tiie--background-color-chocolate {
+    background-color: Chocolate;
+}
+
+.tiie--background-color-saddlebrown {
+    background-color: SaddleBrown;
+}
+
+.tiie--background-color-sienna {
+    background-color: Sienna;
+}
+
+.tiie--background-color-brown {
+    background-color: Brown;
+}
+
+.tiie--background-color-maroon {
+    background-color: Maroon;
+}
+
+.tiie--background-color-whites {
+    background-color: Whites;
+}
+
+.tiie--background-color-white {
+    background-color: White;
+}
+
+.tiie--background-color-snow {
+    background-color: Snow;
+}
+
+.tiie--background-color-honeydew {
+    background-color: Honeydew;
+}
+
+.tiie--background-color-mintcream {
+    background-color: MintCream;
+}
+
+.tiie--background-color-azure {
+    background-color: Azure;
+}
+
+.tiie--background-color-aliceblue {
+    background-color: AliceBlue;
+}
+
+.tiie--background-color-ghostwhite {
+    background-color: GhostWhite;
+}
+
+.tiie--background-color-whitesmoke {
+    background-color: WhiteSmoke;
+}
+
+.tiie--background-color-seashell {
+    background-color: Seashell;
+}
+
+.tiie--background-color-beige {
+    background-color: Beige;
+}
+
+.tiie--background-color-oldlace {
+    background-color: OldLace;
+}
+
+.tiie--background-color-floralwhite {
+    background-color: FloralWhite;
+}
+
+.tiie--background-color-ivory {
+    background-color: Ivory;
+}
+
+.tiie--background-color-antiquewhite {
+    background-color: AntiqueWhite;
+}
+
+.tiie--background-color-linen {
+    background-color: Linen;
+}
+
+.tiie--background-color-lavenderblush {
+    background-color: LavenderBlush;
+}
+
+.tiie--background-color-mistyrose {
+    background-color: MistyRose;
+}
+
+.tiie--background-color-greys {
+    background-color: Greys;
+}
+
+.tiie--background-color-gainsboro {
+    background-color: Gainsboro;
+}
+
+.tiie--background-color-lightgray {
+    background-color: LightGray;
+}
+
+.tiie--background-color-lightgrey {
+    background-color: LightGrey;
+}
+
+.tiie--background-color-silver {
+    background-color: Silver;
+}
+
+.tiie--background-color-darkgray {
+    background-color: DarkGray;
+}
+
+.tiie--background-color-darkgrey {
+    background-color: DarkGrey;
+}
+
+.tiie--background-color-gray {
+    background-color: Gray;
+}
+
+.tiie--background-color-grey {
+    background-color: Grey;
+}
+
+.tiie--background-color-dimgray {
+    background-color: DimGray;
+}
+
+.tiie--background-color-dimgrey {
+    background-color: DimGrey;
+}
+
+.tiie--background-color-lightslategray {
+    background-color: LightSlateGray;
+}
+
+.tiie--background-color-lightslategrey {
+    background-color: LightSlateGrey;
+}
+
+.tiie--background-color-slategray {
+    background-color: SlateGray;
+}
+
+.tiie--background-color-slategrey {
+    background-color: SlateGrey;
+}
+
+.tiie--background-color-darkslategray {
+    background-color: DarkSlateGray;
+}
+
+.tiie--background-color-darkslategrey {
+    background-color: DarkSlateGrey;
+}
+
+.tiie--background-color-black {
+    background-color: Black;
+}
+
+/** color **/
+.tiie--color-indianred {
+    color: IndianRed;
+}
+
+.tiie--color-lightcoral {
+    color: LightCoral;
+}
+
+.tiie--color-salmon {
+    color: Salmon;
+}
+
+.tiie--color-darksalmon {
+    color: DarkSalmon;
+}
+
+.tiie--color-lightsalmon {
+    color: LightSalmon;
+}
+
+.tiie--color-crimson {
+    color: Crimson;
+}
+
+.tiie--color-red {
+    color: Red;
+}
+
+.tiie--color-firebrick {
+    color: FireBrick;
+}
+
+.tiie--color-darkred {
+    color: DarkRed;
+}
+
+.tiie--color-pinks {
+    color: Pinks;
+}
+
+.tiie--color-pink {
+    color: Pink;
+}
+
+.tiie--color-lightpink {
+    color: LightPink;
+}
+
+.tiie--color-hotpink {
+    color: HotPink;
+}
+
+.tiie--color-deeppink {
+    color: DeepPink;
+}
+
+.tiie--color-mediumvioletred {
+    color: MediumVioletRed;
+}
+
+.tiie--color-palevioletred {
+    color: PaleVioletRed;
+}
+
+.tiie--color-oranges {
+    color: Oranges;
+}
+
+.tiie--color-coral {
+    color: Coral;
+}
+
+.tiie--color-tomato {
+    color: Tomato;
+}
+
+.tiie--color-orangered {
+    color: OrangeRed;
+}
+
+.tiie--color-darkorange {
+    color: DarkOrange;
+}
+
+.tiie--color-orange {
+    color: Orange;
+}
+
+.tiie--color-yellows {
+    color: Yellows;
+}
+
+.tiie--color-gold {
+    color: Gold;
+}
+
+.tiie--color-yellow {
+    color: Yellow;
+}
+
+.tiie--color-lightyellow {
+    color: LightYellow;
+}
+
+.tiie--color-lemonchiffon {
+    color: LemonChiffon;
+}
+
+.tiie--color-lightgoldenrodyellow {
+    color: LightGoldenrodYellow;
+}
+
+.tiie--color-papayawhip {
+    color: PapayaWhip;
+}
+
+.tiie--color-moccasin {
+    color: Moccasin;
+}
+
+.tiie--color-peachpuff {
+    color: PeachPuff;
+}
+
+.tiie--color-palegoldenrod {
+    color: PaleGoldenrod;
+}
+
+.tiie--color-khaki {
+    color: Khaki;
+}
+
+.tiie--color-darkkhaki {
+    color: DarkKhaki;
+}
+
+.tiie--color-purples {
+    color: Purples;
+}
+
+.tiie--color-lavender {
+    color: Lavender;
+}
+
+.tiie--color-thistle {
+    color: Thistle;
+}
+
+.tiie--color-plum {
+    color: Plum;
+}
+
+.tiie--color-violet {
+    color: Violet;
+}
+
+.tiie--color-orchid {
+    color: Orchid;
+}
+
+.tiie--color-fuchsia {
+    color: Fuchsia;
+}
+
+.tiie--color-magenta {
+    color: Magenta;
+}
+
+.tiie--color-mediumorchid {
+    color: MediumOrchid;
+}
+
+.tiie--color-mediumpurple {
+    color: MediumPurple;
+}
+
+.tiie--color-blueviolet {
+    color: BlueViolet;
+}
+
+.tiie--color-darkviolet {
+    color: DarkViolet;
+}
+
+.tiie--color-darkorchid {
+    color: DarkOrchid;
+}
+
+.tiie--color-darkmagenta {
+    color: DarkMagenta;
+}
+
+.tiie--color-purple {
+    color: Purple;
+}
+
+.tiie--color-rebeccapurple {
+    color: RebeccaPurple;
+}
+
+.tiie--color-indigo {
+    color: Indigo;
+}
+
+.tiie--color-mediumslateblue {
+    color: MediumSlateBlue;
+}
+
+.tiie--color-slateblue {
+    color: SlateBlue;
+}
+
+.tiie--color-darkslateblue {
+    color: DarkSlateBlue;
+}
+
+.tiie--color-color {
+    color: Color;
+}
+
+.tiie--color-rgb {
+    color: RGB;
+}
+
+.tiie--color-rgb {
+    color: RGB;
+}
+
+.tiie--color-greens {
+    color: Greens;
+}
+
+.tiie--color-greenyellow {
+    color: GreenYellow;
+}
+
+.tiie--color-chartreuse {
+    color: Chartreuse;
+}
+
+.tiie--color-lawngreen {
+    color: LawnGreen;
+}
+
+.tiie--color-lime {
+    color: Lime;
+}
+
+.tiie--color-limegreen {
+    color: LimeGreen;
+}
+
+.tiie--color-palegreen {
+    color: PaleGreen;
+}
+
+.tiie--color-lightgreen {
+    color: LightGreen;
+}
+
+.tiie--color-mediumspringgreen {
+    color: MediumSpringGreen;
+}
+
+.tiie--color-springgreen {
+    color: SpringGreen;
+}
+
+.tiie--color-mediumseagreen {
+    color: MediumSeaGreen;
+}
+
+.tiie--color-seagreen {
+    color: SeaGreen;
+}
+
+.tiie--color-forestgreen {
+    color: ForestGreen;
+}
+
+.tiie--color-green {
+    color: Green;
+}
+
+.tiie--color-darkgreen {
+    color: DarkGreen;
+}
+
+.tiie--color-yellowgreen {
+    color: YellowGreen;
+}
+
+.tiie--color-olivedrab {
+    color: OliveDrab;
+}
+
+.tiie--color-olive {
+    color: Olive;
+}
+
+.tiie--color-darkolivegreen {
+    color: DarkOliveGreen;
+}
+
+.tiie--color-mediumaquamarine {
+    color: MediumAquamarine;
+}
+
+.tiie--color-darkseagreen {
+    color: DarkSeaGreen;
+}
+
+.tiie--color-lightseagreen {
+    color: LightSeaGreen;
+}
+
+.tiie--color-darkcyan {
+    color: DarkCyan;
+}
+
+.tiie--color-teal {
+    color: Teal;
+}
+
+.tiie--color-blues {
+    color: Blues;
+}
+
+.tiie--color-aqua {
+    color: Aqua;
+}
+
+.tiie--color-cyan {
+    color: Cyan;
+}
+
+.tiie--color-lightcyan {
+    color: LightCyan;
+}
+
+.tiie--color-paleturquoise {
+    color: PaleTurquoise;
+}
+
+.tiie--color-aquamarine {
+    color: Aquamarine;
+}
+
+.tiie--color-turquoise {
+    color: Turquoise;
+}
+
+.tiie--color-mediumturquoise {
+    color: MediumTurquoise;
+}
+
+.tiie--color-darkturquoise {
+    color: DarkTurquoise;
+}
+
+.tiie--color-cadetblue {
+    color: CadetBlue;
+}
+
+.tiie--color-steelblue {
+    color: SteelBlue;
+}
+
+.tiie--color-lightsteelblue {
+    color: LightSteelBlue;
+}
+
+.tiie--color-powderblue {
+    color: PowderBlue;
+}
+
+.tiie--color-lightblue {
+    color: LightBlue;
+}
+
+.tiie--color-skyblue {
+    color: SkyBlue;
+}
+
+.tiie--color-lightskyblue {
+    color: LightSkyBlue;
+}
+
+.tiie--color-deepskyblue {
+    color: DeepSkyBlue;
+}
+
+.tiie--color-dodgerblue {
+    color: DodgerBlue;
+}
+
+.tiie--color-cornflowerblue {
+    color: CornflowerBlue;
+}
+
+.tiie--color-royalblue {
+    color: RoyalBlue;
+}
+
+.tiie--color-blue {
+    color: Blue;
+}
+
+.tiie--color-mediumblue {
+    color: MediumBlue;
+}
+
+.tiie--color-darkblue {
+    color: DarkBlue;
+}
+
+.tiie--color-navy {
+    color: Navy;
+}
+
+.tiie--color-midnightblue {
+    color: MidnightBlue;
+}
+
+.tiie--color-color {
+    color: Color;
+}
+
+.tiie--color-rgb {
+    color: RGB;
+}
+
+.tiie--color-rgb {
+    color: RGB;
+}
+
+.tiie--color-browns {
+    color: Browns;
+}
+
+.tiie--color-cornsilk {
+    color: Cornsilk;
+}
+
+.tiie--color-blanchedalmond {
+    color: BlanchedAlmond;
+}
+
+.tiie--color-bisque {
+    color: Bisque;
+}
+
+.tiie--color-navajowhite {
+    color: NavajoWhite;
+}
+
+.tiie--color-wheat {
+    color: Wheat;
+}
+
+.tiie--color-burlywood {
+    color: BurlyWood;
+}
+
+.tiie--color-tan {
+    color: Tan;
+}
+
+.tiie--color-rosybrown {
+    color: RosyBrown;
+}
+
+.tiie--color-sandybrown {
+    color: SandyBrown;
+}
+
+.tiie--color-goldenrod {
+    color: Goldenrod;
+}
+
+.tiie--color-darkgoldenrod {
+    color: DarkGoldenrod;
+}
+
+.tiie--color-peru {
+    color: Peru;
+}
+
+.tiie--color-chocolate {
+    color: Chocolate;
+}
+
+.tiie--color-saddlebrown {
+    color: SaddleBrown;
+}
+
+.tiie--color-sienna {
+    color: Sienna;
+}
+
+.tiie--color-brown {
+    color: Brown;
+}
+
+.tiie--color-maroon {
+    color: Maroon;
+}
+
+.tiie--color-whites {
+    color: Whites;
+}
+
+.tiie--color-white {
+    color: White;
+}
+
+.tiie--color-snow {
+    color: Snow;
+}
+
+.tiie--color-honeydew {
+    color: Honeydew;
+}
+
+.tiie--color-mintcream {
+    color: MintCream;
+}
+
+.tiie--color-azure {
+    color: Azure;
+}
+
+.tiie--color-aliceblue {
+    color: AliceBlue;
+}
+
+.tiie--color-ghostwhite {
+    color: GhostWhite;
+}
+
+.tiie--color-whitesmoke {
+    color: WhiteSmoke;
+}
+
+.tiie--color-seashell {
+    color: Seashell;
+}
+
+.tiie--color-beige {
+    color: Beige;
+}
+
+.tiie--color-oldlace {
+    color: OldLace;
+}
+
+.tiie--color-floralwhite {
+    color: FloralWhite;
+}
+
+.tiie--color-ivory {
+    color: Ivory;
+}
+
+.tiie--color-antiquewhite {
+    color: AntiqueWhite;
+}
+
+.tiie--color-linen {
+    color: Linen;
+}
+
+.tiie--color-lavenderblush {
+    color: LavenderBlush;
+}
+
+.tiie--color-mistyrose {
+    color: MistyRose;
+}
+
+.tiie--color-greys {
+    color: Greys;
+}
+
+.tiie--color-gainsboro {
+    color: Gainsboro;
+}
+
+.tiie--color-lightgray {
+    color: LightGray;
+}
+
+.tiie--color-lightgrey {
+    color: LightGrey;
+}
+
+.tiie--color-silver {
+    color: Silver;
+}
+
+.tiie--color-darkgray {
+    color: DarkGray;
+}
+
+.tiie--color-darkgrey {
+    color: DarkGrey;
+}
+
+.tiie--color-gray {
+    color: Gray;
+}
+
+.tiie--color-grey {
+    color: Grey;
+}
+
+.tiie--color-dimgray {
+    color: DimGray;
+}
+
+.tiie--color-dimgrey {
+    color: DimGrey;
+}
+
+.tiie--color-lightslategray {
+    color: LightSlateGray;
+}
+
+.tiie--color-lightslategrey {
+    color: LightSlateGrey;
+}
+
+.tiie--color-slategray {
+    color: SlateGray;
+}
+
+.tiie--color-slategrey {
+    color: SlateGrey;
+}
+
+.tiie--color-darkslategray {
+    color: DarkSlateGray;
+}
+
+.tiie--color-darkslategrey {
+    color: DarkSlateGrey;
+}
+
+.tiie--color-black {
+    color: Black;
+}
+
+/** white-space **/
+.tiie--white-space-normal {
+    white-space: normal;
+}
+
+.tiie--white-space-nowrap {
+    white-space: nowrap;
+}
+
+.tiie--white-space-pre {
+    white-space: pre;
+}
+
+.tiie--white-space-pre-line {
+    white-space: pre-line;
+}
+
+.tiie--white-space-pre-wrap {
+    white-space: pre-wrap;
+}
+
+.tiie--white-space-initial {
+    white-space: initial;
+}
+
+.tiie--white-space-inherit {
+    white-space: inherit;
+}

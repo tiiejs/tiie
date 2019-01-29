@@ -1,4 +1,4 @@
-import clone from 'Topi/Utils/clone';
+import clone from 'Tiie/Utils/clone';
 
 // merge({
 //     name :
@@ -9,7 +9,6 @@ import clone from 'Topi/Utils/clone';
 // merge([1, 2, 3], [4, 5, 6]);
 // merge([1, 2, 3], [4, 5, {}], {copy : 1, data : 1});
 function merge(a, b, params = {}) {
-    // console.warn('merge', a, b);
     let merged,
         i
     ;

@@ -1,7 +1,7 @@
-import TopiObject from 'Topi/Object';
-import Request from 'Topi/Api/Request';
-import Queue from 'Topi/Api/Queue';
-import Endpoint from 'Topi/Api/Endpoint';
+import TiieObject from 'Tiie/Object';
+import Request from 'Tiie/Api/Request';
+import Queue from 'Tiie/Api/Queue';
+import Endpoint from 'Tiie/Api/Endpoint';
 
 const cn = 'Api';
 
@@ -49,7 +49,7 @@ const cn = 'Api';
  * }).exec(function(response){
  * });
  */
-class Api extends TopiObject {
+class Api extends TiieObject {
     constructor(url = "") {
         super();
 

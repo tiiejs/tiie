@@ -1,6 +1,6 @@
-import Action from 'Topi/Action';
-import View from 'Topi/View';
-import WSelectRemote from 'Topi/Views/Widgets/SelectRemote';
+import Action from 'Tiie/Action';
+import View from 'Tiie/View';
+import WSelectRemote from 'Tiie/Widgets/SelectRemote/SelectRemote';
 
 const cn = 'New';
 class New extends Action {

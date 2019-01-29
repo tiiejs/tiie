@@ -1,8 +1,8 @@
-import TopiObject from 'Topi/Object';
-import View from "Topi/View";
+import TiieObject from 'Tiie/Object';
+import View from "Tiie/View";
 
-import templateDialog from "Topi/Dialog/Views/Dialog.dialog.html";
-import templateLayout from "Topi/Dialog/Views/Dialog.layout.html";
+import templateDialog from "Tiie/Dialog/Views/Dialog.dialog.html";
+import templateLayout from "Tiie/Dialog/Views/Dialog.layout.html";
 
 const cn = 'Dialog';
 
@@ -36,7 +36,7 @@ class Dialog extends View {
         this.element().on("click", (event) => {
             const button = this.get("buttons").find(button => button.id == "close");
 
-            if (this.$(event.target).hasClass("topi-dialog")) {
+            if (this.$(event.target).hasClass("tiie-dialog")) {
                 this.emit("button.close:click", {
                     target : button == undefined ? null : button,
                     event

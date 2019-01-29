@@ -1,7 +1,7 @@
-import TopiObject from 'Topi/Object';
+import TiieObject from 'Tiie/Object';
 
 const cn = 'Components';
-class Components extends TopiObject {
+class Components extends TiieObject {
     constructor(components = {}) {
         super();
 
@@ -27,13 +27,13 @@ class Components extends TopiObject {
             return p.inited[name];
         } else if (name[0] == '#') {
             if (p.inited[name] === undefined) {
-                this.log(`Component ${name} does not exists.`, 'warn', 'topi.components');
+                this.log(`Component ${name} does not exists.`, 'warn', 'tiie.components');
 
                 return null;
             }
 
             return p.inited[name];
-        }else{
+        } else {
             if (p.components[name] === undefined) {
                 this.error(`Component ${name} is not defined.`);
             }
@@ -76,6 +76,19 @@ class Components extends TopiObject {
         p.inited[name] = service;
 
         return this;
+    }
+
+    /**
+     * Check if component with name exists.
+     *
+     * @since 1.0.0
+     * @param {string} name
+     * @return {int}
+     */
+    exists(name) {
+        let p = this.__private(cn);
+
+        return p.inited[name] || p.component[name] ? 1 : 0;
     }
 
     dump() {

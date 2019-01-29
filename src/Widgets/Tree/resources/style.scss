@@ -1,0 +1,38 @@
+.tiie-vw-tree__item {
+    display: flex;
+    justify-content: left;
+}
+
+.tiie-vw-tree__item-title {
+}
+
+.tiie-vw-tree__item-title.--active {
+    font-weight: bold;
+    color: #007bff;
+}
+
+.tiie-vw-tree__item-title:hover {
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.tiie-vw-tree__item-expander {
+    width: 15px;
+}
+
+.tiie-vw-tree__item-expander:hover {
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.tiie-vw-tree__item-space {
+    margin-left: 8px;
+}
+
+.tiie-vw-tree__item-childs {
+    padding-left: 15px;
+}
+
+.tiie-vw-tree__item-icon {
+    width: 25px;
+}

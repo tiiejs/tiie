@@ -1,16 +1,16 @@
-<div class="topi-dialog__dialog">
+<div class="tiie-dialog__dialog">
     {{?
         it.buttons.find(button => button.section == 'header')
         || it.title
     }}
-    <div class="topi-dialog__header grid-x">
+    <div class="tiie-dialog__header grid-x">
         {{? it.title}}
-            <div class="cell auto topi-dialog__title">{{= it.title}}</div>
+            <div class="cell auto tiie-dialog__title">{{= it.title}}</div>
         {{?}}
         {{? it.buttons.find(button => button.section == 'header')}}
-            <div class="cell auto topi-dialog__icons">
+            <div class="cell auto tiie-dialog__icons">
                 {{~ it.buttons.filter(button => button.section == 'header') :value}}
-                <button class="topi-button--{{= value.type}}" data-id="{{= value.id}}">{{= value.label}}</button>
+                <button class="tiie-button--{{= value.type}}" data-id="{{= value.id}}">{{= value.label}}</button>
                 {{~}}
             </div>
         {{?}}
@@ -18,7 +18,7 @@
     {{?}}
 
     {{? it.content}}
-    <div class="topi-dialog__content">
+    <div class="tiie-dialog__content">
         {{= it.content}}
     </div>
     {{?}}
@@ -30,23 +30,23 @@
     }}
     <div class="__footer grix-x">
         {{? it.buttons.find(button => button.section == 'footer.left')}}
-            <div class="cell auto topi--text-align-left topi--padding-10">
+            <div class="cell auto tiie--text-align-left tiie--padding-10">
                 {{~ it.buttons.filter(button => button.section == 'footer.left') :value}}
-                <button class="topi-button--{{= value.type}}" data-id="{{= value.id}}">{{= value.label}}</button>
+                <button class="tiie-button--{{= value.type}}" data-id="{{= value.id}}">{{= value.label}}</button>
                 {{~}}
             </div>
         {{?}}
         {{? it.buttons.find(button => button.section == 'footer.center')}}
-            <div class="cell auto topi--text-align-center topi--padding-10">
+            <div class="cell auto tiie--text-align-center tiie--padding-10">
                 {{~ it.buttons.filter(button => button.section == 'footer.center') :value}}
-                <button class="topi-button--{{= value.type}}" data-id="{{= value.id}}">{{= value.label}}</button>
+                <button class="tiie-button--{{= value.type}}" data-id="{{= value.id}}">{{= value.label}}</button>
                 {{~}}
             </div>
         {{?}}
         {{? it.buttons.find(button => button.section == 'footer.right')}}
-            <div class="cell auto topi--text-align-right topi--padding-10">
+            <div class="cell auto tiie--text-align-right tiie--padding-10">
                 {{~ it.buttons.filter(button => button.section == 'footer.right') :value}}
-                <button class="topi-button--{{= value.type}}" data-id="{{= value.id}}">{{= value.label}}</button>
+                <button class="tiie-button--{{= value.type}}" data-id="{{= value.id}}">{{= value.label}}</button>
                 {{~}}
             </div>
         {{?}}

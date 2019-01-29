@@ -1,6 +1,7 @@
-import Action from 'Topi/Action';
-import View from 'Topi/View';
-import WCheckboxList from 'Topi/Views/Widgets/CheckboxList';
+import Action from 'Tiie/Action';
+import View from 'Tiie/View';
+
+import WCheckboxList from 'Tiie/Widgets/CheckboxList/CheckboxList';
 
 const cn = 'CheckboxList';
 class CheckboxList extends Action {

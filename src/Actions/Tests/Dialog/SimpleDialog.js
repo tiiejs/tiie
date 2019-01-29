@@ -1,6 +1,6 @@
-import Action from 'Topi/Action';
-import View from 'Topi/View';
-import templateLayout from 'Topi/Actions/Tests/Dialog/SimpleDialog.layout.html'
+import Action from 'Tiie/Action';
+import View from 'Tiie/View';
+import templateLayout from 'Tiie/Actions/Tests/Dialog/SimpleDialog.layout.html'
 
 const cn = 'Dialog';
 class Dialog extends Action {
@@ -38,8 +38,6 @@ class Dialog extends Action {
 
 
             view.dialog.on("button.ok:click", (event, params) => {
-
-                console.log('button.ok.click');
             });
 
             // view.form = new WForm();

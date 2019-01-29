@@ -1,0 +1,30 @@
+.tiie-checkbox-list {
+    background-color: white;
+}
+
+.tiie-checkbox-list__item {
+    display: flex;
+    align-items: center;
+}
+
+.tiie-checkbox-list__checkbox {
+    padding: 0;
+    margin: 0;
+}
+
+.tiie-checkbox-list__label {
+    padding: 0;
+    margin: 0;
+}
+
+.tiie-checkbox-list.--border {
+    border : 1px #cacaca solid;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.tiie-checkbox-list.--error {
+    background-color: #fbeaea;
+    border: 1px red solid;
+    color: red;
+}

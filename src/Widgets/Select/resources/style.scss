@@ -1,0 +1,16 @@
+.tiie-input-select {
+    padding: 10px;
+    border: 1px silver solid;
+    border-radius: 5px;
+    background-color: white;
+}
+
+.tiie-input-select.--error {
+    background-color: #fbeaea;
+    border: 1px red solid;
+    color: red;
+}
+
+.em-widgets-select__select-container {
+    border-radius: 0px !important;
+}

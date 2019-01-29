@@ -1,4 +1,4 @@
-import 'Topi/styles/topi.scss';
+import 'Tiie/styles/tiie.scss';
 
 // Import jquery and export to global. It's import to have the same reference
 // used by framework and other plugins.
@@ -6,8 +6,8 @@ import jQuery from "jquery";
 window.jQuery = jQuery;
 
 // import some utils
-import element from "Topi/Utils/element";
-import animate from "Topi/Utils/animate";
+import element from "Tiie/Utils/element";
+import animate from "Tiie/Utils/animate";
 
 // jquery-datetimepicker
 import 'jquery-datetimepicker/build/jquery.datetimepicker.full.js';

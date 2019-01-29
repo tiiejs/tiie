@@ -1,6 +1,6 @@
-import same from 'Topi/Utils/same';
-import clone from 'Topi/Utils/clone';
-import boolean from 'Topi/Utils/boolean';
+import same from 'Tiie/Utils/same';
+import clone from 'Tiie/Utils/clone';
+import boolean from 'Tiie/Utils/boolean';
 
 let uniqueId = 0,
     components = null
@@ -45,32 +45,153 @@ class EventsQueue {
 
 let eventsQueue = new EventsQueue();
 
-const cn = 'TopiObject';
+const cn = "TiieObject";
 
 /**
- * TopiObject
+ * TiieObject
  */
-class TopiObject {
+class TiieObject {
+
+    __destruct() {}
+    __clone() {}
+
+    async __sync() {return Promise.resolve()}
 
     constructor(data = {}) {
         let p = this.__private(cn, {
+            definitions : {
+                dataStructure : {},
+            },
+
             // Eventy
             events : {},
 
             // Dane obiektu
             data,
+
+            syncingWaiting : [],
+            syncing : null,
+        });
+
+        // State variables
+        p.data['@destroyed'] = 0;
+        p.data['@visible'] = 0;
+    }
+
+    __initState(definition, data = {}) {
+        let p = this.__private(cn), value;
+
+        this.__define("data.structure", definition);
+
+        Object.keys(data).forEach((name) => {
+            if (definition.hasOwnProperty(name)) {
+                this.set(name, data[name], {silently : 1});
+            }
         });
     }
 
     /**
-     * Tworzy klon obiektu.
+     * Allows to define some attributes of object.
+     *
+     * @param {string} name
+     * - data.structure - allows to set define structure of data. Structure of
+     *   data contains information about types, values, default value etc.
+     *
+     * @param {object} definition
+     * @return {this}
      */
-    clone() {
+    __define(name, definition = {}) {
+        let p = this.__private(cn), value;
 
+        if (name == "data.structure") {
+            Object.keys(definition).forEach((name) => {
+                p.definitions.dataStructure[name] = definition[name];
+
+                if (definition[name].hasOwnProperty("value")) {
+                    this.set(name, definition[name]["value"], {silently : 1});
+                } else if(definition[name].hasOwnProperty("default")) {
+                    this.set(name, definition[name]["default"], {silently : 1});
+                }
+            });
+        } else {
+            this.log(`Unsuported type to define '${name}.'`, "notice", "Tiie.Object");
+        }
+
+        return this;
     }
 
-    boolean(value) {
-        if (value == '0') {
+    /**
+     * Sync object data with remte resource.
+     *
+     * @return {Promise}
+     */
+    async sync() {
+        let p = this.__private(cn);
+
+        if (this.is("@syncing")) {
+            return p.syncing.then();
+        }
+
+        this.set("@syncing", 1);
+
+        return p.syncing = this.__sync().then((data) => {
+            // Set data at syncing mode.
+            Object.keys(data).forEach((key) => {
+                this.set(key, data[key], {syncing : 1});
+            });
+
+            this.set("@syncing", 0, {syncing : 1});
+            this.set("@synced", 1, {syncing : 1});
+
+            p.syncing = null;
+
+            syncingWaiting.call(this, p);
+        }).catch((data) => {
+            this.set("@syncing", 0, {syncing : 1});
+            this.set("@synced", 1, {syncing : 1});
+
+            p.syncing = null;
+
+            syncingWaiting.call(this, p);
+        });
+    }
+
+    destroy() {
+        let p = this.__private(cn);
+
+        this.__destruct();
+
+        this.set("@destroyed", 1);
+
+        return this;
+    }
+
+    clone() {
+        return this.__clone();
+    }
+
+    __empty(value) {
+        if (value == null || value == undefined) {
+            return 1;
+        }
+
+        if (Array.isArray(value) && value.length == 0) {
+            return 1;
+        }
+
+        if (value == "" || value == 0) {
+            return 1;
+        }
+
+        if (typeof value == "object" && Object.keys(value).length == 0) {
+            return 1;
+        }
+
+        return 0;
+    }
+
+    __boolean(value) {
+        if (value == "0") {
             return 0;
         } else {
             if (value) {
@@ -97,23 +218,26 @@ class TopiObject {
         return this;
     }
 
-    log(message, type = 'log', tag = null) {
+    log(message, type = "log", tag = null) {
         if (tag != null) {
             tag = `[${tag}] `;
         } else {
-            tag = '';
+            tag = "";
         }
 
         switch (type) {
-            case 'error':
+            case "error":
                 return this.error(`${tag}${message}`);
-            case 'warn':
+            case "warn":
                 console.warn(`${tag}${message}`);
                 break;
-            case 'log':
+            case "notice":
                 console.log(`${tag}${message}`);
                 break;
-            case 'debug':
+            case "log":
+                console.log(`${tag}${message}`);
+                break;
+            case "debug":
                 console.debugger(`${tag}${message}`);
                 break;
             default:
@@ -132,12 +256,10 @@ class TopiObject {
      * @return {object}
      */
     params(values =  [], params = {}) {
-        let prepared = {};
+        let prepared = {}, i;
 
         values.forEach((value) => {
-            // value = clone(value);
-
-            for (let i in value) {
+            for (i in value) {
                 if (value[i] == null) {
                     continue;
                 }
@@ -149,6 +271,14 @@ class TopiObject {
         return prepared;
     }
 
+    is(attribute) {
+        return this.__boolean(this.get(attribute));
+    }
+
+    isset(attribute) {
+        return this.get(attribute) != null ? 1 : 0;
+    }
+
     /**
      * Set value of attribute for object. Given value is always cloned.
      *
@@ -156,27 +286,94 @@ class TopiObject {
      * example this.set("value", 12) or this.set("value.async", 1).
      *
      * @param {mixed} value
-     * @param {object} emitparams
+     * @param {object} params
      */
-    set(name, value, emitparams = {}) {
+    set(name, value, params = {}) {
         let p = this.__private(cn);
 
-        value = clone(value);
+        params.silently = params.silently !== undefined ? params.silently : 0;
+        params.syncing = params.syncing !== undefined ? params.syncing : 0;
 
-        // Czy wartość ma być ustawiona, bez emitowania zdarzeń.
-        emitparams.silently = emitparams.silently === undefined ? 0 : 1;
+        if (this.is("@syncing") && !(params.syncing)) {
+            p.syncingWaiting.push({
+                name,
+                value : clone(value),
+                params : clone(params),
+            });
 
-        if (name[0] == '-') {
-            // Skrócona metoda ustawiania wartości, bez emitowania
-            // this.set('-name', "Pawel")
-            emitparams.silently = 1;
-            name = name.substr(1);
+            return this;
         }
 
-        if (typeof name == 'object') {
-            // todo Ustawianie wielu wartości za pomoca jednego obiektu.
-        }else if(typeof name == 'string') {
-            return this.__setValue(p.data, name, value, emitparams);
+        if (typeof name == "object") {
+            let params = value ? value : {};
+
+            value = name;
+
+            params.defined = params.defined ? 1 : 0;
+
+            Object.keys(value).forEach((name) => {
+                if (params.defined) {
+                    if (!p.definitions.dataStructure.hasOwnProperty(name)) {
+                        return;
+                    }
+                }
+
+                this.set(name, value[name], params);
+            });
+
+            return this;
+        }else if(typeof name == "string") {
+            if (p.definitions.dataStructure.hasOwnProperty(name)) {
+                let init = p.definitions.dataStructure[name];
+
+                if (value != null) {
+                    if (init.type == "boolean") {
+                        value = this.__boolean(value);
+                    }
+
+                    if (typeof value == "number" && init.type == "string") {
+                        value = value.toString();
+                    }
+
+                    if (typeof value == "string" && init.type == "number") {
+                        value = parseInt(value);
+
+                        if (isNaN(value)) {
+                            this.log(`Wrong type '${typeof value}' of value '${name}'. Value should be type "number".`, "notice", 'tiie.object');
+                            value = null;
+                        }
+                    }
+
+                    if (init.type == "array") {
+                        if (!Array.isArray(value)) {
+                            this.log(`Wrong type '${typeof value}' of value '${name}'. Value should be type "array".`, "notice", 'tiie.object');
+
+                            value = null;
+                        }
+                    } else {
+                        if (init.type && typeof value != init.type) {
+                            if (!(init.type == "boolean" && typeof value == "number")) {
+                                this.log(`Wrong type '${typeof value}' of value '${name}'. Value should be type '${init.type}'.`, "notice", 'tiie.object');
+
+                                value = null;
+                            }
+                        }
+                    }
+                }
+
+                if (init.notNull && value == null && init.hasOwnProperty("default")) {
+                    value = init.default;
+                }
+            }
+
+            if (name[0] == '-') {
+                // Skrócona metoda ustawiania wartości, bez emitowania
+                // this.set('-name', "Pawel")
+                params.silently = 1;
+                name = name.substr(1);
+            }
+
+            return this.__setValue(p.data, name, value, params);
         }else{
             this.error("Unsuported params");
         }
@@ -188,22 +385,22 @@ class TopiObject {
      * @param {object} target
      * @param {string} name
      * @param {*} value
-     * @param {object} emitparams
+     * @param {object} params
      * @return this
      */
-    __setValue(target, name, value, emitparams = {}) {
+    __setValue(target, name, value, params = {}) {
         let p = this.__private(cn);
 
         if (target[name] === undefined) {
             target[name] = value;
 
-            this.emit(`${name}:init`, {}, emitparams);
+            this.emit(`${name}:init`, {}, params);
             this.emit(`${name}:change`, {
                 previous : undefined
-            }, emitparams);
+            }, params);
 
         }else{
-            if (emitparams.silently) {
+            if (params.silently) {
                 target[name] = value;
             }else{
                 if (!same(target[name], value)) {
@@ -213,22 +410,12 @@ class TopiObject {
 
                     this.emit(`${name}:change`, {
                         previous
-                    }, emitparams);
+                    }, params);
                 }
             }
         }
 
         return this;
-    }
-
-    /**
-     * Zwraca informację czy obiekt spełnia podane kryteriu
-     *
-     * @param {string} name
-     * @return {integer} 0 lub 1
-     */
-    is(name) {
-        return 0;
     }
 
     data(params = {}) {
@@ -337,7 +524,7 @@ class TopiObject {
      * @return {mixed}
      */
     __private(...variables) {
-        // if (typeof variables[0] != 'string') {
+        // if (typeof variables[0] != "string") {
         //     throw(`private scope should has defined id`);
         // }
 
@@ -358,20 +545,18 @@ class TopiObject {
         }
 
         if (variables.length == 2) {
-            // console.log('variables', variables);
-            // console.log('scope', scope);
         }
 
         if (variables.length == 1) {
             return scope[variables[0]];
         } else if (variables.length == 2) {
-            if (typeof variables[1] == 'string') {
+            if (typeof variables[1] == "string") {
                 return scope[variables[0]][variables[1]];
-            } else if (typeof variables[1] == 'object') {
+            } else if (typeof variables[1] == "object") {
                 return scope[variables[0]] = variables[1];
             }
         } else if (variables.length == 3) {
-            if (typeof variables[1] == 'string') {
+            if (typeof variables[1] == "string") {
                 if (variables[2] == undefined) {
                     return scope[variables[0]][variables[1]];
                 } else {
@@ -456,7 +641,7 @@ class TopiObject {
         if (name.length == 1) {
             call.push(name[0]);
         }else if(name.length == 2){
-            if (name[0] == '') {
+            if (name[0] == "") {
                 call.push(`:${name[1]}`);
             }else{
                 call.push(`${name[0]}:${name[1]}`);
@@ -496,12 +681,12 @@ class TopiObject {
         let p = this.__private(cn);
 
         switch (typeof name) {
-            case 'undefined':
+            case "undefined":
                 p.events = {};
 
                 return this;
-            case 'string':
-            case 'number':
+            case "string":
+            case "number":
                 for (let event in p.events) {
                     let events = [];
 
@@ -524,6 +709,14 @@ class TopiObject {
         return components.get(name, params);
     }
 
+    __component(name, params = {}) {
+        return components.get(name, params);
+    }
+
+    __components() {
+        return components;
+    }
+
     components() {
         return components;
     }
@@ -540,31 +733,39 @@ class TopiObject {
 
     // this.off('.app');
     // this.off('#app');
-    // this.off('selectRow');
+    // this.off("selectRow");
 
     // this.on('saved:success')
     // this.on('saved:faile')
 
-    // widget.on('event', function(){}, id);
-
+    // widget.on("event", function(){}, id);
     // widget.off(id);
     // widget.off('change.name');
     // widget.off(function(){});
-
-    // Events
 }
 
-TopiObject.components = function(p) {
+TiieObject.components = function(p) {
     components = p
 }
 
+function syncingWaiting(p) {
+    while(p.syncingWaiting.length) {
+        let setter = p.syncingWaiting.shift();
 
-setInterval(() => {
-    components.dump();
-}, 2000);
+        this.set(setter.name, setter.value, setter.params);
+
+        if (this.is("@syncing")) {
+            return;
+        }
+    }
+}
+
+// setInterval(() => {
+//     components.dump();
+// }, 2000);
 
 if (window.pscope === undefined) {
     window.pscope = new WeakMap();
 }
 
-export default TopiObject;
+export default TiieObject;

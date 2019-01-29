@@ -1,19 +1,25 @@
-import TopiObject from 'Topi/Object';
+import TiieObject from 'Tiie/Object';
 import jQuery from "jquery";
+import Loader from 'Tiie/Loader/Loader';
 
 import doT from 'dot';
 
 const cn = 'View';
 
-class View extends TopiObject {
+class View extends TiieObject {
     constructor(template = "<div></div>") {
         super();
 
         let p = this.__private(cn, {
             target : null,
+            notifications : null,
+            loader : null,
+            loaderTimeout : null,
             // element : this.create(template),
             // elements : this._createElements(template),
             rendered : 0,
+            templates : [],
+            views : {},
             timeout : {
                 reload : null
             },
@@ -22,15 +28,84 @@ class View extends TopiObject {
         p.elements = this._createElements(template);
         p.elements.forEach(element => this._attachEventsListener(element));
 
-        this.set('@view.ready', 0, {silently : 1});
-        this.set('@view.rendered', 0, {silently : 1});
-        this.set('@view.synced', 0, {silently : 1});
+        this.set('@ready', 0, {silently : 1});
+        this.set('@rendered', 0, {silently : 1});
+
+        // TODO Syncing params.
+        // Parametry związane z synchronizacją można przenieść do przestrzeni
+        // obiektu.
+        this.set('@syncing', 0, {silently : 1});
+        this.set('@synced', 0, {silently : 1});
+
+        this.on("@syncing:change", (event, params) => {
+            if (this.is("@syncing")) {
+                if(p.loaderTimeout) {
+                    clearTimeout(p.loaderTimeout);
+                }
+
+                // clearTimeout
+                p.loaderTimeout = setTimeout(() => {
+                    this.__loader().show();
+                }, 1000);
+            } else {
+                if(p.loaderTimeout) {
+                    clearTimeout(p.loaderTimeout);
+                }
+
+                this.__loader().hide();
+            }
+        });
 
         // attach to standard events
         // this.element().
         // Set default attribute
-        // this.set(".@view.ready", 0, {silently : 1});
-        // this.set(".@view.loading", 0, {silently : 1});
+        // this.set(".@ready", 0, {silently : 1});
+        // this.set(".@loading", 0, {silently : 1});
+    }
+
+    __section(name, events, template) {
+        let p = this.__private(cn);
+
+        this.on(events, (event, params) => {
+            if(typeof template == 'function') {
+
+            } else {
+                this.element(name).content(this.template(template)(this.data()));
+            }
+        });
+    }
+
+    __view(name, view) {
+        let p = this.__private(cn);
+
+        if (view != undefined) {
+            return p.views[name] = view;
+        } else {
+            return !p.views[name] ? null : p.views[name];
+        }
+    }
+
+    /**
+     * Return function to compile template.
+     *
+     * @param {string} template
+     * @return {function}
+     */
+    __template(template) {
+        let p = this.__private(cn),
+            found = p.templates.find(t => t.template == template)
+        ;
+
+        if (found == undefined) {
+            found = {
+                template,
+                function : doT.template(template),
+            };
+
+            p.templates.push(found);
+        }
+
+        return found.function;
     }
 
     _attachEventsListener(element) {
@@ -70,6 +145,43 @@ class View extends TopiObject {
 
     content(html) {
         return this.element().content(html);
+    }
+
+    __loader() {
+        let p = this.__private(cn);
+
+        if (p.loader == null) {
+            if (!this.__components().exists("@loader")) {
+                this.log("There is no '@loader' component.", "warn", "Tiie.View");
+
+                return null;
+            } else {
+                p.loader = this.__components().get("@loader").attach(this.element());
+            }
+        }
+
+        return p.loader;
+    }
+
+    /**
+     * Return notification component for view.
+     *
+     * @return {Tiie.Notifications.Notifications|null}
+     */
+    __notifications() {
+        let p = this.__private(cn);
+
+        if (!p.notifications) {
+            if (!this.__components().exists("@notifications")) {
+                this.log("There is no '@notifications' component.", "warn", "Tiie.View");
+
+                return null;
+            } else {
+                p.notifications = this.__components().get("@notifications").attach(this.element());
+            }
+        }
+
+        return p.notifications;
     }
 
     $(object) {
@@ -113,6 +225,69 @@ class View extends TopiObject {
     }
 
     /**
+     * Set or return a content for given element.
+     *
+     * @param {string} name
+     * @param {string} content
+     * @param {object} data
+     * @return {string|this}
+     */
+    __content(...args) {
+        let p = this.__private(cn),
+            element = this.element(args[0])
+        ;
+
+        console.log('__content');
+        if (element == null) {
+            this.log(`Element ${args[0]} not found.`, "warn", "Tiie.View");
+
+            if (args.length == 1) {
+                return null;
+            } else {
+                return this;
+            }
+        }
+
+        if(args.length == 1) {
+            return element.html();
+        } else if(args.length == 2) {
+            element.html(this.__template(args[1])(this.data({clone : 0})));
+
+            return this;
+        } else if(args.length >= 3) {
+            element.html(this.__template(args[1])(this.data(args[2])));
+
+            if (args.length > 3) {
+                this.log(`Unsuported number of params for '__content' method.`, "notice", "Tiie.View");
+            }
+
+            return this;
+        }
+    }
+
+    show() {
+        let p = this.__private(cn);
+
+        p.elements.forEach((element) => {
+            element.show();
+            // p.target.append(element);
+        });
+
+        return this;
+    }
+
+    hide() {
+        let p = this.__private(cn);
+
+        p.elements.forEach((element) => {
+            element.hide();
+            // p.target.append(element);
+        });
+
+        return this;
+    }
+
+    /**
      * Display view object base on data of object.
      *
      * @return this
@@ -129,15 +304,6 @@ class View extends TopiObject {
         return this;
     }
 
-    /**
-     * Data synchronization with external data.
-     *
-     * @returns {Promise}
-     */
-    async sync() {
-        return Promise.resolve();
-    }
-
     is(name) {
         let p = this.__private(cn);
 
@@ -150,7 +316,7 @@ class View extends TopiObject {
     }
 
     /**
-     * Zmiana kontenera dla widoku.
+     * Set contener to display view.
      *
      * @params {Object}
      * @return {Object}
@@ -230,5 +396,6 @@ class View extends TopiObject {
         }
     }
 }
+
 
 export default View;

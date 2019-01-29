@@ -1,0 +1,14 @@
+.tiie-blank-photo {
+    width: 100%;
+    height: 100%;
+    border: 1px silver dotted;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background-color: #f9f9f9;
+}
+
+.tiie-blank-photo__label {
+    color: silver;
+    font-weight: bold;
+}

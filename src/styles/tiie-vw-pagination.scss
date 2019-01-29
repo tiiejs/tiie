@@ -1,0 +1,28 @@
+.tiie-vw-pagination {
+    font-size: 20px;
+
+    i:hover {
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    i.--disabled {
+        color: whitesmoke;
+    }
+
+    .tiie-vw-pagination__previous {
+
+    }
+
+    .tiie-vw-pagination__page {
+        width: 40%;
+    }
+
+    .tiie-vw-pagination__from {
+
+    }
+
+    .tiie-vw-pagination__next {
+
+    }
+}

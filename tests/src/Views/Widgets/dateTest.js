@@ -1,4 +1,5 @@
 import Modal from 'Topi/Dialog/Views/Modal';
+
 import View from 'Topi/View';
 import Date from 'Topi/Views/Widgets/Date';
 

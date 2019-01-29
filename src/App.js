@@ -1,12 +1,13 @@
-import TopiObject from "Topi/Object";
-import Components from "Topi/Components";
-import Config from "Topi/Config";
-import Dialog from "Topi/Dialog/Dialog";
-import Router from "Topi/Router";
-import UtilsArray from 'Topi/Utils/Array';
+import TiieObject from "Tiie/Object";
+import Components from "Tiie/Components";
+import Config from "Tiie/Config";
+import Dialog from "Tiie/Dialog/Dialog";
+import Router from "Tiie/Router/Router";
+import UtilsArray from 'Tiie/Utils/Array';
 
-import global from "Topi/global";
-import merge from "Topi/Utils/merge";
+import Window from "Tiie/Window/Window";
+import global from "Tiie/global";
+import merge from "Tiie/Utils/merge";
 
 let components = {
     '@dialog' : function(components, params = {}) {
@@ -14,6 +15,9 @@ let components = {
     },
     '@utils.array' : function(components, params = {}) {
         return new UtilsArray();
+    },
+    '@window' : function(components, params = {}) {
+        return new Window();
     },
     '@router' : function(components, params = {}) {
         let router = new Router(),
@@ -30,8 +34,8 @@ let components = {
                 }
 
                 route.execute = (params, route) => {
-                    app.action(route.actionClass, params, route.controllerClass);
-                };
+                    app.action(route.controllerClass, route.actionClass, params);
+                }
             }
 
             return route;
@@ -43,31 +47,34 @@ let components = {
 
 const cn = 'App';
 
-class App extends TopiObject {
+class App extends TiieObject {
     constructor(target, config = {}) {
         super();
 
         let p = this.__private(cn, {
             config : new Config(config),
+            controllers : [],
+            actions : [],
             controller : null,
             action : null,
+            components : null,
             target,
         });
 
         let componentsConfig = p.config.get("components");
 
-        // components
+        // Components
         components = merge(components, componentsConfig.components);
 
-        components = new Components(components);
+        p.components = new Components(components);
 
-        components.set('@config', p.config);
-        components.set('@app', this);
+        p.components.set('@config', p.config);
+        p.components.set('@app', this);
 
-        global.components = components;
+        global.components = p.components;
 
-        // set components to main TopiObject
-        TopiObject.components(components);
+        // set components to main TiieObject
+        TiieObject.components(p.components);
     }
 
     run() {
@@ -76,44 +83,100 @@ class App extends TopiObject {
         this.component('@router').run();
     }
 
+    plugin(extension) {
+        let p = this.__private(cn);
+
+        extension(this);
+
+        return this;
+    }
+
+    /**
+     * Returns reference to main container of application. For example It can
+     * be "body".
+     *
+     * @return {jQuery}
+     */
     target() {
         let p = this.__private(cn);
 
         return p.target;
     }
 
+    components() {
+        let p = this.__private(cn);
+
+        return p.components;
+    }
+
     /**
      * Run action
      */
-    action(action, params, controller) {
-        let p = this.__private(cn);
+    action(controllerClass, actionClass, params) {
+        let p = this.__private(cn),
+            controller = p.controllers.find(element => element.class == controllerClass),
+            action = p.actions.find(element => element.class == actionClass),
+            promises = []
+        ;
 
-        // Czy controller powinien decytowac o sposobie uruchomienia akcji
-        if (p.controller === null) {
-            p.controller = new controller(p.target, p.components);
-            p.controller.run().then(() => {
-                p.controller.action(action, params);
-            });
-        }else if(p.controller instanceof controller){
-            p.controller.action(action, params);
-            // p.action.end().then(() => {
-            //     p.action = new action(p.components);
-            //     p.action.run(params, p.controller).then(() => {
+        if (controller == undefined) {
+            controller = {
+                instance : new controllerClass(p.components),
+                class : controllerClass
+            };
 
-            //     });
-            // });
-        }else{
-            p.controller.end().then(() => {
-                p.controller = new controller(p.target, p.components);
-                p.controller.run(params).then(() => {
-                    p.controller.action(action, params);
-                    // p.action = new action(p.components);
-                    // p.action.run(params, p.controller).then(() => {
+            promises.push(controller.instance.run(params));
 
-                    // });
-                });
-            });
+            if (p.controller) {
+                // Przy zmianie kontrolera, usypiam poprzedni kontroler
+                promises.push(p.controller.sleep());
+            }
+
+            p.controller = controller.instance;
+            p.controllers.push(controller);
+        } else {
+            if (p.controller !== controller.instance) {
+                promises.push(p.controller.sleep());
+                promises.push(controller.instance.wakeup());
+
+                p.controller = controller.instance;
+            }
         }
+
+        if (action == undefined) {
+            action = {
+                instance : new actionClass(p.components),
+                class : actionClass
+            };
+
+            promises.push(action.instance.run(params));
+
+            if (p.action) {
+                promises.push(p.action.sleep());
+            }
+
+            p.action = action.instance;
+            p.actions.push(action);
+        } else {
+            if (p.action !== action.instance) {
+                promises.push(p.action.sleep());
+                promises.push(action.instance.wakeup());
+
+                p.action = action.instance;
+            }
+        }
+
+        Promise.all(promises).then(() => {
+            return Promise.all([
+                p.controller.reload(params),
+                p.action.reload(params),
+            ]);
+        }).then(() => {
+            p.controller.view().target(p.target);
+            p.action.view().target(p.controller.view().element('content'));
+        }).catch((error) => {
+            console.log('error', error);
+        });
     }
 };
 

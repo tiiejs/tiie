@@ -1,7 +1,7 @@
-import TopiObject from 'Topi/Object';
+import TiieObject from 'Tiie/Object';
 
 const cn = 'Config';
-class Config extends TopiObject{
+class Config extends TiieObject{
 
 }
 

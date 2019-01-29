@@ -18,19 +18,19 @@ const content = new Content();
 //
 // import apiTest from 'Api/apiTest';
 // apiTest(content);
-//
+
+import RouterTest from "RouterTest";
+RouterTest(content);
+
 // import dialogTest from 'Dialog/Views/dialogTest';
 // dialogTest(content);
-//
+
 // import alertTest from 'Dialog/Views/alertTest';
 // alertTest(content);
 // content.clean();
-//
+
 // import modalTest from 'Dialog/Views/modalTest';
 // modalTest(content);
-
-import test from 'Views/Components/Loader/managerTest';
-test(content);
-
+//
 // import dateTest from 'Views/Widgets/dateTest';
 // dateTest(content);

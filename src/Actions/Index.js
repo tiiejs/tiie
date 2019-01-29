@@ -1,7 +1,7 @@
-import ActionTemplate from 'Topi/Modules/Actions/Template';
-import View from 'Topi/View';
-import Action from 'Topi/Action';
-import template from 'Topi/Actions/Index.html';
+import ActionTemplate from 'Tiie/Modules/Actions/Template';
+import View from 'Tiie/View';
+import Action from 'Tiie/Action';
+import template from 'Tiie/Actions/Index.html';
 
 const cn = 'Index';
 class Index extends Action {

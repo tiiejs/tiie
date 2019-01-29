@@ -1,4 +1,4 @@
-import encode from 'Topi/Api/Common/encode';
+import encode from 'Tiie/Api/Common/encode';
 
 function urn(url, params = {}, binds = {}, format = 'application/x-www-form-urlencoded'){
     // change binds

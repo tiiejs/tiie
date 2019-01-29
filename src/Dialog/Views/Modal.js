@@ -1,5 +1,5 @@
-import TopiObject from 'Topi/Object';
-import View from "Topi/View";
+import TiieObject from 'Tiie/Object';
+import View from "Tiie/View";
 
 import templateContent from "./Modal.content.html";
 import templateLayout from "./Modal.layout.html";
@@ -9,7 +9,7 @@ const cn = 'Modal';
 /**
  * Base View to display modal.
  *
- * @param {Topi.View} view View to display at modal.
+ * @param {Tiie.View} view View to display at modal.
  */
 class Modal extends View {
     constructor(view, params = {}) {
@@ -46,7 +46,7 @@ class Modal extends View {
     render() {
         const p = this.__private(cn);
 
-        this.element('content').attr('class', `topi-dialog-modal --${this.get('size')}`);
+        this.element('content').attr('class', `tiie-dialog-modal --${this.get('size')}`);
 
         p.view
             .target(this.element('content'))

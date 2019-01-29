@@ -1,8 +1,8 @@
-import TopiObject from 'Topi/Object';
-import Responses from 'Topi/Api/Responses';
+import TiieObject from 'Tiie/Object';
+import Responses from 'Tiie/Api/Responses';
 
 const cn = 'Queue';
-class Queue extends TopiObject {
+class Queue extends TiieObject {
     constructor(api) {
         super();
 

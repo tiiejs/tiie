@@ -1,6 +1,6 @@
-import Action from 'Topi/Action';
-import View from 'Topi/View';
-import WForm from 'Topi/Views/Widgets/Form';
+import Action from 'Tiie/Action';
+import View from 'Tiie/View';
+import WForm from 'Tiie/Form/Form';
 
 const cn = 'Form';
 class Form extends Action {

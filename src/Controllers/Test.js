@@ -1,7 +1,7 @@
-import Controller from 'Topi/Controller';
-import View from 'Topi/View';
+import Controller from 'Tiie/Controller';
+import View from 'Tiie/View';
 
-import templateLayout from 'Topi/Controllers/Test.layout.html';
+import templateLayout from 'Tiie/Controllers/Test.layout.html';
 
 const cn = 'Test';
 class Test extends Controller {

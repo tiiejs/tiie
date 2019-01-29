@@ -1,0 +1,13 @@
+@import 'tiie-variables';
+
+.tiie-groups-buttons > :first-child{
+    border-radius: 5px 0px 0px 5px;
+}
+
+.tiie-groups-buttons > :last-child {
+    border-radius: 0px 5px 5px 0px;
+}
+
+.tiie-groups-buttons > * {
+    display: inline-block;
+}

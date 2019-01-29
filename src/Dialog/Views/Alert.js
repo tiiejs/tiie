@@ -1,8 +1,8 @@
-import TopiObject from 'Topi/Object';
-import View from "Topi/View";
+import TiieObject from 'Tiie/Object';
+import View from "Tiie/View";
 
-import templateContent from "Topi/Dialog/Views/Alert.content.html";
-import templateLayout from "Topi/Dialog/Views/Alert.layout.html";
+import templateContent from "Tiie/Dialog/Views/Alert.content.html";
+import templateLayout from "Tiie/Dialog/Views/Alert.layout.html";
 
 const cn = 'Alert';
 
@@ -38,7 +38,7 @@ class Alert extends View {
         this.element().on("click", (event) => {
             const button = this.get("buttons").find(button => button.id == "close");
 
-            if (this.$(event.target).hasClass("topi-dialog")) {
+            if (this.$(event.target).hasClass("tiie-dialog")) {
                 this.emit("button.close:click", {
                     target : button == undefined ? null : button,
                     event
