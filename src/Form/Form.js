@@ -268,7 +268,7 @@ class Form extends Widget {
         ;
 
         structure.forEach((row) => {
-            html.push(`<div class="grid-x grid-padding-x tiie-form__row ${p.params.styleRowBorderBottom ? p.params.styleRowBorderBottomClass : ''}">`);
+            html.push(`<div class="row tiie-form__row ${p.params.styleRowBorderBottom ? p.params.styleRowBorderBottomClass : ''}">`);
 
             left = 12;
 
@@ -326,13 +326,13 @@ class Form extends Widget {
 
                     if (element.label) {
                         labelHtml = `
-                            <div class="cell medium-${element.labelWidth} large-${element.labelWidth} small-12 ${p.params.classCell.join(' ')}" name="${element.id}LabelCell">
+                            <div class="col col-md-${element.labelWidth} col-lg-${element.labelWidth} col-sm-12 ${p.params.classCell.join(' ')}" name="${element.id}LabelCell">
                                 <label class="text-left" name="${element.id}Label" for="${element.id}">${element.label}</label>
                             </div>
                         `;
                     }
 
-                    widgetHtml = `<div class="cell tiie-form__cell medium-${element.width} large-${element.width} small-12 ${p.params.classCell.join(' ')}" name="${element.id}"></div>`;
+                    widgetHtml = `<div class="col tiie-form__col col-md-${element.width} col-lg-${element.width} col-sm-12 ${p.params.classCell.join(' ')}" name="${element.id}"></div>`;
 
                     if (this.__boolean(element.reverse)) {
                         html.push(widgetHtml);
@@ -342,9 +342,9 @@ class Form extends Widget {
                         html.push(widgetHtml);
                     }
                 }else if(element.type == "text") {
-                    html.push(`<div class="cell __text medium-${element.width} large-${element.width} small-12 ${p.params.classCell.join(' ')}" name="${element.id}">${element.value === undefined ? "" : element.value}</div>`)
+                    html.push(`<div class="col __text col-md-${element.width} col-lg-${element.width} col-sm-12 ${p.params.classCell.join(' ')}" name="${element.id}">${element.value === undefined ? "" : element.value}</div>`)
                 }else if(element.type == "section") {
-                    html.push(`<div class="cell tiie-form__section medium-${element.width} large-${element.width} small-12 ${p.params.classCell.join(' ')}" name="${element.id}">${element.name}</div>`)
+                    html.push(`<div class="col tiie-form__section col-md-${element.width} col-lg-${element.width} col-sm-12 ${p.params.classCell.join(' ')}" name="${element.id}">${element.name}</div>`)
                 }else {
                     this.log(`Unknow type of fom element ${element.type}`, "warn", 'Tiie.Form.Form');
                 }
