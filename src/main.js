@@ -1,4 +1,4 @@
-import 'Tiie/styles/tiie.scss';
+// import 'Tiie/Styles/style.scss';
 
 // Import jquery and export to global. It's import to have the same reference
 // used by framework and other plugins.
