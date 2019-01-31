@@ -136,12 +136,13 @@ class TiieObject {
 
         return p.syncing = this.__sync().then((data) => {
             // Set data at syncing mode.
+            this.set("@synced", 1, {syncing : 1});
+
             Object.keys(data).forEach((key) => {
                 this.set(key, data[key], {syncing : 1});
             });
 
             this.set("@syncing", 0, {syncing : 1});
-            this.set("@synced", 1, {syncing : 1});
 
             p.syncing = null;
 
