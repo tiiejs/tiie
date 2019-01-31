@@ -237,7 +237,6 @@ class View extends TiieObject {
             element = this.element(args[0])
         ;
 
-        console.log('__content');
         if (element == null) {
             this.log(`Element ${args[0]} not found.`, "warn", "Tiie.View");
 
@@ -255,7 +254,7 @@ class View extends TiieObject {
 
             return this;
         } else if(args.length >= 3) {
-            element.html(this.__template(args[1])(this.data(args[2])));
+            element.html(this.__template(args[1])(args[2]));
 
             if (args.length > 3) {
                 this.log(`Unsuported number of params for '__content' method.`, "notice", "Tiie.View");
