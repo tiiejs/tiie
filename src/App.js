@@ -107,7 +107,6 @@ class App extends TiieObject {
         return this;
     }
 
-    plugin(extension) {
     /**
      * Plugin external extensions.
      *
@@ -128,9 +127,10 @@ class App extends TiieObject {
      *
      * app.run();
      */
+    plugin(extension, params) {
         let p = this.__private(cn);
 
-        extension(this);
+        extension(this, params);
 
         return this;
     }
