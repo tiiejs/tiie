@@ -103,6 +103,8 @@ class App extends TiieObject {
         let p = this.__private(cn);
 
         this.component('@router').run();
+
+        return this;
     }
 
     plugin(extension) {
