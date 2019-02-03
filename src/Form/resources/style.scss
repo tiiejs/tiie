@@ -13,13 +13,13 @@
 
 .tiie-form__fields {}
 
-.tiie-form__cell {
-
-}
-
 .tiie-form__section {
     font-size: 15px;
     font-weight: bold;
+}
+
+.tiie-form__cell {
+
 }
 
 .tiie-form__cell.--error {
@@ -29,7 +29,7 @@
 }
 
 .tiie-form__notice {
-
+    font-size: 0.7em;
 }
 
 .tiie-form__notice.--error {

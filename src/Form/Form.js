@@ -422,7 +422,7 @@ class Form extends Widget {
                     // Search element of error, at fields
                     if (target = this.element("fields").element(i)) {
                         // Element was found
-                        target.append(`<div class="tiie-form__notice --error">${feedback}</div>`);
+                        target.append(`<div class="tiie-form__notice --error tiie--margin-top-10">${feedback}</div>`);
                     }
 
                     if (label = this.element("fields").element(`${i}Label`)) {
