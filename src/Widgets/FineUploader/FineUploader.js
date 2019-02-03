@@ -1,8 +1,8 @@
-import Widget from 'Tiie/Widgets/Widget';
+import Widget from "Tiie/Widgets/Widget";
 
-import template from './resources/template.html'
+import template from "./resources/template.html"
 
-const cn = 'FineUploader';
+const cn = "FineUploader";
 
 class FineUploader extends Widget {
     constructor(params = {}) {
@@ -12,8 +12,8 @@ class FineUploader extends Widget {
             uploader : null
         });
 
-        this.set('-value', params.value === undefined ? [] : params.value);
-        this.set('-url', params.url === undefined ? null : params.url);
+        this.set("-value", params.value === undefined ? [] : params.value);
+        this.set("-url", params.url === undefined ? null : params.url);
 
         // Plugin wymaga aby w DOMIE znalazł się szablon.
         this.component('@app').target().append(template);
@@ -21,42 +21,42 @@ class FineUploader extends Widget {
         // Prepare
         p.uploader = new qq.FineUploader({
             // debug: true,
-            // inputName : 'file',
+            // inputName : "file",
             // core : {
-            //     inputName : 'file',
+            //     inputName : "file",
             // },
-            // filenameParam : 'file',
+            // filenameParam : "file",
             element: this.element().get(0),
             request: {
-                endpoint: this.get('url'),
+                endpoint: this.get("url"),
             },
             callbacks : {
                 onComplete : (id, name, response) => {
-                    let value = this.get('value');
+                    let value = this.get("value");
                     value.push(response);
-                    this.set('value', value, {ommit : this.id()});
+                    this.set("value", value, {ommit : this.id()});
                 }
             }
             // deleteFile: {
             //     enabled: true,
-            //     url: '/uploads'
+            //     url: "/uploads"
             // },
             // retry: {
             //    enableAuto: true
             // }
         });
 
-        p.uploader.addInitialFiles(this.get('value'));
-        // p.uploader.on('success', (file) => {
+        p.uploader.addInitialFiles(this.get("value"));
+        // p.uploader.on("success", (file) => {
         //     file = JSON.parse(file.xhr.responseText);
-        //     let value = this.get('value');
+        //     let value = this.get("value");
 
         //     value.push(file);
 
-        //     this.set('value', value);
+        //     this.set("value", value);
         // });
 
-        // this.on('value', () => {
+        // this.on("value", () => {
         //     this.reload();
         // }, this.id());
 

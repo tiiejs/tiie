@@ -1,3 +1,4 @@
+/** @module Tiie */
 import TiieObject from "Tiie/Object";
 import Components from "Tiie/Components";
 import Config from "Tiie/Config";
@@ -47,6 +48,25 @@ let components = {
 
 const cn = 'App';
 
+/**
+ * The main class representing the application.
+ *
+ * @param {jQuery} target Target for application.
+ * @param {object} config
+ *
+ * @class
+ * @example
+ * let app = window.app = new App(jQuery("body"), {});
+ *
+ * // Some plugins
+ * app.plugin(extensionFrames);
+ * app.plugin(extensionNotifications);
+ * app.plugin(extensionLoader);
+ * app.plugin(extensionApi);
+ * app.plugin(extensionStyles);
+ *
+ * app.run();
+ */
 class App extends TiieObject {
     constructor(target, config = {}) {
         super();
@@ -77,6 +97,12 @@ class App extends TiieObject {
         TiieObject.components(p.components);
     }
 
+    /**
+     * Run the application.
+     *
+     * @access public
+     * @return {this}
+     */
     run() {
         let p = this.__private(cn);
 
@@ -84,6 +110,26 @@ class App extends TiieObject {
     }
 
     plugin(extension) {
+    /**
+     * Plugin external extensions.
+     *
+     * @param {function} extension
+     * @param {object} params
+     *
+     * @access public
+     * @return {this}
+     *
+     * @example
+     * let app = window.app = new App(jQuery("body"));
+     *
+     * app.plugin(extensionFrames);
+     * app.plugin(extensionNotifications);
+     * app.plugin(extensionLoader);
+     * app.plugin(extensionApi);
+     * app.plugin(extensionStyles);
+     *
+     * app.run();
+     */
         let p = this.__private(cn);
 
         extension(this);
@@ -95,6 +141,7 @@ class App extends TiieObject {
      * Returns reference to main container of application. For example It can
      * be "body".
      *
+     * @access public
      * @return {jQuery}
      */
     target() {
@@ -103,6 +150,12 @@ class App extends TiieObject {
         return p.target;
     }
 
+    /**
+     * Return reference to components.
+     *
+     * @public
+     * @return {Tiie.Components}
+     */
     components() {
         let p = this.__private(cn);
 

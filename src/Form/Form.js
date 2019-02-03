@@ -19,7 +19,8 @@ class Form extends Widget {
 
         let p = this.__private(cn, {
             id : 0,
-            // Lista widget
+
+            // Widgets list
             widgets : {},
             footer : params.footer ? params.footer : null,
             params : {

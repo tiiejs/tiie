@@ -1,6 +1,20 @@
+/** @module Tiie */
 import TiieObject from 'Tiie/Object';
 
 const cn = 'Components';
+
+/**
+ * Mechanism of components.
+ *
+ * The components' Mechanism allows you to manage services within the application
+ * area in a fairly simple way.
+ *
+ * Using components, we can also implement dependency injection.
+ *
+ * @param {object} components
+ *
+ * @class
+ */
 class Components extends TiieObject {
     constructor(components = {}) {
         super();
