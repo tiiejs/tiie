@@ -16,7 +16,6 @@ class FineUploader extends Widget {
         this.set("-url", params.url === undefined ? null : params.url);
 
         // Plugin wymaga aby w DOMIE znalazł się szablon.
-        this.component('@app').target().append(template);
         if(this.component("@app").target().find("#qq-template").length == 0) {
             // this.component("@app").target().append(template);
             this.component("@app").target().append(this.__template(template)(locations.pl));
@@ -64,14 +63,6 @@ class FineUploader extends Widget {
         //     this.reload();
         // }, this.id());
 
-    }
-
-    render() {
-        super.render();
-
-        let p = this.__private(cn),
-            value = this.get('&value')
-        ;
     }
 }
 
