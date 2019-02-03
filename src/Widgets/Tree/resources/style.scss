@@ -1,3 +1,5 @@
+@import "~Tiie/Styles/variables.scss";
+
 .tiie-vw-tree__item {
     display: flex;
     justify-content: left;
@@ -8,7 +10,7 @@
 
 .tiie-vw-tree__item-title.--active {
     font-weight: bold;
-    color: #007bff;
+    color: $tiieColorBrand;
 }
 
 .tiie-vw-tree__item-title:hover {
