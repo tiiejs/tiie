@@ -1,5 +1,8 @@
-// https://www.w3schools.com/howto/howto_css_custom_checkbox.asp
+@import "~Tiie/Styles/variables.scss";
+@import "~Tiie/Styles/functions.scss";
+@import "~Tiie/Styles/mixin.scss";
 
+// https://www.w3schools.com/howto/howto_css_custom_checkbox.asp
 .tiie-ws-checkbox {
     min-height: 25px;
     margin-bottom: 5px;
@@ -36,17 +39,28 @@
         left: 0;
         height: 25px;
         width: 25px;
-        background-color: #eee;
+
+        @include transition(color 0.5s ease, background-color 0.5s ease);
+        color: $tiieColorPrimaryFont;
+        background-color: $tiieColorPrimaryBackground;
+        border: 1px $tiieColorPrimaryBorder solid;
+        border-radius: $tiiePrimaryBorderRadius;
     }
 
     /* On mouse-over, add a grey background color */
     .container:hover input ~ .checkmark {
-        background-color: #ccc;
+        @include transition(color 0.5s ease, background-color 0.5s ease);
+
+        color: $tiieColorPrimaryHoverFont;
+        background-color: $tiieColorPrimaryHoverBackground;
+        border: 1px $tiieColorPrimaryHoverBorder solid;
     }
 
     /* When the checkbox is checked, add a blue background */
     .container input:checked ~ .checkmark {
-        background-color: #2196F3;
+        color: $tiieColorPrimaryActiveFont;
+        background-color: $tiieColorPrimaryActiveBackground;
+        border: 1px $tiieColorPrimaryActiveBorder solid;
     }
 
     /* Create the checkmark/indicator (hidden when not checked) */
