@@ -2,7 +2,6 @@
 import TiieObject from "Tiie/Object";
 import Components from "Tiie/Components";
 import Config from "Tiie/Config";
-import Dialog from "Tiie/Dialog/Dialog";
 import Router from "Tiie/Router/Router";
 import UtilsArray from 'Tiie/Utils/Array';
 
@@ -11,9 +10,6 @@ import global from "Tiie/global";
 import merge from "Tiie/Utils/merge";
 
 let components = {
-    '@dialog' : function(components, params = {}) {
-        return new Dialog();
-    },
     '@utils.array' : function(components, params = {}) {
         return new UtilsArray();
     },
