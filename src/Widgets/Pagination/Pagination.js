@@ -1,6 +1,7 @@
 import Widget from "Tiie/Widgets/Widget";
 
 import templateLayout from './resources/layout.html';
+import style from './resources/style.scss';
 
 const cn = "Pagination";
 class Pagination extends Widget {
