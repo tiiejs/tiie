@@ -17,6 +17,10 @@ class FineUploader extends Widget {
 
         // Plugin wymaga aby w DOMIE znalazł się szablon.
         this.component('@app').target().append(template);
+        if(this.component("@app").target().find("#qq-template").length == 0) {
+            // this.component("@app").target().append(template);
+            this.component("@app").target().append(this.__template(template)(locations.pl));
+        }
 
         // Prepare
         p.uploader = new qq.FineUploader({
