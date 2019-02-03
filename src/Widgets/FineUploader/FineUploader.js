@@ -75,4 +75,16 @@ class FineUploader extends Widget {
     }
 }
 
+const locations = {
+    pl : {
+        dropFilesHere : "Przeciągnij i upuść",
+        uploadFile : "Wybierz plik",
+        retry : "Ponów",
+        editFileName : "Edytuj nazwę",
+        deleteFile : "Usuń",
+        pause : "Zatrzymaj",
+        continue : "Kontynuuj",
+    },
+};
+
 export default FineUploader;
