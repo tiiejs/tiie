@@ -30,6 +30,7 @@ class View extends TiieObject {
 
         this.set("@ready", 0, {silently : 1});
         this.set("@rendered", 0, {silently : 1});
+        this.set("@visible", 1, {silently : 1});
 
         // TODO Syncing params.
         // Parametry związane z synchronizacją można przenieść do przestrzeni
@@ -272,6 +273,8 @@ class View extends TiieObject {
             // p.target.append(element);
         });
 
+        this.set("@visible", 1);
+
         return this;
     }
 
@@ -282,6 +285,8 @@ class View extends TiieObject {
             element.hide();
             // p.target.append(element);
         });
+
+        this.set("@visible", 0);
 
         return this;
     }
