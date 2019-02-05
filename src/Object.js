@@ -1,6 +1,6 @@
-import same from 'Tiie/Utils/same';
-import clone from 'Tiie/Utils/clone';
-import boolean from 'Tiie/Utils/boolean';
+import same from "Tiie/Utils/same";
+import clone from "Tiie/Utils/clone";
+import boolean from "Tiie/Utils/boolean";
 
 let uniqueId = 0,
     components = null
@@ -74,8 +74,8 @@ class TiieObject {
         });
 
         // State variables
-        p.data['@destroyed'] = 0;
-        p.data['@visible'] = 0;
+        p.data["@destroyed"] = 0;
+        p.data["@visible"] = 0;
     }
 
     __initState(definition, data = {}) {
@@ -211,10 +211,10 @@ class TiieObject {
 
     error(error) {
         let p = this.__private(cn),
-            router = this.component('@router')
+            router = this.component("@router")
         ;
 
-        router.forward('@error', {error});
+        router.forward("@error", {error});
 
         return this;
     }
@@ -367,9 +367,9 @@ class TiieObject {
                 }
             }
 
-            if (name[0] == '-') {
+            if (name[0] == "-") {
                 // Skrócona metoda ustawiania wartości, bez emitowania
-                // this.set('-name', "Pawel")
+                // this.set("-name", "Pawel")
                 params.silently = 1;
                 name = name.substr(1);
             }
@@ -430,7 +430,7 @@ class TiieObject {
         let data = {};
 
         for (let key in p.data) {
-            if (key[0] == '@') {
+            if (key[0] == "@") {
                 continue;
             }
 
@@ -461,17 +461,17 @@ class TiieObject {
         params.clone = params.clone === undefined ? 1 : params.clone;
         params.data = params.data === undefined ? 1 : params.data;
 
-        if (name[0] == '&') {
+        if (name[0] == "&") {
             params.clone = 0;
 
             name = name.substring(1);
-        }else if(name[0] == '*') {
+        }else if(name[0] == "*") {
             params.data = 0;
             name = name.substring(1);
         }
 
         // split name
-        // splited = name.split('.');
+        // splited = name.split(".");
 
         // while(splited.length > 1){
         //     t = splited.shift();
@@ -637,7 +637,7 @@ class TiieObject {
 
         emitparams.ommit = emitparams.ommit === undefined ? null : emitparams.ommit;
 
-        name = name.split(':');
+        name = name.split(":");
 
         if (name.length == 1) {
             call.push(name[0]);
@@ -722,26 +722,26 @@ class TiieObject {
         return components;
     }
 
-    // this.trigger('selectRow:success', {
+    // this.trigger("selectRow:success", {
 
     // });
 
-    // this.on('selectRow#app', funcRef)
-    // this.on('selectRow.app', funcRef)
+    // this.on("selectRow#app", funcRef)
+    // this.on("selectRow.app", funcRef)
 
     // this.off();
     // this.off(funcRef);
 
-    // this.off('.app');
-    // this.off('#app');
+    // this.off(".app");
+    // this.off("#app");
     // this.off("selectRow");
 
-    // this.on('saved:success')
-    // this.on('saved:faile')
+    // this.on("saved:success")
+    // this.on("saved:faile")
 
     // widget.on("event", function(){}, id);
     // widget.off(id);
-    // widget.off('change.name');
+    // widget.off("change.name");
     // widget.off(function(){});
 }
 

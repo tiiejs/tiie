@@ -1,10 +1,10 @@
-import TiieObject from 'Tiie/Object';
+import TiieObject from "Tiie/Object";
 import jQuery from "jquery";
-import Loader from 'Tiie/Loader/Loader';
+import Loader from "Tiie/Loader/Loader";
 
-import doT from 'dot';
+import doT from "dot";
 
-const cn = 'View';
+const cn = "View";
 
 class View extends TiieObject {
     constructor(template = "<div></div>") {
@@ -28,14 +28,14 @@ class View extends TiieObject {
         p.elements = this._createElements(template);
         p.elements.forEach(element => this._attachEventsListener(element));
 
-        this.set('@ready', 0, {silently : 1});
-        this.set('@rendered', 0, {silently : 1});
+        this.set("@ready", 0, {silently : 1});
+        this.set("@rendered", 0, {silently : 1});
 
         // TODO Syncing params.
         // Parametry związane z synchronizacją można przenieść do przestrzeni
         // obiektu.
-        this.set('@syncing', 0, {silently : 1});
-        this.set('@synced', 0, {silently : 1});
+        this.set("@syncing", 0, {silently : 1});
+        this.set("@synced", 0, {silently : 1});
 
         this.on("@syncing:change", (event, params) => {
             if (this.is("@syncing")) {
@@ -67,7 +67,7 @@ class View extends TiieObject {
         let p = this.__private(cn);
 
         this.on(events, (event, params) => {
-            if(typeof template == 'function') {
+            if(typeof template == "function") {
 
             } else {
                 this.element(name).content(this.template(template)(this.data()));
@@ -111,7 +111,7 @@ class View extends TiieObject {
     _attachEventsListener(element) {
         let p = this.__private(cn);
 
-        this.element().on('click', '[event-click]', (event) => {
+        this.element().on("click", "[event-click]", (event) => {
             let target = this.$(event.currentTarget);
             let data = target.data();
 
@@ -119,7 +119,7 @@ class View extends TiieObject {
                 data.event = event;
             }
 
-            this.emit(`${target.attr('event-click')}:click`, data);
+            this.emit(`${target.attr("event-click")}:click`, data);
 
             event.stopPropagation();
             event.preventDefault();
@@ -307,7 +307,7 @@ class View extends TiieObject {
         let p = this.__private(cn);
 
         switch (name) {
-            case 'rendered':
+            case "rendered":
                 return p.rendered ? 1 : 0;
             default :
                 return super.is(name);
@@ -337,7 +337,7 @@ class View extends TiieObject {
                 return this;
         }
 
-        this.log('Unsuported params', "warn");
+        this.log("Unsuported params", "warn");
     }
 
     /**
