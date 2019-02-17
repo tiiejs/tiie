@@ -2,8 +2,6 @@
  * Create clone of object.
  */
 function clone(a, params = {}) {
-    // params.data = params.data === undefined ? 1 : params.data;
-
     // Po analizie okazało się że robienie kopi obiektu za pomocą
     // JSON.stringify i JSON.parse wychodzi najwolnie. Implementacja z recznym
     // kopiowaniem wypada o wiele szybciej niż JSON.parse. W benchmarku jedynie
@@ -11,42 +9,40 @@ function clone(a, params = {}) {
     // dokładie robi. Szybko wypadał też Object.assign, ale ten nie robi deep
     // clona. Dotego psóuje tablice
 
-    let cloned,
-        i
-    ;
-
     if (a === null) {
         return a;
     }else if(a === undefined){
         return a;
     }else if(Array.isArray(a)){
-        cloned = [];
+        let cloned = [];
 
-        for (i in a) {
+        for (let i in a) {
             cloned.push(clone(a[i], params));
         }
+
+        return cloned;
     }else{
-        switch (typeof a) {
-            case 'string':
-            case 'number':
-            case 'function':
-            case 'symbol':
-                return a;
-            case 'object':
-                cloned = {};
+        let type = typeof(a);
 
-                for (i in a) {
-                    cloned[i] = clone(a[i], params);
-                }
+        if(
+            type == "string" ||
+            type == "number" ||
+            type == "function" ||
+            type == "symbol"
+        ) {
+            return a;
+        } else if(type == "object" && a.constructor == Object) {
+            let cloned = {};
 
-                break;
-            default :
-                console.warn(`unknow type of object ${typeof a}`);
-                return a;
+            for (let i in a) {
+                cloned[i] = clone(a[i], params);
+            }
+
+            return cloned;
+        } else {
+            return a;
         }
     }
-
-    return cloned;
 };
 
 export default clone;

@@ -1,0 +1,34 @@
+<div>
+    <div class="tiie-views-error-page__icon">
+        {{= it["@icons"].get("error")}}
+    </div>
+    <div class="tiie-views-error-page__message">
+        Przepraszamy, wystąpił błąd w trakcie działa aplikacji. Informacja
+        o błędzie została przesłana do administracji.
+    </div>
+</div>
+{{? it.locations.length}}
+    <h5> Przejdź do poprzedniej strony </h5>
+    <table class="tiie-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Link</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{~ it.locations :row :i}}
+                <tr>
+                    <td>{{= i+1}}</td>
+                    <td>
+                        {{? row.title}}
+                            <div class="tiie-link" event-click="goToLocation" data-id="{{= row.id}}">{{= row.title}}</a>
+                        {{??}}
+                            <div class="tiie-link" event-click="goToLocation" data-id="{{= row.id}}">{{= row.urn}}</a>
+                        {{?}}
+                    </td>
+                </tr>
+            {{~}}
+        </tbody>
+    </table>
+{{?}}

@@ -209,17 +209,20 @@ class TiieObject {
         return this;
     }
 
-    error(error) {
+    error(error, tag = null, data = {}) {
         let p = this.__private(cn),
             router = this.component("@router")
         ;
 
-        router.forward("@error", {error});
+        this.log(error, "error", tag, data);
+
+        // router.forward("@error", {error});
+        router.redirect("@error");
 
         return this;
     }
 
-    log(message, type = "log", tag = null) {
+    log(message, type = "log", tag = null, data = {}) {
         if (tag != null) {
             tag = `[${tag}] `;
         } else {
@@ -228,7 +231,8 @@ class TiieObject {
 
         switch (type) {
             case "error":
-                return this.error(`${tag}${message}`);
+                console.error(`${tag}${message}`);
+                break;
             case "warn":
                 console.warn(`${tag}${message}`);
                 break;
@@ -294,11 +298,18 @@ class TiieObject {
 
         params.silently = params.silently !== undefined ? params.silently : 0;
         params.syncing = params.syncing !== undefined ? params.syncing : 0;
+        params.clone = params.clone === undefined ? 1 : params.clone;
 
+        if(params.clone) {
+            value = clone(value);
+        }
+
+        // If there is syncing then I put changes on queue to prevent weird
+        // behaves.
         if (this.is("@syncing") && !(params.syncing)) {
             p.syncingWaiting.push({
                 name,
-                value : clone(value),
+                value,
                 params : clone(params),
             });
 
@@ -323,7 +334,7 @@ class TiieObject {
             });
 
             return this;
-        }else if(typeof name == "string") {
+        } else if (typeof name == "string") {
             if (p.definitions.dataStructure.hasOwnProperty(name)) {
                 let init = p.definitions.dataStructure[name];
 
@@ -369,7 +380,6 @@ class TiieObject {
 
             if (name[0] == "-") {
                 // Skrócona metoda ustawiania wartości, bez emitowania
-                // this.set("-name", "Pawel")
                 params.silently = 1;
                 name = name.substr(1);
             }
@@ -427,20 +437,20 @@ class TiieObject {
         params.clone = params.clone === undefined ? 1 : params.clone;
         params.data = params.data === undefined ? 1 : params.data;
 
-        let data = {};
+        // let data = {};
 
-        for (let key in p.data) {
-            if (key[0] == "@") {
-                continue;
-            }
+        // for (let key in p.data) {
+        //     if (key[0] == "@") {
+        //         continue;
+        //     }
 
-            data[key] = p.data[key];
-        }
+        //     data[key] = p.data[key];
+        // }
 
         if (params.clone) {
-            return clone(data, params);
+            return clone(p.data, params);
         }else{
-            return data;
+            return p.data;
         }
     }
 

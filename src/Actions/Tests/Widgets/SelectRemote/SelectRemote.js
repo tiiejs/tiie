@@ -8,7 +8,6 @@ class New extends Action {
         return super.run(params, controller).then(() => {
             let p = this.__private(cn),
                 api = this.component("@api"),
-                router = this.component('@router'),
                 view = {}
             ;
 

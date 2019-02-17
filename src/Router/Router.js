@@ -1,3 +1,4 @@
+/** @module Tiie/Router */
 import TiieObject from 'Tiie/Object';
 
 import clone from 'Tiie/Utils/merge';
@@ -10,8 +11,8 @@ class Router extends TiieObject {
 
         let p = this.__private(cn, {
             routes : [],
-            silently : 0,
             dispatch : 1,
+            history : [],
         });
     }
 
@@ -26,26 +27,72 @@ class Router extends TiieObject {
         if ("onhashchange" in window) {
             window.onhashchange = () => {
                 if (p.dispatch) {
-                    this._dispatch(this.urn());
+                    this._process();
                 }
             };
         }else{
             // todo
-            // setInterval(this._dispatch.bind(this), 1000);
+            // setInterval(this._process.bind(this), 1000);
         }
 
         // Dispatch na poczatek
-        this._dispatch(this.urn());
+        this._process();
 
         return this;
+    }
+
+    /**
+     * Redirect to specific resource. There are two way of redirect. At first
+     * you can give direct urn. Second you give object with define action and
+     * params.
+     *
+     * @param {string|object} to
+     * @return {this}
+     */
+    redirect(to) {
+        let p = this.__private(cn);
+
+        if (typeof(to) == "string") {
+            this._urn(this._decode(to), {route : 1})
+
+            return this;
+        } else if (typeof(to) == "object"){
+            let decoded = this._decode(this.urn());
+
+            to.action = to.action ? to.action : decoded.action;
+            to.params = to.params ? to.params : decoded.params;
+
+            this._urn(to, {route : 1});
+
+            return this;
+        }
+    }
+
+    urn() {
+        let p = this.__private(cn),
+            hash = window.location.hash
+        ;
+
+        if(hash == "") {
+            return "/";
+        }
+
+        if(hash[0] == "#") {
+            if(hash[1] == "/") {
+                return hash.substring(1);
+            } else {
+                return `/${hash.substring(1)}`;
+            }
+        } else {
+            return hash;
+        }
     }
 
     /**
      * Sets the page title.
      *
      * @param {string} title
-     * @return {this|string} Returns this if is called as setting or present
-     * title.
+     * @return {this|string}
      */
     title(title) {
         const p = this.__private(cn);
@@ -54,6 +101,9 @@ class Router extends TiieObject {
             return document.title;
         } else {
             document.title = title;
+
+            // Set title for history.
+            p.history[p.history.length - 1].title = title;
 
             return this;
         }
@@ -65,10 +115,8 @@ class Router extends TiieObject {
      * @param {object} route
      * @return this
      */
-    route(route) {
+    addRoute(route) {
         let p = this.__private(cn);
-
-        route = clone(route);
 
         route.alias = route.alias === undefined ? null : route.alias;
         route.type = route.type === undefined ? Router.ROUTE_TYPE_ROUTE : route.type;
@@ -92,11 +140,7 @@ class Router extends TiieObject {
     routes(routes) {
         let p = this.__private(cn);
 
-        routes.forEach((route) => {
-            this.route(route);
-        });
-
-        return this;
+        return p.routes;
     }
 
     /**
@@ -104,162 +148,100 @@ class Router extends TiieObject {
      *
      * this.newTab('')
      */
-    newTab(action, params = {}, focus = 0) {
+    // newTab(action, params = {}, focus = 0) {
+    /**
+     * Open new tab.
+     *
+     * @param {string|object} to
+     * @param {object} [params]
+     *
+     * @return this
+     */
+    newTab(to, params = {}) {
         let p = this.__private(cn),
-            serializedParams = this._serializeParams(params),
-            taction
+            url = null
         ;
 
-        if (serializedParams == null) {
-            taction = `#/${action}`;
-        }else{
-            taction = `#/${action}?${serializedParams}`;
+        params.remote = params.remote ? params.remote : 0;
+
+        if(typeof(to) == "string") {
+            url = to;
+        } else if (typeof(to) == "object") {
+            let decoded = this._decode(this.urn());
+
+            to.action = to.action ? to.action : decoded.action;
+            to.params = to.params ? to.params : decoded.params;
+
+            url = this._encode(to);
+        }
+
+        if(params.remote == 0) {
+            url = `#${url}`;
         }
 
         if (focus) {
-            window.open(taction, '_blank').focus();
+            window.open(url, '_blank').focus();
         }else{
-            window.open(taction, '_blank');
+            window.open(url, '_blank');
         }
 
         return this;
     }
 
-    event(action, event, params= {}) {
+    event(urn, event, params = {}) {
         if (event.event != undefined) {
             event = event.event;
         }
 
         if (event.ctrlKey) {
-            this.newTab(action, params);
+            this.newTab(urn, params);
         }else{
-            this.go(action, params);
+            this.redirect(urn, params);
         }
 
         return this;
     }
 
-    go(action, params = {}) {
-        this.urn(action, params, {route : 1});
-
-        return this;
-    }
-
-    /**
-     * Metoda zwraca aktualnie ustawiona akcję w linku. Za pomoca metody można
-     * również ustawić akcje.
-     *
-     * @param {string} action
-     * @param {object} paramsin
-     *
-     * @return {string|this}
-     */
-    action(action, paramsin = {}) {
+    _decode(urn) {
         let p = this.__private(cn),
-            t
+            decoded = {}
         ;
 
-        paramsin.route = paramsin.route === undefined ? 0 : paramsin.route;
-
-        if (action === undefined) {
-            return this._parseUrn().action;
-        }else{
-            this.urn(action, this._parseUrn().paramsin, paramsin);
-
-            return this;
-        }
-    }
-
-    /**
-     * Ustawia wartość dla wybranego parametru. Lub zwraca wartość podanego
-     * parametru.
-     *
-     * @param {string} name
-     * @param {string} value
-     * @param {object} paramsin
-     *
-     * @return {this|string|null}
-     */
-    param(name, value, paramsin = {}) {
-        let p = this.__private(cn),
-            parsed = this._parseUrn().params
-        ;
-
-        if (value === undefined) {
-            return parsed[name] ? parsed[name] : null;
-        }else{
-            parsed[name] = value;
-
-            return this.params(parsed, paramsin);
-        }
-    }
-
-    /**
-     * Zwraca lub ustawia wartości wszystkich parametrów.
-     *
-     * @param {string} params
-     * @param {object} paramsin
-     * @return this|{object}
-     */
-    params(params, paramsin = {}) {
-        let p = this.__private(cn);
-
-        paramsin.route = paramsin.route || 0;
-        paramsin.clean = paramsin.clean || 0;
-
-        if (params === undefined) {
-            return this._parseUrn().params;
-        }else{
-            if (paramsin.clean) {
-                this.urn(this._parseUrn().action, params, paramsin);
-            }else{
-                let parsed = this._parseUrn();
-
-                for (let i in params) {
-                    parsed.params[i] = params[i];
-                }
-
-                return this.urn(parsed.action, parsed.params, paramsin);
-            }
-        }
-
-        this.log("Unsported params.", "warn");
-
-        return this;
-    }
-
-    _parseUrn(urn) {
-        let p = this.__private(cn),
-            read = {},
-            splited
-        ;
-
-        if (urn === undefined) {
-            read.urn = window.location.hash;
-        }else{
-            read.urn = urn;
-        }
-
-        if (read.urn == "") {
-            read.urn = "/";
-        }else if (read.urn[1] != "/") {
-            // read.urn = "/" + read.urn.substr(1);
-            read.urn = `/${read.urn.substr(1)}`;
-        }else{
-            read.urn = read.urn.substr(1);
-        }
-
-        splited = read.urn.split('?');
+        let splited = urn.split('?');
 
         if (splited.length == 1) {
-            read.action = splited[0];
-            read.params = {};
+            decoded.action = splited[0];
+            decoded.params = {};
         }else{
-            read.action = splited[0];
-            read.params = this._deserializeParams(splited[1]);
+            decoded.action = splited[0];
+            decoded.params = this._deserializeParams(splited[1]);
         }
 
-        return read;
+        if(decoded.action[0] == "@") {
+            // Find alias
+            let route = this._findRoute(decoded.action);
+
+            decoded.action = route.action;
+        }
+
+        return decoded;
+    }
+
+    _encode(data = {}) {
+        let p = this.__private(cn),
+            action = data.action ? data.action : "",
+            params = this._serializeParams(data.params ? data.params : {})
+        ;
+
+        if(action[0] != "/") {
+            action = `/${action}`;
+        }
+
+        if(params) {
+            return `${action}?${params}`;
+        } else {
+            return action;
+        }
     }
 
     /**
@@ -327,56 +309,75 @@ class Router extends TiieObject {
         return this;
     }
 
-    urn(action, params, paramsin = {}) {
+    _urn(data, params = {}) {
+        let p = this.__private(cn);
+
+        params.route = params.route ? params.route : 0;
+
+        data.action = data.action ? data.action : "";
+        data.params = data.params ? data.params : {};
+
+        let encoded = this._encode(data);
+
+        if(params.route) {
+            window.location.hash = `#${encoded}`;
+        } else {
+            p.dispatch = 0;
+
+            window.location.hash = `#${encoded}`;
+
+            setTimeout(() => {
+                p.dispatch = 1;
+            }, 500);
+        }
+
+        return this;
+    }
+
+    _historyAppend(urn) {
         let p = this.__private(cn),
-            t
+            decoded = this._decode(urn),
+            route = this._findRoute(decoded.action),
+            id = `id${p.history.length+1}`
         ;
 
-        paramsin.route = paramsin.route === undefined ? 0 : paramsin.route;
+        if(route.type != Router.ROUTE_TYPE_ROUTE) {
+            return;
+        }
 
-        if (action === undefined && params === undefined) {
-            return this._parseUrn().urn;
-        }else{
-            // Szukam trasy na postawie URN
-            let route = this._findRoute(action);
-
-            // Pobieram URN z sciezki
-            action = route.action;
-
-            // Serializuje parametry
-            params = this._serializeParams(params);
-
-            if (params == null) {
-                // Nie mamy parametrów
-                action = '#' + action;
-            }else{
-                action = '#' + action + '?' + params;
+        if(p.history.length) {
+            if(p.history[p.history.length - 1].urn != urn) {
+                p.history.push({
+                    id,
+                    urn,
+                    title : null,
+                });
             }
-
-            if (paramsin.route) {
-                window.location.hash = action;
-            }else{
-                p.dispatch = 0;
-
-                setTimeout(function() {
-                    p.dispatch = 1;
-                }, 500);
-
-                window.location.hash = action;
-            }
-
-            return this;
+        } else {
+            p.history.push({
+                id,
+                urn,
+                title : null,
+            });
         }
     }
 
-    _dispatch(urn) {
+    history() {
+        let p = this.__private(cn);
+
+        return p.history;
+    }
+
+    _process() {
         let p = this.__private(cn),
-            parsed = this._parseUrn(urn)
+            urn = this.urn(),
+            decoded = this._decode(urn),
+            route = this._findRoute(decoded.action)
         ;
 
-        let route = this._findRoute(parsed.action);
+        this._historyAppend(urn);
 
-        route.execute.call(this, parsed.params, route);
+        route.execute.call(this, decoded.params, route);
 
         return this;
     }
@@ -386,7 +387,8 @@ class Router extends TiieObject {
             return null;
         }
 
-        return encodeURI(JSON.stringify(params));
+        // return encodeURI(btoa(JSON.stringify(params)));
+        return btoa(JSON.stringify(params));
 
         // let p = this.__private(cn);
         // let serialized = "";
@@ -414,7 +416,8 @@ class Router extends TiieObject {
     }
 
     _deserializeParams(serialized) {
-        return JSON.parse(decodeURI(serialized));
+        // return JSON.parse(atob(decodeURI(serialized)));
+        return JSON.parse(atob(serialized));
 
         // let p = this.__private(cn);
         // serialized = serialized.trim();
@@ -439,6 +442,133 @@ class Router extends TiieObject {
         // }
 
         // return params;
+    }
+
+    /**
+     * Set value of param or returns value.
+     *
+     * @param {string} name
+     * @param {string} value
+     * @param {object} params
+     *
+     * @return {this|string}
+     */
+    param(...args) {
+        let p = this.__private(cn),
+            params = this.params()
+        ;
+
+        if(args.length == 1) {
+            // router.param("name");
+            return params[args[0]] == undefined ? null : params[args[0]];
+        } else if(args.length == 2) {
+            // router.param("name", value);
+            params[args[0]] = args[1];
+
+            this.params(params);
+
+            return this;
+        } else if(args.length == 3) {
+            // router.param("name", value);
+            params[args[0]] = args[1];
+
+            this.params(params, args[2]);
+
+            return this;
+        } else {
+            this.log(`Unsported number of params.`, "notice", "Tiie.Router.Router::param");
+
+            return this;
+        }
+    }
+
+    /**
+     * Set or return params.
+     *
+     * @example
+     * router.params();
+     * router.params({id : 10});
+     * router.params({id : 10}, {route : 1});
+     *
+     * @param {object} [values]
+     * @param {object} [params]
+     *
+     * @return {object|this}
+     */
+    params(...args) {
+        let p = this.__private(cn),
+            // Decode present state of params.
+            decoded = this._decode(this.urn())
+        ;
+
+        if(args.length == 0) {
+            // Return params.
+            return decoded.params;
+        } else if(args.length == 1) {
+            // Set values of params.
+
+            Object.keys(args[0]).forEach((key) => {
+                decoded.params[key] = args[0][key];
+            });
+
+            this._urn(decoded);
+
+            return this;
+        } else if(args.length == 2) {
+            let merge = args[1].merge != undefined ? args[1].merge : 1;
+
+            if(merge) {
+                Object.keys(args[0]).forEach((key) => {
+                    decoded.params[key] = args[0][key];
+                });
+            } else {
+                decoded.params = args[0];
+            }
+
+            this._urn(decoded, args[1]);
+
+            return this;
+        } else {
+            this.log(`Unsported number of params.`, "notice", "Tiie.Router.Router::params");
+
+            return this;
+        }
+    }
+
+    /**
+     * Set or return present action for router.
+     *
+     * @param {string} [value]
+     * @param {object} [params]
+     *
+     * @return {this|string}
+     */
+    action(...args) {
+        let p = this.__private(cn),
+            decoded = this._decode(this.urn())
+        ;
+
+        if(args.length == 0) {
+            return decoded.action;
+        } else if(args.length == 1) {
+            // Set values of params.
+            decoded.action = args[0];
+
+            this._urn(decoded);
+
+            return this;
+        } else if(args.length == 2) {
+            // Set values of params.
+            decoded.action = args[0];
+
+            this._urn(decoded, args[1]);
+
+            return this;
+        } else {
+            this.log(`Unsported number of params.`, "notice", "Tiie.Router.Router::action");
+
+            return this;
+        }
     }
 }
 

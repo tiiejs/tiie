@@ -51,7 +51,7 @@ class Form extends Widget {
             ;
 
             if (button === undefined) {
-                this.log(`Button ${id} is not defined at for`, "warn");
+                this.log(`Button ${id} is not defined at form.`, "warn");
             }else{
                 this.emit(`button.${id}:click`, {
                     target : button,

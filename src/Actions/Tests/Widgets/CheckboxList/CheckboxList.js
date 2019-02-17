@@ -7,8 +7,6 @@ const cn = 'CheckboxList';
 class CheckboxList extends Action {
     async run(params, controller) {
         let p = this.__private(cn),
-            router = this.component('@router'),
-            dialog = this.component('@dialog'),
             view = {}
         ;
 

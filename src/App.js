@@ -2,6 +2,7 @@
 import TiieObject from "Tiie/Object";
 import Components from "Tiie/Components";
 import Config from "Tiie/Config";
+import Icons from "Tiie/Icons";
 import Router from "Tiie/Router/Router";
 import UtilsArray from 'Tiie/Utils/Array';
 
@@ -10,13 +11,16 @@ import global from "Tiie/global";
 import merge from "Tiie/Utils/merge";
 
 let components = {
-    '@utils.array' : function(components, params = {}) {
+    "@utils.array" : function(components, params = {}) {
         return new UtilsArray();
     },
-    '@window' : function(components, params = {}) {
+    "@window" : function(components, params = {}) {
         return new Window();
     },
-    '@router' : function(components, params = {}) {
+    "@icons" : function(components, params = {}) {
+        return new Icons();
+    },
+    "@router" : function(components, params = {}) {
         let router = new Router(),
             config = components.get('@config'),
             app = components.get('@app')
@@ -24,19 +28,20 @@ let components = {
 
         let routes = config.get("router").routes;
 
-        router.routes(routes.map((route) => {
+        routes.forEach((route) => {
             if (route.execute === undefined) {
-                if (route.controllerClass === undefined || route.actionClass === undefined) {
-                    throw(`Route needs to be defined controllerClass and actionClass`);
-                }
+                if(route.controllerClass == undefined || route.actionClass == undefined) {
+                    app.log("Each route needs to have defined 'controllerClass' and 'actionClass'.", "warning");
+                } else {
+                    route.execute = (params, route) => {
+                        app.action(route.controllerClass, route.actionClass, params);
+                    }
 
-                route.execute = (params, route) => {
-                    app.action(route.controllerClass, route.actionClass, params);
+                    router.addRoute(route);
                 }
             }
 
-            return route;
-        }));
+        });
 
         return router;
     },

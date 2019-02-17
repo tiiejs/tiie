@@ -6,8 +6,6 @@ const cn = 'Form';
 class Form extends Action {
     async run(params, controller) {
         let p = this.__private(cn),
-            router = this.component('@router'),
-            dialog = this.component('@dialog'),
             view = {}
         ;
 

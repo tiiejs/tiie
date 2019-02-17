@@ -1,6 +1,7 @@
 import TiieObject from "Tiie/Object";
 import jQuery from "jquery";
 import Loader from "Tiie/Loader/Loader";
+import clone from "Tiie/Utils/clone";
 
 import doT from "dot";
 
@@ -31,6 +32,26 @@ class View extends TiieObject {
         this.set("@ready", 0, {silently : 1});
         this.set("@rendered", 0, {silently : 1});
         this.set("@visible", 1, {silently : 1});
+        this.set("@visible", 1, {silently : 1});
+
+        // this.set("@components", this.__components(), {silently : 1});
+        // this.set("@icons", this.__components().get("@icons"), {silently : 1});
+
+        // Init doT
+        // doT.templateSettings = {
+        //     // evaluate:    /\{\{([\s\S]+?)\}\}/g,
+        //     // interpolate: /\{\{=([\s\S]+?)\}\}/g,
+        //     // encode:      /\{\{!([\s\S]+?)\}\}/g,
+        //     // use:         /\{\{#([\s\S]+?)\}\}/g,
+        //     // define:      /\{\{##\s*([\w\.$]+)\s*(\:|=)([\s\S]+?)#\}\}/g,
+        //     // conditional: /\{\{\?(\?)?\s*([\s\S]*?)\s*\}\}/g,
+        //     // iterate:     /\{\{~\s*(?:\}\}|([\s\S]+?)\s*\:\s*([\w$]+)\s*(?:\:\s*([\w$]+))?\s*\}\})/g,
+        //     // varname: 'it',
+        //     varname: "it|component",
+        //     strip: true,
+        //     append: true,
+        //     selfcontained: false
+        // };
 
         // TODO Syncing params.
         // Parametry związane z synchronizacją można przenieść do przestrzeni
@@ -98,9 +119,23 @@ class View extends TiieObject {
         ;
 
         if (found == undefined) {
+            let dotfunction = doT.template(template),
+                components = this.__components()
+            ;
+
             found = {
                 template,
-                function : doT.template(template),
+                function : function(data) {
+                    let moved = {};
+
+                    Object.keys(data).forEach((key) => moved[key] = data[key]);
+
+                    moved["@components"] = components;
+                    moved["@icons"] = components.get("@icons");
+                    // moved["@view"] = components.get("@icons");
+
+                    return dotfunction(moved);
+                },
             };
 
             p.templates.push(found);
@@ -109,8 +144,36 @@ class View extends TiieObject {
         return found.function;
     }
 
+    // _helpers() {
+    // }
+
     _attachEventsListener(element) {
         let p = this.__private(cn);
+
+        // Attach to attribute.
+        // this.element().on("click", "[action-click]", (event) => {
+        //     let target = this.$(event.currentTarget),
+        //         data = clone(target.data())
+        //     ;
+
+        //     data.event = event;
+
+        //     this.emit(`actions.${target.attr("action-click")}`, data);
+
+        //     // this.on("events.close")
+        //     // this.on("actions.close:run")
+        //     // this.on("actions.close:finied")
+
+        //     event.stopPropagation();
+        //     event.preventDefault();
+        // });
+
+        // this.on("data.firstName:init");
+        // this.on("data.firstName:init");
+        // this.on("events.")
+        // this.on("events.close");
+        // this.on("events.close:emit");
+        // this.on("data.close:change");
 
         this.element().on("click", "[event-click]", (event) => {
             let target = this.$(event.currentTarget);
@@ -120,7 +183,7 @@ class View extends TiieObject {
                 data.event = event;
             }
 
-            this.emit(`${target.attr("event-click")}:click`, data);
+            this.emit(`events.${target.attr("event-click")}:emit`, data);
 
             event.stopPropagation();
             event.preventDefault();
@@ -320,29 +383,30 @@ class View extends TiieObject {
     }
 
     /**
-     * Set contener to display view.
+     * Return container for view or set.
      *
-     * @params {Object}
-     * @return {Object}
+     * @params {jQuery} target
+     *
+     * @return {jQuery|null|this}
      */
-    target(target) {
+    // target(target) {
+    target(...args) {
         let p = this.__private(cn);
 
-        switch (arguments.length) {
-            case 0:
-                return p.target === undefined ? null : p.target;
-            case 1:
-                // Przenosze element w nowe miejsce.
-                p.target = target;
+        if(args.length > 1) this.log(`Wrong number of params.`, "notice", "Tiie.View::target", args);
 
-                p.elements.forEach((element) => {
-                    p.target.append(element);
-                });
+        if(args.length == 0) {
+            return p.target ? p.target : null;
+        } else if(args.length >= 1) {
+            // Move elements to new target.
+            p.target = args[0];
 
-                return this;
+            p.elements.forEach((element) => {
+                p.target.append(element);
+            });
+
+            return this;
         }
-
-        this.log("Unsuported params", "warn");
     }
 
     /**
@@ -356,6 +420,8 @@ class View extends TiieObject {
         let p = this.__private(cn);
 
         if (name === undefined) {
+            return p.elements[0];
+        } else if (name === "__root") {
             return p.elements[0];
         } else if (typeof name == "number"){
             return p.elements[name] === undefined ? null : p.elements[name];

@@ -1,0 +1,15 @@
+@import "~Tiie/Styles/variables.scss";
+
+.tiie-views-error-page {}
+
+.tiie-views-error-page__icon {
+    font-size: 100px;
+    text-align: center;
+    vertical-align: middle;
+    color : $tiieColorErrorFont;
+}
+
+.tiie-views-error-page__message {
+    text-align: center;
+    margin-bottom: 50px;
+}
