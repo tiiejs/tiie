@@ -341,7 +341,7 @@ class Router extends TiieObject {
             id = `id${p.history.length+1}`
         ;
 
-        if(route.type != Router.ROUTE_TYPE_ROUTE) {
+        if(route.type == Router.ROUTE_TYPE_ERROR) {
             return;
         }
 
