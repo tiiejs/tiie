@@ -70,6 +70,9 @@ class TiieObject {
             data,
 
             syncingWaiting : [],
+            syncingInterval : null,
+            syncingIntervalPromise : null,
+            syncingDelay : false,
             syncing : null,
         });
 
@@ -132,28 +135,55 @@ class TiieObject {
             return p.syncing.then();
         }
 
-        this.set("@syncing", 1);
+        if(p.syncingIntervalPromise) {
+            p.syncingDelay = true;
 
-        return p.syncing = this.__sync().then((data) => {
-            // Set data at syncing mode.
-            this.set("@synced", 1, {syncing : 1});
+            return p.syncingIntervalPromise.then();
+        }
 
-            Object.keys(data).forEach((key) => {
-                this.set(key, data[key], {syncing : 1});
-            });
+        return p.syncingIntervalPromise = new Promise((resolveInterval, rejectInterval) => {
+            p.syncingInterval = setInterval(() => {
+                if(p.syncingDelay) {
+                    p.syncingDelay = false;
+                } else {
+                    clearInterval(p.syncingInterval);
 
-            this.set("@syncing", 0, {syncing : 1});
+                    this.set("@syncing", 1);
 
-            p.syncing = null;
+                    p.syncing = this.__sync().then((data) => {
 
-            syncingWaiting.call(this, p);
-        }).catch((data) => {
-            this.set("@syncing", 0, {syncing : 1});
-            this.set("@synced", 1, {syncing : 1});
+                        // Set data at syncing mode.
+                        this.set("@synced", 1, {syncing : 1});
 
-            p.syncing = null;
+                        Object.keys(data).forEach((key) => {
+                            this.set(key, data[key], {syncing : 1});
+                        });
 
-            syncingWaiting.call(this, p);
+                        this.set("@syncing", 0, {syncing : 1});
+
+                        p.syncing = null;
+                        p.syncingInterval = null;
+                        p.syncingIntervalPromise = null;
+
+                        syncingWaiting.call(this, p);
+
+                        resolveInterval();
+                    }).catch((data) => {
+
+                        this.set("@syncing", 0, {syncing : 1});
+                        this.set("@synced", 1, {syncing : 1});
+
+                        p.syncing = null;
+                        p.syncing = null;
+                        p.syncingInterval = null;
+                        p.syncingIntervalPromise = null;
+
+                        syncingWaiting.call(this, p);
+
+                        rejectInterval();
+                    });
+                }
+            }, 500);
         });
     }
 
@@ -249,6 +279,8 @@ class TiieObject {
                 console.log(`${tag}${message}`);
                 break;
         }
+
+        this.__component("@logger").log(message, type, tag, data);
 
         return this;
     }
@@ -760,6 +792,8 @@ TiieObject.components = function(p) {
 }
 
 function syncingWaiting(p) {
+    console.log('syncingWaiting', p.syncingWaiting);
+
     while(p.syncingWaiting.length) {
         let setter = p.syncingWaiting.shift();
 

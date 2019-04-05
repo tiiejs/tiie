@@ -50,6 +50,7 @@ class FineUploader extends Widget {
         });
 
         p.uploader.addInitialFiles(this.get("value"));
+
         // p.uploader.on("success", (file) => {
         //     file = JSON.parse(file.xhr.responseText);
         //     let value = this.get("value");

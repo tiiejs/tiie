@@ -3,8 +3,10 @@ import TiieObject from "Tiie/Object";
 import Components from "Tiie/Components";
 import Config from "Tiie/Config";
 import Icons from "Tiie/Icons";
+import Screen from "Tiie/Screen";
 import Router from "Tiie/Router/Router";
 import UtilsArray from 'Tiie/Utils/Array';
+import Responsive from "Tiie/Responsive";
 
 import Window from "Tiie/Window/Window";
 import global from "Tiie/global";
@@ -19,6 +21,12 @@ let components = {
     },
     "@icons" : function(components, params = {}) {
         return new Icons();
+    },
+    "@screen" : function(components, params = {}) {
+        return new Screen();
+    },
+    "@responsive" : function(components, params = {}) {
+        return new Responsive();
     },
     "@router" : function(components, params = {}) {
         let router = new Router(),
@@ -75,11 +83,12 @@ class App extends TiieObject {
         let p = this.__private(cn, {
             config : new Config(config),
             controllers : [],
-            actions : [],
+            // actions : [],
             controller : null,
             action : null,
             components : null,
             target,
+            params : {},
         });
 
         let componentsConfig = p.config.get("components");
@@ -104,8 +113,10 @@ class App extends TiieObject {
      * @access public
      * @return {this}
      */
-    run() {
+    run(params = {}) {
         let p = this.__private(cn);
+
+        p.params = params;
 
         this.component('@router').run();
 
@@ -170,28 +181,37 @@ class App extends TiieObject {
      */
     action(controllerClass, actionClass, params) {
         let p = this.__private(cn),
+            // Check if controller exists.
             controller = p.controllers.find(element => element.class == controllerClass),
-            action = p.actions.find(element => element.class == actionClass),
+
+            // Check if action exists
+            // action = p.actions.find(element => element.class == actionClass),
             promises = []
         ;
 
-        if (controller == undefined) {
+        if (controller === undefined) {
             controller = {
                 instance : new controllerClass(p.components),
                 class : controllerClass
             };
 
-            promises.push(controller.instance.run(params));
+            // Run controller.
+            promises.push(controller.instance.run(p.params));
 
             if (p.controller) {
-                // Przy zmianie kontrolera, usypiam poprzedni kontroler
+                // There is previous controllers which we need to sleep.
                 promises.push(p.controller.sleep());
             }
 
+            // Save present controller.
             p.controller = controller.instance;
+
+            // Push to list of controllers.
             p.controllers.push(controller);
         } else {
+            // Controller is initated.
             if (p.controller !== controller.instance) {
+                // Controller is other then present.
                 promises.push(p.controller.sleep());
                 promises.push(controller.instance.wakeup());
 
@@ -199,37 +219,24 @@ class App extends TiieObject {
             }
         }
 
-        if (action == undefined) {
-            action = {
-                instance : new actionClass(p.components),
-                class : actionClass
-            };
+        // Action
+        let action = {
+            instance : new actionClass(p.components),
+            class : actionClass
+        };
 
-            promises.push(action.instance.run(params));
+        // promises.push(action.instance.run(params, p.controller));
 
-            if (p.action) {
-                promises.push(p.action.sleep());
-            }
-
-            p.action = action.instance;
-            p.actions.push(action);
-        } else {
-            if (p.action !== action.instance) {
-                promises.push(p.action.sleep());
-                promises.push(action.instance.wakeup());
-
-                p.action = action.instance;
-            }
-        }
+        p.action = action.instance;
+        // p.actions.push(action);
 
         Promise.all(promises).then(() => {
-            return Promise.all([
-                p.controller.reload(params),
-                p.action.reload(params),
-            ]);
+            return controller.instance.reload(params);
+        }).then(() => {
+            return action.instance.run(params, p.controller);
         }).then(() => {
             p.controller.view().target(p.target);
-            p.action.view().target(p.controller.view().element('content'));
+            // p.action.view().target(p.controller.view().element('content'));
         }).catch((error) => {
             console.log('error', error);
         });

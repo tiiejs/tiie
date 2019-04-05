@@ -39,8 +39,16 @@ class Controller extends TiieObject {
         }
     }
 
+    element(name) {
+        let p = this.__private(cn);
+
+        return p.view.element(name);
+    }
+
     content() {
-        return this.view().element('content');
+        let p = this.__private(cn);
+
+        return p.view.element("content");
     }
 
     async run(params = {}) {

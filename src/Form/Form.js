@@ -102,7 +102,7 @@ class Form extends Widget {
     widget(id, widget) {
         let p = this.__private(cn);
 
-        this.components().set(`#form.widget.${id}`, widget);
+        // this.components().set(`#form.widget.${id}`, widget);
 
         if (widget === undefined) {
             if (p.widgets[id] === undefined) {

@@ -450,10 +450,33 @@ class View extends TiieObject {
         return this;
     }
 
-    find(selector) {
+    // find(selector) {
+    //     let p = this.__private(cn);
+
+    //     return p.elements[0].find(selector);
+    // }
+
+    find(name) {
         let p = this.__private(cn);
 
-        return p.elements[0].find(selector);
+        if (name === "__root") {
+            return p.elements[0];
+        } else if (typeof name == "number"){
+            return p.elements[name] === undefined ? null : p.elements[name];
+        }else{
+            let found = null;
+
+            for(let i = 0; i < p.elements.length; i++) {
+                found = p.elements[i].find(name);
+
+                if (found.length) {
+                    break;
+                }
+            }
+
+
+            return found;
+        }
     }
 
     html(html) {
