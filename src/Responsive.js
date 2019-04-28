@@ -18,26 +18,27 @@ class Responsive extends TiieObject {
         ;
 
         if(typeof size == "object") {
-            for(let i=0; i < Responsive.SIZES.length; i++) {
-                let s = Responsive.SIZES[i];
+            // for(let i=0; i < Responsive.SIZES.length; i++) {
+            //     let s = Responsive.SIZES[i];
 
-                if(s == relativeToSize) {
-                    sizes.push(s);
-                    break;
-                } else {
-                    sizes.push(s);
-                }
-            }
+            //     if(s == relativeToSize) {
+            //         sizes.push(s);
+            //         break;
+            //     } else {
+            //         sizes.push(s);
+            //     }
+            // }
 
-            do {
-                selected = sizes.pop();
+            // do {
+            //     selected = sizes.pop();
 
-                if(size[selected] != undefined) {
-                    break;
-                }
-            } while (sizes.length)
+            //     if(size[selected] != undefined) {
+            //         break;
+            //     }
+            // } while (sizes.length)
+            // selectedSize = size[selected];
 
-            selectedSize = size[selected];
+            selectedSize = this.selectValue(relativeTo, size);
         } else if(typeof size == "string") {
             selectedSize = size;
         } else {
@@ -60,6 +61,46 @@ class Responsive extends TiieObject {
         }
 
         return Math.round(relativeTo * division);
+    }
+
+    selectValue(relativeTo, values) {
+        let p = this.__private(cn),
+            relativeToSize = this.resolveSize(relativeTo),
+            sizes = [],
+            selected = null,
+            selectedSize = null
+        ;
+
+        if(
+            typeof values === "string" ||
+            typeof values === "number" ||
+            Array.isArray(values) ||
+            values === undefined ||
+            values === null
+        ) {
+            return values;
+        }
+
+        for(let i=0; i < Responsive.SIZES.length; i++) {
+            let s = Responsive.SIZES[i];
+
+            if(s == relativeToSize) {
+                sizes.push(s);
+                break;
+            } else {
+                sizes.push(s);
+            }
+        }
+
+        do {
+            selected = sizes.pop();
+
+            if(values[selected] != undefined) {
+                break;
+            }
+        } while (sizes.length);
+
+        return values[selected] !== undefined ? values[selected] : null;
     }
 
     resolveSize(size) {

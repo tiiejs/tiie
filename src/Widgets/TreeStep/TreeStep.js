@@ -143,12 +143,14 @@ class TreeStep extends Widget {
 
                 let html = childs.map((item) => {
                     return `
-                        <div class="tiie-w-tree__dashboard-item tiie-w-tree__item tiie-link" data-id="${item[keyId]}">
-                            <div class="tiie-w-tree__dashboard-item-icon">
-                                <i class="${item.icon}"></i>
-                            </div>
-                            <div class="tiie-w-tree__dashboard-item-title">
-                                ${item[keyName]}
+                        <div class="col-12 col-sm-3">
+                            <div class="tiie-w-tree__dashboard-item tiie-w-tree__item tiie-link" data-id="${item[keyId]}">
+                                <div class="tiie-w-tree__dashboard-item-icon">
+                                    <i class="${item.icon}"></i>
+                                </div>
+                                <div class="tiie-w-tree__dashboard-item-title">
+                                    ${item[keyName]}
+                                </div>
                             </div>
                         </div>
                     `;

@@ -3,10 +3,11 @@ import TiieObject from "Tiie/Object";
 import Components from "Tiie/Components";
 import Config from "Tiie/Config";
 import Icons from "Tiie/Icons";
-import Screen from "Tiie/Screen";
 import Router from "Tiie/Router/Router";
 import UtilsArray from 'Tiie/Utils/Array';
 import Responsive from "Tiie/Responsive";
+import EnvironmentService from "Tiie/Environment/Service";
+import Intervals from "Tiie/Intervals";
 
 import Window from "Tiie/Window/Window";
 import global from "Tiie/global";
@@ -22,8 +23,11 @@ let components = {
     "@icons" : function(components, params = {}) {
         return new Icons();
     },
-    "@screen" : function(components, params = {}) {
-        return new Screen();
+    "@environment" : function(components, params = {}) {
+        return new EnvironmentService();
+    },
+    "@intervals" : function(components, params = {}) {
+        return new Intervals();
     },
     "@responsive" : function(components, params = {}) {
         return new Responsive();
@@ -189,6 +193,8 @@ class App extends TiieObject {
             promises = []
         ;
 
+        p.components.get("@intervals").clean(Intervals.SCOPE_ACTION);
+
         if (controller === undefined) {
             controller = {
                 instance : new controllerClass(p.components),
@@ -225,10 +231,7 @@ class App extends TiieObject {
             class : actionClass
         };
 
-        // promises.push(action.instance.run(params, p.controller));
-
         p.action = action.instance;
-        // p.actions.push(action);
 
         Promise.all(promises).then(() => {
             return controller.instance.reload(params);
@@ -236,7 +239,6 @@ class App extends TiieObject {
             return action.instance.run(params, p.controller);
         }).then(() => {
             p.controller.view().target(p.target);
-            // p.action.view().target(p.controller.view().element('content'));
         }).catch((error) => {
             console.log('error', error);
         });

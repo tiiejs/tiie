@@ -16,8 +16,6 @@ class View extends TiieObject {
             notifications : null,
             loader : null,
             loaderTimeout : null,
-            // element : this.create(template),
-            // elements : this._createElements(template),
             rendered : 0,
             templates : [],
             views : {},
@@ -29,35 +27,20 @@ class View extends TiieObject {
         p.elements = this._createElements(template);
         p.elements.forEach(element => this._attachEventsListener(element));
 
-        this.set("@ready", 0, {silently : 1});
-        this.set("@rendered", 0, {silently : 1});
+        this.set("@rendering", 0, {silently : 1});
         this.set("@visible", 1, {silently : 1});
-        this.set("@visible", 1, {silently : 1});
+        this.set("@hover", 0, {silently : 1});
 
-        // this.set("@components", this.__components(), {silently : 1});
-        // this.set("@icons", this.__components().get("@icons"), {silently : 1});
+        p.elements.forEach((element) => {
+            element.mouseenter((event) => {
+                this.set("@hover", 1);
+            });
 
-        // Init doT
-        // doT.templateSettings = {
-        //     // evaluate:    /\{\{([\s\S]+?)\}\}/g,
-        //     // interpolate: /\{\{=([\s\S]+?)\}\}/g,
-        //     // encode:      /\{\{!([\s\S]+?)\}\}/g,
-        //     // use:         /\{\{#([\s\S]+?)\}\}/g,
-        //     // define:      /\{\{##\s*([\w\.$]+)\s*(\:|=)([\s\S]+?)#\}\}/g,
-        //     // conditional: /\{\{\?(\?)?\s*([\s\S]*?)\s*\}\}/g,
-        //     // iterate:     /\{\{~\s*(?:\}\}|([\s\S]+?)\s*\:\s*([\w$]+)\s*(?:\:\s*([\w$]+))?\s*\}\})/g,
-        //     // varname: 'it',
-        //     varname: "it|component",
-        //     strip: true,
-        //     append: true,
-        //     selfcontained: false
-        // };
+            element.mouseleave(() => {
+                this.set("@hover", 0);
+            });
+        });
 
-        // TODO Syncing params.
-        // Parametry związane z synchronizacją można przenieść do przestrzeni
-        // obiektu.
-        this.set("@syncing", 0, {silently : 1});
-        this.set("@synced", 0, {silently : 1});
 
         this.on("@syncing:change", (event, params) => {
             if (this.is("@syncing")) {
@@ -65,7 +48,6 @@ class View extends TiieObject {
                     clearTimeout(p.loaderTimeout);
                 }
 
-                // clearTimeout
                 p.loaderTimeout = setTimeout(() => {
                     this.__loader().show();
                 }, 1000);
@@ -77,12 +59,6 @@ class View extends TiieObject {
                 this.__loader().hide();
             }
         });
-
-        // attach to standard events
-        // this.element().
-        // Set default attribute
-        // this.set(".@ready", 0, {silently : 1});
-        // this.set(".@loading", 0, {silently : 1});
     }
 
     __section(name, events, template) {
@@ -220,11 +196,11 @@ class View extends TiieObject {
 
                 return null;
             } else {
-                p.loader = this.__components().get("@loader").attach(this.element());
+                return p.loader = this.__components().get("@loader").attach(this.element());
             }
+        } else {
+            return p.loader;
         }
-
-        return p.loader;
     }
 
     /**

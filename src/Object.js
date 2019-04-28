@@ -78,7 +78,11 @@ class TiieObject {
 
         // State variables
         p.data["@destroyed"] = 0;
+        p.data["@ready"] = 0;
+        p.data["@loading"] = 0;
         p.data["@visible"] = 0;
+        p.data["@syncing"] = 0;
+        p.data["@synced"] = 0;
     }
 
     __initState(definition, data = {}) {
@@ -792,8 +796,6 @@ TiieObject.components = function(p) {
 }
 
 function syncingWaiting(p) {
-    console.log('syncingWaiting', p.syncingWaiting);
-
     while(p.syncingWaiting.length) {
         let setter = p.syncingWaiting.shift();
 

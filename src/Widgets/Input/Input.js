@@ -1,16 +1,17 @@
 import Widget from "Tiie/Widgets/Widget";
 
 const cn = "Input";
+
 class Input extends Widget {
-    constructor(state = {}, params = {}) {
-        super(`<input type="text" class="tiie-input">`, state);
+    constructor(data = {}, params = {}) {
+        super(`<input type="text" class="tiie-input">`, data);
 
-        const p = this.__private(cn);
+        let p = this.__private(cn);
 
-        this.set("-value", state.value === undefined ? null : state.value);
-        this.set("-placeholder", state.placeholder === undefined ? null : state.placeholder);
-        this.set("-type", state.type === undefined ? null : state.type);
-        this.set("-state", state.state === undefined ? {type : "default"} : state.state);
+        this.set("-value", data.value === undefined ? null : data.value);
+        this.set("-placeholder", data.placeholder === undefined ? null : data.placeholder);
+        this.set("-type", data.type === undefined ? null : data.type);
+        this.set("-state", data.state === undefined ? {type : "default"} : data.state);
 
         params.mode = params.mode == undefined ? Input.MODE_FOCUS : params.mode;
 
@@ -103,33 +104,6 @@ class Input extends Widget {
                 event.stopPropagation();
                 event.preventDefault();
             });
-
-            // this.element().on("focusout", (event) => {
-            //     let input = this.element().get(0);
-            //     let value;
-
-            //     let state = this.get("&state");
-
-            //     if (state.type == "error") {
-            //         this.element().addClass("--error");
-            //     }
-
-            //     if (input.inputmask) {
-            //         value = input.inputmask.unmaskedvalue();
-            //     }else{
-            //         value = this.element().val();
-            //     }
-
-            //     if (value === undefined) {
-            //         this.log("Value of input can not be get.", "warn");
-            //         value = null;
-            //     }
-
-            //     this.set("value", value === "" ? null : value);
-
-            //     event.stopPropagation();
-            //     event.preventDefault();
-            // });
         }
     }
 
@@ -139,7 +113,7 @@ class Input extends Widget {
     render() {
         super.render();
 
-        const p = this.__private(cn),
+        let p = this.__private(cn),
             value = this.get("&value"),
             placeholder = this.get("&placeholder")
         ;
@@ -167,15 +141,13 @@ class Input extends Widget {
      * Set mask to input. Mask is dependent from type of input.
      */
     _mask() {
-        const p = this.__private(),
-            type = this.get("type")
-        ;
+        let p = this.__private();
 
-        if (type == null) {
+        if (!this.get("type")) {
             return;
         }
 
-        switch (type) {
+        switch (this.get("type")) {
             case "price":
                 // (new Inputmask({
                 //     alias: "numeric",
@@ -229,7 +201,7 @@ class Input extends Widget {
 
                 break;
             default :
-                this.log(`Unsuported type of Input ${type}.`, "warn");
+                this.log(`Unsuported type of Input '${this.get("type")}'.`, "notice");
         }
     }
 

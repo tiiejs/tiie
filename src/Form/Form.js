@@ -327,13 +327,13 @@ class Form extends Widget {
 
                     if (element.label) {
                         labelHtml = `
-                            <div class="col col-md-${element.labelWidth} col-lg-${element.labelWidth} col-sm-12 ${p.params.classCell.join(' ')}" name="${element.id}LabelCell">
+                            <div class="col-12 col-sm-${element.labelWidth} ${p.params.classCell.join(' ')}" name="${element.id}LabelCell">
                                 <label class="text-left" name="${element.id}Label" for="${element.id}">${element.label}</label>
                             </div>
                         `;
                     }
 
-                    widgetHtml = `<div class="col tiie-form__col col-md-${element.width} col-lg-${element.width} col-sm-12 ${p.params.classCell.join(' ')}" name="${element.id}"></div>`;
+                    widgetHtml = `<div class="tiie-form__col col-12 col-sm-${element.width} ${p.params.classCell.join(' ')}" name="${element.id}"></div>`;
 
                     if (this.__boolean(element.reverse)) {
                         html.push(widgetHtml);
@@ -343,9 +343,9 @@ class Form extends Widget {
                         html.push(widgetHtml);
                     }
                 }else if(element.type == "text") {
-                    html.push(`<div class="col __text col-md-${element.width} col-lg-${element.width} col-sm-12 ${p.params.classCell.join(' ')}" name="${element.id}">${element.value === undefined ? "" : element.value}</div>`)
+                    html.push(`<div class="col col-md-${element.width} col-lg-${element.width} col-sm-12 ${p.params.classCell.join(' ')}" name="${element.id}">${element.value === undefined ? "" : element.value}</div>`)
                 }else if(element.type == "section") {
-                    html.push(`<div class="col tiie-form__section col-md-${element.width} col-lg-${element.width} col-sm-12 ${p.params.classCell.join(' ')}" name="${element.id}">${element.name}</div>`)
+                    html.push(`<div class="tiie-form__section col col-md-${element.width} col-lg-${element.width} col-sm-12 ${p.params.classCell.join(' ')}" name="${element.id}">${element.name}</div>`)
                 }else {
                     this.log(`Unknow type of fom element ${element.type}`, "warn", 'Tiie.Form.Form');
                 }
