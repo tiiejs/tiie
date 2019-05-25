@@ -64,7 +64,7 @@ class Date extends Widget {
             }
 
             if (value === undefined) {
-                this.log("Value of input can not be get.", "warn");
+                this.__log("Value of input can not be get.", "warn");
                 value = null;
             }
 

@@ -60,10 +60,6 @@ class UtilsArray {
 
         return rows;
     };
-
-    sort(items, sort = []) {
-
-    }
 };
 
 export default UtilsArray;

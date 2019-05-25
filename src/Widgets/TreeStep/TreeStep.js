@@ -1,6 +1,7 @@
 import Widget from "Tiie/Widgets/Widget";
 import UtilsTree from "Tiie/Utils/Tree";
 import UtilsArray from "Tiie/Utils/Array";
+import List from "Tiie/Utils/List";
 
 import templateLayout from "./resources/layout.html";
 import style from "./resources/style.scss";
@@ -16,12 +17,14 @@ class TreeStep extends Widget {
         this.__define("data.structure", {
             keyId : {type : "string", default : "id", notNull : 1},
             keyName : {type : "string", default : "name", notNull : 1},
-            keyParentId : {type : "string", default : "parentId", notNull : 1},
+            keyParent : {type : "string", default : "parentId", notNull : 1},
             keyIcon : {type : "string", default : "icon", notNull : 1},
 
             keySortGroupId : {type : "string", default : "groupId", notNull : 1},
             keySortGroupName : {type : "string", default : "group", notNull : 1},
-            sortOut : [],
+            sort : {type : "array", default : [], notNull : 1},
+
+            rootId : {type : "string", default : null, notNull : 0},
 
             items : {tyoe : "array", default : [], notNull : 1},
             search : {type : "string", default : null, notNull : 0},
@@ -31,29 +34,6 @@ class TreeStep extends Widget {
         });
 
         this.set(data, {silently : 1, defined : 1});
-
-        if(data.root) {
-            this.set("-root", data.root);
-        } else {
-            let root = {};
-
-            Object.defineProperty(root, this.get("keyId"), {
-                value: null,
-                enumerable : true,
-            });
-
-            Object.defineProperty(root, this.get("keyName"), {
-                value: "Home",
-                enumerable : true,
-            });
-
-            Object.defineProperty(root, this.get("keyIcon"), {
-                value: null,
-                enumerable : true,
-            });
-
-            this.set("-root", root);
-        }
 
         this.element("searchInput").on("keyup", (event) => {
             let target = this.$(event.currentTarget);
@@ -67,7 +47,7 @@ class TreeStep extends Widget {
 
         this.element().on("click", ".tiie-w-tree__item", (event) => {
             let target = this.$(event.currentTarget),
-                keyParentId = this.get("&keyParentId"),
+                keyParent = this.get("&keyParent"),
                 id = target.data("id")
             ;
 
@@ -75,7 +55,7 @@ class TreeStep extends Widget {
                 this.set("search", null);
             }
 
-            if(this.get("&items").some(item => item[keyParentId] == id)) {
+            if(this.get("&items").some(item => item[keyParent] == id)) {
                 this.set("expanded", id);
                 this.set("value", null);
             } else {
@@ -88,13 +68,14 @@ class TreeStep extends Widget {
         this.on([
             "keyId:change",
             "keyName:change",
-            "keyParentId:change",
+            "keyParent:change",
             "keyIcon:change",
+
             "items:change",
             "search:change",
             "value:change",
             "expanded:change",
-            "root:change",
+            "rootId:change",
         ], (event) => {
             this.reload();
         }, this.id());
@@ -102,22 +83,23 @@ class TreeStep extends Widget {
 
     render() {
         let p = this.__private(cn),
-            value = this.get("&value"),
-            expanded = this.get("&expanded"),
+            value = this.get("value"),
+            expanded = this.get("expanded"),
             items = this.get("items"),
-            keyId = this.get("&keyId"),
-            keyIcon = this.get("&keyIcon"),
-            keyParentId = this.get("&keyParentId"),
-            keyName = this.get("&keyName"),
-            search = this.get("&search"),
-            root = this.get("&root"),
-            sortOut = this.get("&sortOut")
+            keyId = this.get("keyId"),
+            keyIcon = this.get("keyIcon"),
+            keyParent = this.get("keyParent"),
+            keyName = this.get("keyName"),
+            search = this.get("search"),
+            rootId = this.get("rootId"),
+            sort = this.get("sort")
         ;
 
-        // Push abstract root.
-        items.push(root);
-
-        let tree = new UtilsTree(items);
+        let tree = new UtilsTree(items, {
+            keyId,
+            keyParent,
+            rootId,
+        });
 
         if(search) {
             this._renderSearch();
@@ -129,17 +111,24 @@ class TreeStep extends Widget {
                 value = items.find(item => item[keyId] == value);
 
                 if(expanded == null) {
-                    expanded = value[keyParentId];
+                    expanded = value[keyParent];
                 }
             } else {
                 if(expanded == null) {
-                    expanded = root[keyId];
+                    expanded = rootId;
                 }
             }
 
-            if(this.is("dashboard") && expanded == root[keyId]) {
+            if(this.is("dashboard") && expanded == rootId) {
                 // Display dashboard.
-                let childs = items.filter(item => item[keyParentId] == root[keyId]);
+                let childs = items.filter(item => item[keyParent] == rootId);
+
+                // Sort elements
+                let list = new List(childs);
+
+                list.sort(this.get("&sort"));
+
+                childs = list.toArray();
 
                 let html = childs.map((item) => {
                     return `
@@ -160,29 +149,18 @@ class TreeStep extends Widget {
                 this.element("search").html("");
                 this.element("items").html("");
             } else {
-                let childs = items.filter(item => item[keyParentId] == expanded),
+                let childs = items.filter(item => item[keyParent] == expanded),
                     path = tree.path(expanded).reverse(),
                     htmlPath = '',
                     htmlChilds = ''
                 ;
 
-                path.unshift(root);
+                // Sort elements
+                let list = new List(childs);
 
-                if(sortOut.length > 0) {
-                    // Sort childs.
-                    childs.sort((a, b) => {
-                        if(sortOut.indexOf(b[keyName]) >= 0) {
-                            return -1;
-                        }
+                list.sort(this.get("&sort"));
 
-                        return a[keyName] > b[keyName] ? 1 : -1;
-                    });
-                } else {
-                    // Sort childs.
-                    childs.sort((a, b) => {
-                        return a[keyName] > b[keyName] ? 1 : -1;
-                    });
-                }
+                childs = list.toArray();
 
                 path.forEach((item, key) => {
                     if(key > 0) {
@@ -235,8 +213,14 @@ class TreeStep extends Widget {
             keyId = this.get("&keyId"),
             keyIcon = this.get("&keyIcon"),
             keyName = this.get("&keyName"),
+            keyParent = this.get("keyParent"),
+            rootId = this.get("rootId"),
             search = this.get("&search"),
-            tree = new UtilsTree(items)
+            tree = new UtilsTree(items, {
+                keyId,
+                keyParent,
+                rootId,
+            })
         ;
 
         let filtered = items.filter(item => item[keyName].indexOf(search) >= 0 ? 1 : 0);

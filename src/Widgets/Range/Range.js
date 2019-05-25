@@ -5,52 +5,68 @@ import templateStructureCols from './resources/structureCols.html';
 const cn = 'Range';
 
 class Range extends Widget {
-    constructor(state = {}) {
-        super(`
-            <div class="grid-x grid-padding-x" name="content">
-            </div>
-        `);
+    constructor(data = {}) {
+        super(`<div class="grid-x grid-padding-x" name="content"></div>`);
 
         let p = this.__private(cn, {
             widgets : [],
         });
 
-        this.set('-structure', state.structure ? state.structure : 'cols');
-        this.set('-value', state.value ? state.value : null);
+        this.set('-structure', data.structure ? data.structure : 'cols');
+        this.set('-value', data.value ? data.value : {});
 
         this.on([
-            ':change'
+            'structure:change',
         ], (event, params) => {
             this.reload();
         }, this.id());
-        // this.on('structure', () => {
-        //     this.reload();
-        // }, this.id());
 
-        // this.on('value', () => {
-        //     this._reloadValue();
-        // }, this.id());
+        this.on([
+            'value:change',
+        ], (event, params) => {
+            this._reloadValue();
+        }, this.id());
     }
 
     _exportValue() {
-        const p = this.__private(cn);
-
-        let value = {},
+        let p = this.__private(cn),
+            value = {},
             isNotNull = 0
         ;
 
-        for (let i in p.widgets) {
-            if (p.widgets[i].widget.get('value')) {
-                isNotNull = 1;
+        console.log('_exportValue', value);
 
-                value[i] = p.widgets[i].widget.get('value');
-            }
+        for (let i in p.widgets) {
+            // if (p.widgets[i].widget.get('value')) {
+            //     isNotNull = 1;
+
+            //     value[i] = p.widgets[i].widget.get('value');
+            // }
+
+            value[i] = p.widgets[i].widget.get('value');
         }
 
-        if (isNotNull) {
-            this.set('value', value, {ommit : this.id()});
+        this.set('value', value, {ommit : this.id()});
+    }
+
+    _reloadValue() {
+        let p = this.__private(cn),
+            value = this.get("&value")
+        ;
+
+        // Set value.
+        if(value == null) {
+            for (let i in p.widgets) {
+                p.widgets[i].widget.set("value", null, {ommit : this.id()});
+            }
         } else {
-            this.set('value', null, {ommit : this.id()});
+            for (let i in p.widgets) {
+                if (value[i] == undefined) {
+                    p.widgets[i].widget.set("value", null, {ommit : this.id()});
+                }else{
+                    p.widgets[i].widget.set("value", value[i], {ommit : this.id()});
+                }
+            }
         }
     }
 
@@ -60,9 +76,10 @@ class Range extends Widget {
             i
         ;
 
+        console.log("widget", id, widget);
         switch (arguments.length) {
             case 0:
-                this.log("Unsuported params", 'warn');
+                this.__log("Unsuported params", 'warn');
                 return this;
             case 1:
                 return p.widgets[id] ? p.widgets[id] : null;
@@ -80,6 +97,7 @@ class Range extends Widget {
 
                 // Attach to change event.
                 p.widgets[id].widget.on('value', (event) => {
+                    console.log('Range.value.change');
                     this._exportValue();
                 }, this.id());
 
@@ -105,7 +123,7 @@ class Range extends Widget {
 
                 return this;
             default:
-                this.log("Unsuported params", 'warn');
+                this.__log("Unsuported params", 'warn');
                 return this;
         }
     }
@@ -130,19 +148,6 @@ class Range extends Widget {
                 }
 
                 break;
-        }
-
-        // Set value.
-        let value = this.get('&value');
-
-        if (value) {
-            for (let i in p.widgets) {
-                if (value[i] === undefined) {
-                    p.widgets[i].widget.set('value', null, {ommit : this.id()});
-                }else{
-                    p.widgets[i].widget.set('value', value[i], {ommit : this.id()});
-                }
-            }
         }
 
         return this;

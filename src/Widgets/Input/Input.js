@@ -6,18 +6,28 @@ class Input extends Widget {
     constructor(data = {}, params = {}) {
         super(`<input type="text" class="tiie-input">`, data);
 
-        let p = this.__private(cn);
+        let p = this.__private(cn, {
+            classes : params.classes ? params.classes : [],
+        });
 
-        this.set("-value", data.value === undefined ? null : data.value);
-        this.set("-placeholder", data.placeholder === undefined ? null : data.placeholder);
-        this.set("-type", data.type === undefined ? null : data.type);
-        this.set("-state", data.state === undefined ? {type : "default"} : data.state);
+        this.__define("data.structure", {
+            value : {type : "string", default : null, notNull : 0},
+            placeholder : {type : "string", default : null, notNull : 0},
+            type : {type : "string", default : null, notNull : 0},
+            state : {type : "object", default : {type : "default"}, notNull : 1},
+        });
+
+        this.set(data, {silently : 1, defined : 1});
 
         params.mode = params.mode == undefined ? Input.MODE_FOCUS : params.mode;
 
+        p.classes.forEach((c) => {
+            this.element().addClass(c);
+        });
+
         // Check mode
         if (![Input.MODE_ACTIVE, Input.MODE_FOCUS].includes(params.mode)) {
-            this.log(`Unknown type of mode for input ${params.mode}.`, "warn", "tiie.view.widgets.input");
+            this.__log(`Unknown type of mode for input ${params.mode}.`, "warn", "tiie.view.widgets.input");
 
             params.mode = Input.MODE_FOCUS;
         }
@@ -67,7 +77,7 @@ class Input extends Widget {
                 }
 
                 if (value === undefined) {
-                    this.log("Value of input can not be get.", "warn");
+                    this.__log("Value of input can not be get.", "warn");
                     value = null;
                 }
 
@@ -201,7 +211,7 @@ class Input extends Widget {
 
                 break;
             default :
-                this.log(`Unsuported type of Input '${this.get("type")}'.`, "notice");
+                this.__log(`Unsuported type of Input '${this.get("type")}'.`, "notice");
         }
     }
 

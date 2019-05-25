@@ -6,7 +6,7 @@ const cn = 'Dialog';
 class Dialog extends Action {
     async run(params, controller) {
         let p = this.__private(cn),
-            dialog = this.component('@dialog'),
+            dialog = this.__component('@dialog'),
             view = {}
         ;
 

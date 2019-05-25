@@ -1,5 +1,6 @@
 import Action from "Tiie/Action";
 import ViewErrorPage from "Tiie/Views/ErrorPage/ErrorPage";
+import View from "Tiie/View";
 
 import templateLayout from "./resources/layout.html";
 

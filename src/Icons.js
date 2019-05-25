@@ -32,6 +32,21 @@ class Icons extends TiieObject {
             icon = p.icons.find(i => i.id == id)
         ;
 
+        if(icon == undefined) {
+            // Icon was not found at icons definitions.
+
+            const regex = /^(fas|far|fab) (.*)$/gm;
+
+            if ((regex.test(id))) {
+
+                icon = {
+                    id,
+                    html : `<i class="${id}"></i>`,
+                    class : id,
+                };
+            }
+        }
+
         if(icon && params.link) {
             return `<i class="tiie-link ${icon.class}"></i>`;
         } else if(icon) {

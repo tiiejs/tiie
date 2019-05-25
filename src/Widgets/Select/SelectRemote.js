@@ -6,11 +6,17 @@ import style from "./resources/style.scss";
 
 const cn = "Select";
 
-class Select extends Widget {
+class SelectRemote extends Widget {
     constructor(data = {}, params = {}) {
         super(templateLayout);
 
         let p = this.__private(cn, {
+            inited : 0,
+
+            endpoint : params.endpoint === undefined ? null : params.endpoint,
+
+            loaded : [],
+
             searchTimeout : null,
 
             animations : {
@@ -42,7 +48,7 @@ class Select extends Widget {
 
         this.set(data, {silently : 1, defined : 1});
 
-        this.set("-value", data.value);
+        // this.set("-multiple", 1);
 
         this.on([
             "keyValue:change",
@@ -73,10 +79,20 @@ class Select extends Widget {
             if(this.is("panelVisible")) {
                 this.set("panelVisible", 0);
             } else {
+                if(!this._loaded(rootId)) {
+                    this._load(rootId);
+                }
+
                 this.set("panelVisible", 1);
             }
 
             this.reload();
+
+            event.stopPropagation();
+        });
+
+        this.element().on("click", ".tiie-widgets-select__load", (event) => {
+            this._load(this.get("expanded"));
 
             event.stopPropagation();
         });
@@ -149,7 +165,12 @@ class Select extends Widget {
             }
 
             if(target.val()) {
-                this.set("search", target.val());
+                // Set other timeout.
+                p.searchTimeout = setTimeout(() => {
+                    this.sync("search", {
+                        search : target.val(),
+                    });
+                }, 1000);
             } else {
                 this.set("search", null);
             }
@@ -159,28 +180,256 @@ class Select extends Widget {
     _selectItem(id) {
         let p = this.__private(cn),
             promise = null,
+            metadata = this._metadata(id),
             keyParent = this.get("keyParent")
         ;
 
-        if(this.get("&items").some(item => item[keyParent] == id)) {
-            this.set("expanded", id);
-        } else {
-            let value = this.get("value");
-
-            if(this.is("multiple")) {
-                if(!value.some(v => v == id)) {
-                    value.push(id);
-
-                    this.set("value", value);
-                }
-            } else {
-                if(value == id) {
-                    this.set("value", null);
+        if(metadata.hasChilds == null) {
+            promise = this._load(id).then(() => {
+                if(this.get("&items").some(item => item[keyParent] == id)) {
+                    metadata.hasChilds = true;
                 } else {
-                    this.set("value", id);
+                    metadata.hasChilds = false;
+                }
+            });
+        } else {
+            promise = Promise.resolve();
+        }
+
+        promise.then(() => {
+            if(this.get("&items").some(item => item[keyParent] == id)) {
+                this.set("expanded", id);
+            } else {
+                let value = this.get("value");
+
+                if(this.is("multiple")) {
+                    if(!value.some(v => v == id)) {
+                        value.push(id);
+
+                        this.set("value", value);
+                    }
+                } else {
+                    if(value == id) {
+                        this.set("value", null);
+                    } else {
+                        this.set("value", id);
+                    }
                 }
             }
+        });
+    }
+
+    _metadata(id) {
+        let p = this.__private(cn),
+            data = p.metadata.find(i => i.id == id)
+        ;
+
+        if(!data) {
+            data = {
+                id,
+                hasChilds : null,
+                childsLoaded : false,
+            };
+
+            p.metadata.push(data);
         }
+
+        return data;
+    }
+
+    _mergeItems(mergeWith) {
+        let p = this.__private(cn),
+            keyValue = this.get("keyValue"),
+            items = this.get("items")
+        ;
+
+        mergeWith.forEach((e) => {
+            if (!items.some(i => i[keyValue] == e[keyValue])) {
+                items.push(e);
+            }
+        });
+
+        return items;
+    }
+
+    async __sync(name, params = {}) {
+
+        if(name == "init") {
+            return this._syncInit(params);
+        } else if(name == "items") {
+            return this._syncItems(params);
+        } else if(name == "search") {
+            return this._syncSearch(params);
+        }
+    }
+
+    async _syncSearch(params = {}) {
+        let p = this.__private(cn),
+            search = this.get("search")
+        ;
+
+        if(p.endpoint == null) {
+            return new Promise((resolve) => {
+                resolve({});
+            });
+        }
+
+        return new Promise((resolve, reject) => {
+            p.endpoint.request((request) => {
+                request.params({
+                    "search" : params.search
+                });
+            }).promise().then((response) => {
+
+                let items = this._mergeItems(response.data());
+
+                resolve({
+                    items,
+                    search : params.search,
+                    searchResult : response.data(),
+                });
+            });
+        // }).catch((e) => {
+        //     console.log('e', e);
+        });
+
+    }
+
+    async _syncInit(name, params = {}) {
+        let p = this.__private(cn),
+            keyValue = this.get("keyValue"),
+            keyName = this.get("keyName"),
+            keyParent = this.get("keyParent"),
+            keyLeaf = this.get("keyLeaf"),
+            rootId = this.get("rootId"),
+            items = this.get("items"),
+            sort = this.get("sort"),
+            expanded = this.get("expanded"),
+            search = this.get("search"),
+            value = this.get("value"),
+            multiple = this.get("multiple")
+        ;
+
+        if(p.endpoint == null) {
+            return new Promise((resolve) => {
+                resolve({});
+            });
+        }
+
+        return new Promise((resolve, reject) => {
+            let ids = [rootId];
+
+            if(multiple) {
+                ids = ids.concat(value);
+            } else {
+                if(value != null) {
+                    ids.push(value);
+                }
+            }
+
+            p.endpoint.request((request) => {
+                request.params({
+                    [keyValue] : ids
+                });
+            }).promise().then((response) => {
+                resolve({
+                    items : response.data(),
+                });
+            });
+        // }).catch((e) => {
+        //     console.log('e', e);
+        });
+    }
+
+    async _syncItems(params = {}) {
+        let p = this.__private(cn),
+            keyValue = this.get("keyValue"),
+            keyName = this.get("keyName"),
+            keyParent = this.get("keyParent"),
+            keyLeaf = this.get("keyLeaf"),
+            rootId = this.get("rootId"),
+            items = this.get("items"),
+            sort = this.get("sort"),
+            expanded = this.get("expanded"),
+            search = this.get("search"),
+            value = this.get("value"),
+            multiple = this.get("multiple")
+        ;
+
+        let loaded = params.loaded ? params.loaded : null;
+        delete params.loaded;
+
+        return new Promise((resolve, reject) => {
+            p.endpoint.request((request) => {
+                request.params(params);
+            }).promise().then((result) => {
+                let ids = {},
+                    items = this.get("items")
+                ;
+
+                items.forEach((item) => {
+                    ids[item[keyValue]] = 1;
+                });
+
+                result.data().forEach((item) => {
+                    if(ids[item[keyValue]] === undefined) {
+                        items.push(item);
+                    }
+                });
+
+                if(loaded) {
+                    loaded.page++;
+
+                    if(result.data().length == 0) {
+                        loaded.done = true;
+                    }
+                }
+
+                // Set items.
+                resolve({
+                    items,
+                });
+            });
+        });
+    }
+
+    _load(parentId) {
+        let p = this.__private(cn),
+            keyParent = this.get("keyParent"),
+            keyValue = this.get("keyValue")
+        ;
+
+        if(p.endpoint == null) {
+            return null;
+        }
+
+        let loaded = p.loaded.find(l => l.id == parentId);
+
+        if(loaded == undefined) {
+            loaded = {
+                id : parentId,
+                page : 0,
+                pageSize : 10,
+                done : false,
+            };
+
+            p.loaded.push(loaded);
+        }
+
+        return this.sync("items", {
+            [keyParent] : parentId,
+            page : loaded.page,
+            pageSize : loaded.pageSize,
+            sort : this.get("sort"),
+            loaded,
+        });
+
+    }
+
+    _loaded(parentId, page) {
+        let p = this.__private(cn);
+
+        return p.loaded.some(i => i.id == parentId);
     }
 
     __setValue(target, name, value, emitparams = {}) {
@@ -196,6 +445,15 @@ class Select extends Widget {
                 }
             }
 
+            // let notFound = value.filter((v) => {
+            //     return !(items.some(item => item[keyValue] == v));
+            // });
+
+            // if(notFound.length) {
+            //     // ...
+            // } else {
+            // }
+
             return super.__setValue(target, name, value, emitparams);
         } else {
             return super.__setValue(target, name, value, emitparams);
@@ -206,6 +464,12 @@ class Select extends Widget {
         super.render();
 
         let p = this.__private(cn);
+
+        if(!this.is("@synced")) {
+            this.sync();
+
+            return this;
+        }
 
         this._renderValue();
 
@@ -435,4 +699,4 @@ class Select extends Widget {
     }
 }
 
-export default Select;
+export default SelectRemote;

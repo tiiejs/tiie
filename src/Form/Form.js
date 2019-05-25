@@ -1,8 +1,9 @@
 import Widget from "Tiie/Widgets/Widget";
 
-import templateLayout from './resources/layout.html';
-import clone from 'Tiie/Utils/clone';
-import style from './resources/style.scss';
+import clone from "Tiie/Utils/clone";
+import style from "./resources/style.scss";
+
+import templateLayout from "./resources/layout.html";
 
 const cn = "Form";
 
@@ -10,9 +11,9 @@ const cn = "Form";
  * Class for creating and handling forms.
  */
 class Form extends Widget {
-    static get FIELD_TYPE_WIDGET () {return 'widget'};
-    static get FIELD_TYPE_SECTION () {return 'section'};
-    static get FIELD_TYPE_TEXT () {return 'text'};
+    static get FIELD_TYPE_WIDGET () {return "widget"};
+    static get FIELD_TYPE_SECTION () {return "section"};
+    static get FIELD_TYPE_TEXT () {return "text"};
 
     constructor(data = {}, params = {}) {
         super(templateLayout, params);
@@ -27,7 +28,7 @@ class Form extends Widget {
                 classCell : ["tiie--display-flex", "tiie--align-items-flex-start", "tiie--flex-direction-column"],
 
                 styleRowBorderBottom : this.__boolean(params.styleRowBorderBottom),
-                styleRowBorderBottomClass : 'tiie--border-bottom-dotted-1',
+                styleRowBorderBottomClass : "tiie--border-bottom-dotted-1",
             }
         });
 
@@ -37,11 +38,11 @@ class Form extends Widget {
 
         this.set("-structure", data.structure ? data.structure : []);
         this.set("-value", data.value ? data.value : {});
-        this.set("-data", data.data ? data.data : {type : 'default'});
+        this.set("-data", data.data ? data.data : {type : "default"});
         this.set("-buttons", data.buttons ? data.buttons : []);
 
         if (p.footer) {
-            p.footer.append(this.element('footer'));
+            p.footer.append(this.element("footer"));
         }
 
         this.element("footer").on("click", "button", (event) => {
@@ -51,7 +52,7 @@ class Form extends Widget {
             ;
 
             if (button === undefined) {
-                this.log(`Button ${id} is not defined at form.`, "warn");
+                this.__log(`Button ${id} is not defined at form.`, "warn");
             }else{
                 this.emit(`button.${id}:click`, {
                     target : button,
@@ -102,7 +103,7 @@ class Form extends Widget {
     widget(id, widget) {
         let p = this.__private(cn);
 
-        // this.components().set(`#form.widget.${id}`, widget);
+        this.__components().set(`#widget_${id}`, widget);
 
         if (widget === undefined) {
             if (p.widgets[id] === undefined) {
@@ -161,7 +162,7 @@ class Form extends Widget {
      * Return list of all fields at form. Fields are widgets, text fields and
      * sections.
      *
-     * You can use 'type' params to select specific type of fields.
+     * You can use "type" params to select specific type of fields.
      *
      * @param {object}
      * - type
@@ -173,7 +174,7 @@ class Form extends Widget {
 
         let fields = [];
 
-        this.get('&structure').forEach((row) => {
+        this.get("&structure").forEach((row) => {
             row.forEach((field) => {
                 if (params.type) {
                     if (params.type == field.type) {
@@ -269,7 +270,7 @@ class Form extends Widget {
         ;
 
         structure.forEach((row) => {
-            html.push(`<div class="row tiie-form__row ${p.params.styleRowBorderBottom ? p.params.styleRowBorderBottomClass : ''}">`);
+            html.push(`<div class="row tiie-form__row ${p.params.styleRowBorderBottom ? p.params.styleRowBorderBottomClass : ""}">`);
 
             left = 12;
 
@@ -327,13 +328,13 @@ class Form extends Widget {
 
                     if (element.label) {
                         labelHtml = `
-                            <div class="col-12 col-sm-${element.labelWidth} ${p.params.classCell.join(' ')}" name="${element.id}LabelCell">
+                            <div class="col-12 col-sm-${element.labelWidth} ${p.params.classCell.join(" ")}" name="${element.id}LabelCell">
                                 <label class="text-left" name="${element.id}Label" for="${element.id}">${element.label}</label>
                             </div>
                         `;
                     }
 
-                    widgetHtml = `<div class="tiie-form__col col-12 col-sm-${element.width} ${p.params.classCell.join(' ')}" name="${element.id}"></div>`;
+                    widgetHtml = `<div class="tiie-form__col col-12 col-sm-${element.width} ${p.params.classCell.join(" ")}" name="${element.id}"></div>`;
 
                     if (this.__boolean(element.reverse)) {
                         html.push(widgetHtml);
@@ -343,11 +344,11 @@ class Form extends Widget {
                         html.push(widgetHtml);
                     }
                 }else if(element.type == "text") {
-                    html.push(`<div class="col col-md-${element.width} col-lg-${element.width} col-sm-12 ${p.params.classCell.join(' ')}" name="${element.id}">${element.value === undefined ? "" : element.value}</div>`)
+                    html.push(`<div class="col col-md-${element.width} col-lg-${element.width} col-sm-12 ${p.params.classCell.join(" ")}" name="${element.id}">${element.value === undefined ? "" : element.value}</div>`)
                 }else if(element.type == "section") {
-                    html.push(`<div class="tiie-form__section col col-md-${element.width} col-lg-${element.width} col-sm-12 ${p.params.classCell.join(' ')}" name="${element.id}">${element.name}</div>`)
+                    html.push(`<div class="tiie-form__section col col-md-${element.width} col-lg-${element.width} col-sm-12 ${p.params.classCell.join(" ")}" name="${element.id}">${element.name}</div>`)
                 }else {
-                    this.log(`Unknow type of fom element ${element.type}`, "warn", 'Tiie.Form.Form');
+                    this.__log(`Unknow type of fom element ${element.type}`, "warn", "Tiie.Form.Form");
                 }
             });
 
@@ -378,11 +379,13 @@ class Form extends Widget {
             i
         ;
 
-        for(i in value) {
-            if (p.widgets[i]) {
+        Object.keys(p.widgets).forEach((i) => {
+            if(value[i] == undefined) {
+                p.widgets[i].set("value", null, {ommit : this.id()});
+            } else {
                 p.widgets[i].set("value", value[i], {ommit : this.id()});
             }
-        }
+        });
     }
 
     /**
@@ -408,7 +411,6 @@ class Form extends Widget {
                 type : "default"
             });
         });
-
 
         if (state.type == "error" && state.errors) {
             let offsetY = null;
@@ -477,7 +479,7 @@ class Form extends Widget {
             return super.__setValue(target, name, value, emitparams);
         } else if (name == "structure") {
             if (!Array.isArray(value)) {
-                this.log("Structure of form, should be array.", "warn");
+                this.__log("Structure of form, should be array.", "warn");
 
                 return;
             }

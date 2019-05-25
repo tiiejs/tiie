@@ -63,6 +63,10 @@ class Action extends TiieObject {
         return Promise.resolve();
     }
 
+    async update(params) {
+        return Promise.resolve();
+    }
+
     async sleep() {
         return new Promise((resolve, reject) => {
             this.view().hide();

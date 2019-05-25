@@ -81,7 +81,7 @@ class CheckboxList extends Widget {
                 }
             } else {
                 if (Array.isArray(value)) {
-                    this.log('Nieprawidłowy typ danych dla typu nie wielokrotnego.', 'warn', 'Tiie.Widgets.CheckboxList');
+                    this.__log('Nieprawidłowy typ danych dla typu nie wielokrotnego.', 'warn', 'Tiie.Widgets.CheckboxList');
 
                     if (value.length) {
                         value = value.shift();

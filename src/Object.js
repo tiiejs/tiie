@@ -80,7 +80,7 @@ class TiieObject {
         p.data["@destroyed"] = 0;
         p.data["@ready"] = 0;
         p.data["@loading"] = 0;
-        p.data["@visible"] = 0;
+        p.data["@view.visible"] = 0;
         p.data["@syncing"] = 0;
         p.data["@synced"] = 0;
     }
@@ -121,7 +121,7 @@ class TiieObject {
                 }
             });
         } else {
-            this.log(`Unsuported type to define '${name}.'`, "notice", "Tiie.Object");
+            this.__log(`Unsuported type to define '${name}.'`, "notice", "Tiie.Object");
         }
 
         return this;
@@ -130,10 +130,16 @@ class TiieObject {
     /**
      * Sync object data with remte resource.
      *
+     * @param {object} params
+     *
      * @return {Promise}
      */
-    async sync() {
+    async sync(name, params = {}) {
         let p = this.__private(cn);
+
+        if(name == undefined) {
+            name = "init";
+        }
 
         if (this.is("@syncing")) {
             return p.syncing.then();
@@ -142,7 +148,8 @@ class TiieObject {
         if(p.syncingIntervalPromise) {
             p.syncingDelay = true;
 
-            return p.syncingIntervalPromise.then();
+            // return p.syncingIntervalPromise.then();
+            return p.syncingIntervalPromise;
         }
 
         return p.syncingIntervalPromise = new Promise((resolveInterval, rejectInterval) => {
@@ -154,7 +161,7 @@ class TiieObject {
 
                     this.set("@syncing", 1);
 
-                    p.syncing = this.__sync().then((data) => {
+                    p.syncing = this.__sync(name, params).then((data) => {
 
                         // Set data at syncing mode.
                         this.set("@synced", 1, {syncing : 1});
@@ -237,18 +244,12 @@ class TiieObject {
         }
     }
 
-    warn(message) {
-        console.warn(message);
-
-        return this;
-    }
-
-    error(error, tag = null, data = {}) {
+    __error(error, tag = null, data = {}) {
         let p = this.__private(cn),
-            router = this.component("@router")
+            router = this.__component("@router")
         ;
 
-        this.log(error, "error", tag, data);
+        this.__log(error, "error", tag, data);
 
         // router.forward("@error", {error});
         router.redirect("@error");
@@ -256,7 +257,7 @@ class TiieObject {
         return this;
     }
 
-    log(message, type = "log", tag = null, data = {}) {
+    __log(message, type = "log", tag = null, data = {}) {
         if (tag != null) {
             tag = `[${tag}] `;
         } else {
@@ -287,29 +288,6 @@ class TiieObject {
         this.__component("@logger").log(message, type, tag, data);
 
         return this;
-    }
-
-    /**
-     * Prepare params and return.
-     *
-     * @param {Array} values
-     * @param {Object} params
-     * @return {object}
-     */
-    params(values =  [], params = {}) {
-        let prepared = {}, i;
-
-        values.forEach((value) => {
-            for (i in value) {
-                if (value[i] == null) {
-                    continue;
-                }
-
-                prepared[i] = value[i];
-            }
-        });
-
-        return prepared;
     }
 
     is(attribute) {
@@ -357,17 +335,19 @@ class TiieObject {
 
             value = name;
 
-            params.defined = params.defined ? 1 : 0;
+            let defined = params.defined === undefined ? 0 : 1;
 
-            Object.keys(value).forEach((name) => {
-                if (params.defined) {
-                    if (!p.definitions.dataStructure.hasOwnProperty(name)) {
-                        return;
+            if(defined) {
+                Object.keys(p.definitions.dataStructure).forEach((name) => {
+                    if(value.hasOwnProperty(name)) {
+                        this.set(name, value[name], params);
                     }
-                }
-
-                this.set(name, value[name], params);
-            });
+                });
+            } else {
+                Object.keys(value).forEach((name) => {
+                    this.set(name, value[name], params);
+                });
+            }
 
             return this;
         } else if (typeof name == "string") {
@@ -387,21 +367,21 @@ class TiieObject {
                         value = parseInt(value);
 
                         if (isNaN(value)) {
-                            this.log(`Wrong type '${typeof value}' of value '${name}'. Value should be type "number".`, "notice", 'tiie.object');
+                            this.__log(`Wrong type '${typeof value}' of value '${name}'. Value should be type "number".`, "notice", 'tiie.object');
                             value = null;
                         }
                     }
 
                     if (init.type == "array") {
                         if (!Array.isArray(value)) {
-                            this.log(`Wrong type '${typeof value}' of value '${name}'. Value should be type "array".`, "notice", 'tiie.object');
+                            this.__log(`Wrong type '${typeof value}' of value '${name}'. Value should be type "array".`, "notice", 'tiie.object');
 
                             value = null;
                         }
                     } else {
                         if (init.type && typeof value != init.type) {
                             if (!(init.type == "boolean" && typeof value == "number")) {
-                                this.log(`Wrong type '${typeof value}' of value '${name}'. Value should be type '${init.type}'.`, "notice", 'tiie.object');
+                                this.__log(`Wrong type '${typeof value}' of value '${name}'. Value should be type '${init.type}'.`, "notice", 'tiie.object');
 
                                 value = null;
                             }
@@ -409,7 +389,11 @@ class TiieObject {
                     }
                 }
 
-                if (init.notNull && value == null && init.hasOwnProperty("default")) {
+                if (init.notNull && value === null && init.hasOwnProperty("default")) {
+                    value = init.default;
+                }
+
+                if (value === undefined && init.hasOwnProperty("default")) {
                     value = init.default;
                 }
             }
@@ -446,10 +430,10 @@ class TiieObject {
                 previous : undefined
             }, params);
 
-        }else{
+        } else {
             if (params.silently) {
                 target[name] = value;
-            }else{
+            } else {
                 if (!same(target[name], value)) {
                     let previous = target[name];
 
@@ -488,10 +472,6 @@ class TiieObject {
         }else{
             return p.data;
         }
-    }
-
-    state(params = {}) {
-        return this.data(params);
     }
 
     get(name, value = null, params = {}) {
@@ -614,7 +594,7 @@ class TiieObject {
             }
         }
 
-        this.log(`Wrong private call ${variables[0]}`, "warn");
+        this.__log(`Wrong private call ${variables[0]}`, "warn");
     }
 
     /**
@@ -719,6 +699,24 @@ class TiieObject {
         return this;
     }
 
+    associate(width, params = {}) {
+        const p = this.__private(cn);
+
+        if(params.data) {
+            Object.keys(params.data).forEach((from) => {
+                let to = params.data[from];
+
+                this.on(`${from}:change`, (event) => {
+                    width.set(to, event.this.get(from), {ommit : this.id()});
+                }, width.id());
+
+                width.on(`${to}:change`, (event) => {
+                    this.set(from, event.this.get(to), {ommit : width.id()})
+                }, this.id());
+            });
+        }
+    }
+
     /**
      * Delete event listeners.
      *
@@ -752,19 +750,11 @@ class TiieObject {
         }
     }
 
-    component(name, params = {}) {
-        return components.get(name, params);
-    }
-
     __component(name, params = {}) {
         return components.get(name, params);
     }
 
     __components() {
-        return components;
-    }
-
-    components() {
         return components;
     }
 
@@ -807,9 +797,9 @@ function syncingWaiting(p) {
     }
 }
 
-// setInterval(() => {
-//     components.dump();
-// }, 2000);
+setInterval(() => {
+    components.dump();
+}, 2000);
 
 if (window.pscope === undefined) {
     window.pscope = new WeakMap();

@@ -27,20 +27,19 @@ class View extends TiieObject {
         p.elements = this._createElements(template);
         p.elements.forEach(element => this._attachEventsListener(element));
 
-        this.set("@rendering", 0, {silently : 1});
-        this.set("@visible", 1, {silently : 1});
-        this.set("@hover", 0, {silently : 1});
+        this.set("@view.rendering", 0, {silently : 1});
+        this.set("@view.visible", 1, {silently : 1});
+        this.set("@view.hover", 0, {silently : 1});
 
         p.elements.forEach((element) => {
             element.mouseenter((event) => {
-                this.set("@hover", 1);
+                this.set("@view.hover", 1);
             });
 
             element.mouseleave(() => {
-                this.set("@hover", 0);
+                this.set("@view.hover", 0);
             });
         });
-
 
         this.on("@syncing:change", (event, params) => {
             if (this.is("@syncing")) {
@@ -50,7 +49,7 @@ class View extends TiieObject {
 
                 p.loaderTimeout = setTimeout(() => {
                     this.__loader().show();
-                }, 1000);
+                }, 500);
             } else {
                 if(p.loaderTimeout) {
                     clearTimeout(p.loaderTimeout);
@@ -183,16 +182,12 @@ class View extends TiieObject {
         return elements;
     }
 
-    content(html) {
-        return this.element().content(html);
-    }
-
     __loader() {
         let p = this.__private(cn);
 
         if (p.loader == null) {
             if (!this.__components().exists("@loader")) {
-                this.log("There is no '@loader' component.", "warn", "Tiie.View");
+                this.__log("There is no '@loader' component.", "warn", "Tiie.View");
 
                 return null;
             } else {
@@ -213,7 +208,7 @@ class View extends TiieObject {
 
         if (!p.notifications) {
             if (!this.__components().exists("@notifications")) {
-                this.log("There is no '@notifications' component.", "warn", "Tiie.View");
+                this.__log("There is no '@notifications' component.", "warn", "Tiie.View");
 
                 return null;
             } else {
@@ -224,6 +219,9 @@ class View extends TiieObject {
         return p.notifications;
     }
 
+    /**
+     * Return jQuery object.
+     */
     $(object) {
         return jQuery(object);
     }
@@ -255,7 +253,12 @@ class View extends TiieObject {
             clearTimeout(p.timeout.reload);
         }
 
-        p.timeout.reload = setTimeout(() => this.render(), 100);
+        // p.timeout.reload = setTimeout(() => this.render(), 50);
+        p.timeout.reload = setTimeout(() => {
+            this.emit("@view.events.reload");
+
+            this.render();
+        }, 50);
 
         return this;
     }
@@ -270,6 +273,7 @@ class View extends TiieObject {
      * @param {string} name
      * @param {string} content
      * @param {object} data
+     *
      * @return {string|this}
      */
     __content(...args) {
@@ -278,7 +282,7 @@ class View extends TiieObject {
         ;
 
         if (element == null) {
-            this.log(`Element ${args[0]} not found.`, "warn", "Tiie.View");
+            this.__log(`Element ${args[0]} not found.`, "warn", "Tiie.View");
 
             if (args.length == 1) {
                 return null;
@@ -287,21 +291,24 @@ class View extends TiieObject {
             }
         }
 
+        let html;
+
         if(args.length == 1) {
             return element.html();
         } else if(args.length == 2) {
-            element.html(this.__template(args[1])(this.data({clone : 0})));
+            html = this.__template(args[1])(this.data({clone : 0}));
 
-            return this;
         } else if(args.length >= 3) {
-            element.html(this.__template(args[1])(args[2]));
+            html = this.__template(args[1])(args[2]);
 
             if (args.length > 3) {
-                this.log(`Unsuported number of params for '__content' method.`, "notice", "Tiie.View");
+                this.__log(`Unsuported number of params for '__content' method.`, "notice", "Tiie.View");
             }
-
-            return this;
         }
+
+        element.html(html);
+
+        return this;
     }
 
     show() {
@@ -309,10 +316,9 @@ class View extends TiieObject {
 
         p.elements.forEach((element) => {
             element.show();
-            // p.target.append(element);
         });
 
-        this.set("@visible", 1);
+        this.set("@view.visible", 1);
 
         return this;
     }
@@ -322,10 +328,9 @@ class View extends TiieObject {
 
         p.elements.forEach((element) => {
             element.hide();
-            // p.target.append(element);
         });
 
-        this.set("@visible", 0);
+        this.set("@view.visible", 0);
 
         return this;
     }
@@ -369,7 +374,7 @@ class View extends TiieObject {
     target(...args) {
         let p = this.__private(cn);
 
-        if(args.length > 1) this.log(`Wrong number of params.`, "notice", "Tiie.View::target", args);
+        if(args.length > 1) this.__log(`Wrong number of params.`, "notice", "Tiie.View::target", args);
 
         if(args.length == 0) {
             return p.target ? p.target : null;

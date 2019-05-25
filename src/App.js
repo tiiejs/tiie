@@ -88,8 +88,11 @@ class App extends TiieObject {
             config : new Config(config),
             controllers : [],
             // actions : [],
+
+            // Last controller and action
             controller : null,
             action : null,
+
             components : null,
             target,
             params : {},
@@ -122,7 +125,7 @@ class App extends TiieObject {
 
         p.params = params;
 
-        this.component('@router').run();
+        this.__component('@router').run();
 
         return this;
     }
@@ -186,59 +189,108 @@ class App extends TiieObject {
     action(controllerClass, actionClass, params) {
         let p = this.__private(cn),
             // Check if controller exists.
-            controller = p.controllers.find(element => element.class == controllerClass),
+            // controller = p.controllers.find(element => element.class == controllerClass),
 
             // Check if action exists
             // action = p.actions.find(element => element.class == actionClass),
             promises = []
         ;
 
+        // 1. Kontroller nie istnieje, inicjuje kontroller
+        //    - uchomomienie (run)
+        //    - przygotowanie (prepare)
+        //    - aktualizacja (update)
+        //
+        // 2. Kontroller istnieje, ale sie zmienił.
+        //    Poprzedni
+        //    - przygotowanie (sleep)
+        //
+        //    Nowy
+        //    - przygotowanie (wakeup)
+        //    - przygotowanie (prepare)
+        //    - aktualizacja (update)
+        //
+        // 3. Kontroller istnieje, i jest taki sam.
+        //    - aktualizacja (update)
+        //
+        // 1. Akcja nie istnieje, inicjuje akcje
+        //    - run
+        //    - ? reload
+        //    - update
+        //
+        // 2. Akcja istnieje i jest taka sama
+        //    - ? reload
+        //    - update
+
+        // todo
         p.components.get("@intervals").clean(Intervals.SCOPE_ACTION);
 
-        if (controller === undefined) {
-            controller = {
+        if(p.controller == null) {
+            p.controller = {
                 instance : new controllerClass(p.components),
                 class : controllerClass
             };
 
             // Run controller.
-            promises.push(controller.instance.run(p.params));
-
-            if (p.controller) {
-                // There is previous controllers which we need to sleep.
-                promises.push(p.controller.sleep());
-            }
-
-            // Save present controller.
-            p.controller = controller.instance;
-
-            // Push to list of controllers.
-            p.controllers.push(controller);
+            promises.push(p.controller.instance.run(params));
         } else {
-            // Controller is initated.
-            if (p.controller !== controller.instance) {
-                // Controller is other then present.
-                promises.push(p.controller.sleep());
-                promises.push(controller.instance.wakeup());
+            if(p.controller.class != controllerClass) {
+                p.components.get("@intervals").clean(Intervals.SCOPE_CONTROLLER);
 
-                p.controller = controller.instance;
+                p.controller = {
+                    instance : new controllerClass(p.components),
+                    class : controllerClass
+                };
+
+                promises.push(p.controller.instance.run(params));
             }
         }
 
-        // Action
-        let action = {
-            instance : new actionClass(p.components),
-            class : actionClass
-        };
+        if (p.action == null) {
+            p.action = {
+                instance : new actionClass(p.components),
+                class : actionClass
+            };
 
-        p.action = action.instance;
+            promises.push(
+                Promise.resolve()
+                .then(() => {
+                    return p.controller.instance.prepare(params);
+                })
+                .then(() => {
+                    return p.action.instance.run(params, p.controller.instance);
+                })
+            );
+
+            // promises.push(p.action.instance.run(params, p.controller.instance));
+        } else {
+            if(p.action.class != actionClass) {
+                p.action = {
+                    instance : new actionClass(p.components),
+                    class : actionClass
+                };
+
+                // First call prepare then run
+                promises.push(
+                    Promise.resolve()
+                    .then(() => {
+                        return p.controller.instance.prepare(params);
+                    })
+                    .then(() => {
+                        return p.action.instance.run(params, p.controller.instance);
+                    })
+                );
+            }
+        }
 
         Promise.all(promises).then(() => {
-            return controller.instance.reload(params);
+
         }).then(() => {
-            return action.instance.run(params, p.controller);
+            return p.controller.instance.update(params);
         }).then(() => {
-            p.controller.view().target(p.target);
+            return p.action.instance.update(params);
+        }).then(() => {
+            p.controller.instance.view().target(p.target);
         }).catch((error) => {
             console.log('error', error);
         });

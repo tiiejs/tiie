@@ -7,7 +7,7 @@ class New extends Action {
     async run(params, controller) {
         return super.run(params, controller).then(() => {
             let p = this.__private(cn),
-                api = this.component("@api"),
+                api = this.__component("@api"),
                 view = {}
             ;
 
@@ -33,7 +33,7 @@ class New extends Action {
             });
 
         }).catch((error) => {
-            this.error(error);
+            this.__error(error);
         })
     }
 }

@@ -3,14 +3,19 @@ import TiieObject from 'Tiie/Object';
 const cn = 'Tree';
 
 class Tree extends TiieObject {
-    constructor(data = [], params = {}) {
+    constructor(items = [], params = {}) {
         super();
 
         const p = this.__private(cn, {
-            data,
-            keyValue : params.keyValue == undefined ? 'id' : params.keyValue,
+            items,
+            keyId : params.keyId == undefined ? 'id' : params.keyId,
             keyParent : params.keyParent == undefined ? 'parentId' : params.keyParent,
+            rootId : params.rootId == undefined ? null : params.rootId,
         });
+
+        if(!p.items.some(item => item[p.keyId] == p.rootId)) {
+            throw `I can't find node ${p.rootId}`;
+        }
     }
 
     childs(from, params = {}) {
@@ -25,14 +30,10 @@ class Tree extends TiieObject {
 
         // debugger;
         stack = [level];
-        stack = stack.concat(p.data.filter(e => e[p.keyParent] == from));
+        stack = stack.concat(p.items.filter(e => e[p.keyParent] == from));
 
         while(stack.length > 0) {
             pointer = stack.pop();
-
-            // if (pointer.id == 3347) {
-            //     debugger;
-            // }
 
             if (params.deep != undefined) {
                 if (level > params.deep) {
@@ -47,7 +48,7 @@ class Tree extends TiieObject {
             } else {
                 childs.push(pointer);
 
-                let elements = p.data.filter(e => e[p.keyParent] == pointer[p.keyValue]);
+                let elements = p.items.filter(e => e[p.keyParent] == pointer[p.keyId]);
 
                 if (elements.length > 0) {
                     level++;
@@ -60,19 +61,19 @@ class Tree extends TiieObject {
         return childs;
     }
 
-    path(from) {
-        const p = this.__private(cn);
-
-        let pointer = this.findById(from);
+    path(to) {
+        let p = this.__private(cn),
+            pointer = this.findById(to)
+        ;
 
         if (pointer == null) {
-            return [];
+            return null;
         }
 
         let path = [pointer];
 
-        while(pointer[p.keyParent] != null) {
-            pointer = p.data.find(e => e[p.keyValue] == pointer[p.keyParent]);
+        while(pointer[p.keyId] != p.rootId) {
+            pointer = p.items.find(e => e[p.keyId] == pointer[p.keyParent]);
 
             if (pointer == undefined) {
                 return path;
@@ -81,6 +82,9 @@ class Tree extends TiieObject {
             path.push(pointer);
         }
 
+        // Reverse path
+        path.reverse();
+
         return path;
     }
 
@@ -88,13 +92,12 @@ class Tree extends TiieObject {
         const p = this.__private(cn);
     }
 
-    find(params = {}) {
-    }
+    find(params = {}) { }
 
     findById(id) {
         const p = this.__private(cn);
 
-        let found = p.data.find(e => e[p.keyValue] == id);
+        let found = p.items.find(e => e[p.keyId] == id);
 
         return found == undefined ? null : found;
     }
@@ -102,7 +105,7 @@ class Tree extends TiieObject {
     roots(value = null) {
         const p = this.__private(cn);
 
-        return p.data.filter(e => e[p.keyParent] == value);
+        return p.items.filter(e => e[p.keyParent] == value);
     }
 
     firstRoot() {

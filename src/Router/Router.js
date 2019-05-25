@@ -476,7 +476,7 @@ class Router extends TiieObject {
 
             return this;
         } else {
-            this.log(`Unsported number of params.`, "notice", "Tiie.Router.Router::param");
+            this.__log(`Unsported number of params.`, "notice", "Tiie.Router.Router::param");
 
             return this;
         }
@@ -529,7 +529,7 @@ class Router extends TiieObject {
 
             return this;
         } else {
-            this.log(`Unsported number of params.`, "notice", "Tiie.Router.Router::params");
+            this.__log(`Unsported number of params.`, "notice", "Tiie.Router.Router::params");
 
             return this;
         }
@@ -565,7 +565,7 @@ class Router extends TiieObject {
 
             return this;
         } else {
-            this.log(`Unsported number of params.`, "notice", "Tiie.Router.Router::action");
+            this.__log(`Unsported number of params.`, "notice", "Tiie.Router.Router::action");
 
             return this;
         }

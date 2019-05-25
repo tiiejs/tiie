@@ -32,7 +32,7 @@ class Components extends TiieObject {
         if (name[0] == '@') {
             if (p.inited[name] === undefined) {
                 if (p.components[name] === undefined) {
-                    this.error(`Component ${name} is not defined.`);
+                    this.__error(`Component ${name} is not defined.`);
                 }
 
                 p.inited[name] = p.components[name](this, params);
@@ -41,7 +41,7 @@ class Components extends TiieObject {
             return p.inited[name];
         } else if (name[0] == '#') {
             if (p.inited[name] === undefined) {
-                this.log(`Component ${name} does not exists.`, 'warn', 'tiie.components');
+                this.__log(`Component ${name} does not exists.`, 'warn', 'tiie.components');
 
                 return null;
             }
@@ -49,7 +49,7 @@ class Components extends TiieObject {
             return p.inited[name];
         } else {
             if (p.components[name] === undefined) {
-                this.error(`Component ${name} is not defined.`);
+                this.__error(`Component ${name} is not defined.`);
             }
 
             return p.components[name](this, params);

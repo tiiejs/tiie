@@ -1,40 +1,52 @@
 @import "~Tiie/Styles/variables.scss";
 
-.tiie-vw-tree__item {
+.tiie-widgets-tree__item {
     display: flex;
     justify-content: left;
 }
 
-.tiie-vw-tree__item-title {
+.tiie-widgets-tree__item-title {
+    padding-top: 1px;
 }
 
-.tiie-vw-tree__item-title.--active {
+.tiie-widgets-tree__item.--active .tiie-widgets-tree__item-title {
     font-weight: bold;
     color: $tiieColorBrand;
 }
 
-.tiie-vw-tree__item-title:hover {
+.tiie-widgets-tree__item-title:hover {
     cursor: pointer;
     font-weight: bold;
 }
 
-.tiie-vw-tree__item-expander {
+.tiie-widgets-tree__item-expander {
     width: 15px;
 }
 
-.tiie-vw-tree__item-expander:hover {
+.tiie-widgets-tree__item-expander:hover {
     cursor: pointer;
     font-weight: bold;
 }
 
-.tiie-vw-tree__item-space {
+.tiie-widgets-tree__item-space {
     margin-left: 8px;
 }
 
-.tiie-vw-tree__item-childs {
+.tiie-widgets-tree__item-childs {
     padding-left: 15px;
 }
 
-.tiie-vw-tree__item-icon {
+.tiie-widgets-tree__item-icon {
+    width: 25px;
+}
+
+.tiie-widgets-tree__partially-parents {
+    border-bottom: 2px #007bff solid;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    /* box-shadow: 1px 1px 1px 1px #007bff; */
+}
+
+.tiie-widgets-tree__item-icon-blank {
     width: 25px;
 }

@@ -12,7 +12,7 @@ class Intervals extends TiieObject {
 
         let p = this.__private(cn, {
             intervals : {
-                // "controller" : [],
+                "controller" : [],
                 "action" : [],
             }
         });
@@ -31,7 +31,7 @@ class Intervals extends TiieObject {
         let p = this.__private(cn);
 
         if(p.intervals[scope] === undefined) {
-            this.log(`Unsuported type of scopee '${scope}' for interval.`, "warn", "Tiie.Intervals");
+            this.__log(`Unsuported type of scopee '${scope}' for interval.`, "warn", "Tiie.Intervals");
 
             return null;
         }
@@ -54,7 +54,7 @@ class Intervals extends TiieObject {
         let p = this.__private(cn);
 
         if(p.intervals[scope] === undefined) {
-            this.log(`Unsuported type of scopee '${scope}' for interval.`, "warn", "Tiie.Intervals");
+            this.__log(`Unsuported type of scopee '${scope}' for interval.`, "warn", "Tiie.Intervals");
 
             return;
         }
@@ -69,7 +69,7 @@ class Intervals extends TiieObject {
     }
 }
 
-// Intervals.SCOPE_CONTROLLER = "controller";
+Intervals.SCOPE_CONTROLLER = "controller";
 Intervals.SCOPE_ACTION = "action";
 
 export default Intervals;

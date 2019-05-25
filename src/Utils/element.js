@@ -45,6 +45,24 @@
     let jqueryHtml = jQuery.fn.html;
 
     jQuery.fn.html = function(value) {
+        // if (value == undefined) {
+        //     return jqueryHtml.call(this);
+        // }else{
+        //     let jq = jQuery(this);
+
+        //     if(jq.children().length) {
+        //         jq.children().fadeOut("slow", () => {
+        //             jqueryHtml.call(this, value);
+
+        //             element.reindex(this[0]);
+        //         });
+        //     } else {
+        //         jqueryHtml.call(this, value);
+
+        //         element.reindex(this[0]);
+        //     }
+        // }
+
         if (value == undefined) {
             return jqueryHtml.call(this);
         }else{
@@ -61,9 +79,9 @@
         return jQuery.fn.html.call(this, value);
     };
 
-    jQuery.fn.ui = function(name) {
-        return jQuery.fn.element.call(this, name);
-    };
+    // jQuery.fn.ui = function(name) {
+    //     return jQuery.fn.element.call(this, name);
+    // };
 
     jQuery.fn.element = function(name) {
         let object = this[0];

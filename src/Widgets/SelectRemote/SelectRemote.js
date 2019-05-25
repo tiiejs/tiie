@@ -5,34 +5,44 @@ import style from './resources/style.scss';
 const cn = 'SelectRemote';
 
 class SelectRemote extends Widget {
-    constructor(state = {}, params = {}) {
+    constructor(data = {}, params = {}) {
         super(`<select class="tiie-input-select" style='width : 100%'></select>`);
 
+        console.log('SelectRemote.constructor');
+
         if (params.endpoint == undefined) {
-            this.log(`SelectRemote need endpoint defined.`, 'warn');
+            this.__log(`SelectRemote need endpoint defined.`, "error", "Tiie.Widgets.SelectRemote");
 
             return;
         }
 
-        let p = this.__private(cn, {
+        const p = this.__private(cn, {
             inited : 0,
             endpoint : params.endpoint,
+
             templateResult : params.templateResult == undefined ? null : params.templateResult,
             templateSelection : params.templateSelection == undefined ? null : params.templateSelection,
         });
 
-        this.set('-keyValue', state.keyValue == undefined ? 'id' : state.keyValue);
-        this.set('-keyLabel', state.keyLabel == undefined ? 'name' : state.keyLabel);
-        this.set('-multiple', state.multiple == undefined ? 0 : state.multiple);
-        this.set('-items', state.items == undefined ? [] : state.items);
+        this.__define("data.structure", {
+            keyValue : {type : "string", default : "id", notNull : 1},
+            keyName : {type : "string", default : "name", notNull : 1},
+            multiple : {type : "boolean", default : 0, notNull : 1},
+            items : {type : "array", default : [], notNull : 1},
+            search : {type : "string", default : null, notNull : 0},
 
-        // Group
-        this.set('-group', state.group == undefined ? 0 : state.group);
-        this.set('-placeholder', state.placeholder == undefined ? null : state.placeholder);
-        this.set('-groupKey', state.groupKey == undefined ? 'parentId' : state.groupKey);
-        this.set('-groupRootId', state.groupRootId == undefined ? null : state.groupRootId);
+            group : {type : "boolean", default : 0, notNull : 1},
+            placeholder : {type : "string", default : null, notNull : 0},
+            groupKey : {type : "string", default : "parentId", notNull : 1},
+            groupRootId : {type : "string", default : null, notNull : 0},
+        });
 
-        this.set('-value', state.value == undefined ? this.get('multiple') ? [] : null : state.value);
+        this.set(data, {silently : 1, defined : 1});
+
+        console.log('SelectRemote.set value');
+        // Type of value is dependent if is multiple or not.
+        // this.set('-value', data.value == undefined ? this.get('multiple') ? [] : null : data.value);
+        this.set('-value', data.value == undefined ? null : data.value);
 
         this.element().on('change', (event) => {
             let value = this.element().val();
@@ -47,7 +57,7 @@ class SelectRemote extends Widget {
         this.on([
             'value',
             'keyValue',
-            'keyLabel',
+            'keyName',
             'multiple',
             'items',
             'group',
@@ -66,8 +76,17 @@ class SelectRemote extends Widget {
         ;
 
         if (name == "value") {
+            console.log('SelectRemote.__setValue', value);
+            console.trace();
+
+            if (value === null || value === undefined || (Array.isArray(value) && value.length == 0)) {
+                super.__setValue(target, name, this.is("multiple") ? [] : null, emitparams);
+
+                return Promise.resolve();
+            }
+
             return new Promise((resolve, reject) => {
-                if (typeof value == 'string' || typeof value == 'number') {
+                if (typeof value == "string" || typeof value == "number") {
                     // I'm looking for element at items list.
                     if (this.get("&items").some(item => item[keyValue] == value)) {
                         // Element was found. Then I set value.
@@ -81,20 +100,18 @@ class SelectRemote extends Widget {
                     }else{
                         // Object was not found. Then I fetch object from API and
                         // add to items.
-
                         this.set("@syncing", 1);
 
                         p.endpoint.request((request) => {
                             request.resourceId(value);
                         }).promise().then((response) => {
-                            this.set("@syncing", 0);
+                            this.set("@syncing", 0, {syncing : 1});
 
-                            let items = this.get('items');
+                            let items = this.get("items");
 
                             items.push(response.data());
 
                             this.set("items", items, {ommit : this.id()});
-                            // this.set("items", items);
 
                             if (multiple) {
                                 super.__setValue(target, name, [value], emitparams);
@@ -104,9 +121,9 @@ class SelectRemote extends Widget {
 
                             resolve();
                         }).catch((response) => {
-                            this.log(`Item ${value} not found.`, "warn");
+                            this.__log(`Item ${value} not found.`, "warn");
 
-                            this.set("@syncing", 0);
+                            this.set("@syncing", 0, {syncing : 1});
 
                             resolve();
                         });
@@ -133,12 +150,11 @@ class SelectRemote extends Widget {
                                 notfound.push(id);
                             }
                         }else{
-                            this.log(`Unknown type of value ${v}`, "warn", "tiie.views.widgets.select-remote");
+                            this.__log(`Unknown type of value ${v}`, "warn", "tiie.views.widgets.select-remote");
                         }
                     });
 
                     if (notfound.length > 0) {
-
                         this.set("@syncing", 1);
 
                         p.endpoint.request((request) => {
@@ -155,11 +171,11 @@ class SelectRemote extends Widget {
                                 super.__setValue(target, name, found[0], emitparams);
                             }
 
-                            this.set("@syncing", 0);
+                            this.set("@syncing", 0, {syncing : 1});
 
                             resolve();
                         }).catch((response) => {
-                            this.set("@syncing", 0);
+                            this.set("@syncing", 0, {syncing : 1});
 
                             reject(response);
                         });
@@ -174,13 +190,6 @@ class SelectRemote extends Widget {
                     }
                 }
             });
-        } else if (
-            name == "multiple" ||
-            name == "group"
-        ) {
-            super.__setValue(target, name, this.__boolean(value), emitparams);
-
-            return Promise.resolve();
         } else {
             super.__setValue(target, name, value, emitparams);
 
@@ -209,9 +218,11 @@ class SelectRemote extends Widget {
             return this;
         }
 
+        console.log('SelectRemote.render', this.get("@syncing"));
+
         let multiple = this.get("multiple"),
             keyValue = this.get("keyValue"),
-            keyLabel = this.get("keyLabel"),
+            keyName = this.get("keyName"),
             value = this.get("value"),
             group = this.get("group"),
             groupKey = this.get("groupKey"),
@@ -232,10 +243,12 @@ class SelectRemote extends Widget {
         }).map((item) => {
             return {
                 id : item[keyValue],
-                text : item[keyLabel],
+                text : item[keyName],
                 selected : 1
             };
         });
+
+        console.log('data', data);
 
         let select2 = {
             data,
@@ -245,7 +258,7 @@ class SelectRemote extends Widget {
                 url : p.endpoint.uri(),
                 data: (params) => {
                     return {
-                        [keyLabel] : params.term
+                        [keyName] : params.term
                     };
                 },
                 processResults: (data) => {
@@ -276,6 +289,7 @@ class SelectRemote extends Widget {
         }
 
         this.element().select2(select2);
+        this.element().select2("refresh");
 
         return this;
     }
